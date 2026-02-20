@@ -139,7 +139,7 @@ export class DivisionTutor {
                         text: lang === 'es' ? `Casi... busca en la tabla del **${divisor}**. ¿${divisor} por cuánto da **${dividend}**?` : `Close... look at the **${divisor}** table. ${divisor} times what equals **${dividend}**?`,
                         speech: lang === 'es' ? `Revisa la tabla del ${divisor}.` : `Check the ${divisor} table.`,
                         visualType: "division",
-                        visualData: { ...(lastState || {}), divisionStyle: (lastState?.divisionStyle ?? style) },
+                        visualData: { ...(lastState || {}), divisionStyle: (lastState?.divisionStyle ?? style), isNew: false },
                         detailedExplanation: { es: "Error tabla multiplicar", en: "Times table error" }
                     }]
                 };
@@ -207,7 +207,8 @@ export class DivisionTutor {
                                 quotient: quotient + String(expectedDigit),
                                 phase: 'multiply',
                                 tempVal: { digit: expectedDigit },
-                                highlightDigit: { row: 0, col }
+                                highlightDigit: { row: 0, col },
+                                isNew: false
                             },
                             detailedExplanation: { es: "Cálculo cociente", en: "Quotient found" }
                         }]
@@ -243,7 +244,7 @@ export class DivisionTutor {
                             text: feedback + hint,
                             speech: lang === 'es' ? `¡Ah carachas! Piénsalo bien. ${feedback.split('.')[0]}.` : `Oops! Think about it, champ. ${feedback.split('.')[0]}.`,
                             visualType: "division",
-                            visualData: { ...lastState, context: boardHint, divisionStyle: lastState?.divisionStyle ?? style },
+                            visualData: { ...lastState, context: boardHint, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                             detailedExplanation: { es: "Error estimación cociente", en: "Quotient estimation error" }
                         }]
                     };
@@ -260,7 +261,7 @@ export class DivisionTutor {
                             : `Let's stay focused! 🚀\n\nWe are dividing **${currentVal}** by **${divisor}**. Look at the **${divisor}** table.\n\nWhat number can we multiply **${divisor}** by to get close to **${currentVal}** without going over?`,
                         speech: lang === 'es' ? `¿Cuántas veces cabe el ${divisor} en el ${currentVal}?` : `How many times does ${divisor} fit in ${currentVal}?`,
                         visualType: "division",
-                        visualData: { ...lastState, context: boardHint, divisionStyle: lastState?.divisionStyle ?? style },
+                        visualData: { ...lastState, context: boardHint, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                         detailedExplanation: { es: "Persistencia socrática - cociente", en: "Socratic persistence - quotient" }
                     }]
                 };
@@ -288,7 +289,8 @@ export class DivisionTutor {
                                 tempVal: { digit, product: expectedProd },
                                 product: String(expectedProd),
                                 helpers: [{ colIndex: 0, value: `-${expectedProd}` }],
-                                context: lang === 'es' ? 'Restar' : 'Subtract'
+                                context: lang === 'es' ? 'Restar' : 'Subtract',
+                                isNew: false
                             },
                             detailedExplanation: { es: "Multiplicación correcta", en: "Correct mult" }
                         }]
@@ -301,7 +303,7 @@ export class DivisionTutor {
                                 : `Hmm, close. Check the multiplication: What is **${digit} × ${divisor}**?`,
                             speech: lang === 'es' ? `¿Cuánto es ${digit} por ${divisor}?` : `What is ${digit} times ${divisor}?`,
                             visualType: "division",
-                            visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style },
+                            visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                             detailedExplanation: { es: "Error en multiplicación", en: "Mult error" }
                         }]
                     };
@@ -314,7 +316,7 @@ export class DivisionTutor {
                             : `Don't stop now! 💪\n\nFor the next step we need to multiply the quotient's **${digit}** by the divisor **${divisor}**.\n\nHow much is **${digit} × ${divisor}**?`,
                         speech: lang === 'es' ? `¿Cuánto es ${digit} por ${divisor}?` : `What is ${digit} times ${divisor}?`,
                         visualType: "division",
-                        visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style },
+                        visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                         detailedExplanation: { es: "Persistencia socrática - multiplicación", en: "Socratic persistence - multiplication" }
                     }]
                 };
@@ -344,7 +346,8 @@ export class DivisionTutor {
                                     visualData: {
                                         ...lastState,
                                         history: [...historyWork, { product: String(product), remainder: "0", columnIndex: col }],
-                                        highlight: "done"
+                                        highlight: "done",
+                                        isNew: false
                                     },
                                     detailedExplanation: { es: "Fin exacto", en: "Exact finish" }
                                 }]
@@ -366,7 +369,8 @@ export class DivisionTutor {
                                             highlightDigit: { row: 0, col: nextCol },
                                             product: undefined, // CLEANUP
                                             remainder: undefined, // CLEANUP
-                                            tempVal: undefined // CLEANUP
+                                            tempVal: undefined, // CLEANUP
+                                            isNew: false
                                         },
                                         detailedExplanation: { es: "Continuando decimales", en: "Continuing decimals" }
                                     }]
@@ -386,7 +390,8 @@ export class DivisionTutor {
                                             context: lang === 'es' ? `Terminar (residuo ${expectedRem}) o decimales` : `End (remainder ${expectedRem}) or decimals`,
                                             product: undefined, // CLEANUP
                                             remainder: undefined, // CLEANUP
-                                            tempVal: undefined // CLEANUP
+                                            tempVal: undefined, // CLEANUP
+                                            isNew: false
                                         },
                                         detailedExplanation: { es: "Decisión decimal", en: "Decimal decision" }
                                     }]
@@ -411,7 +416,8 @@ export class DivisionTutor {
                                     highlightDigit: { row: 0, col: nextCol },
                                     product: undefined,
                                     remainder: undefined,
-                                    tempVal: undefined
+                                    tempVal: undefined,
+                                    isNew: false
                                 },
                                 detailedExplanation: { es: "Bajando cifra", en: "Bring down" }
                             }]
@@ -425,7 +431,7 @@ export class DivisionTutor {
                                 : `Close! Check the subtraction. **${currentVal} − ${product}** = how much?`,
                             speech: lang === 'es' ? `Revisa la resta.` : `Check the subtraction.`,
                             visualType: "division",
-                            visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style },
+                            visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                             detailedExplanation: { es: "Error en resta", en: "Sub error" }
                         }]
                     };
@@ -438,7 +444,7 @@ export class DivisionTutor {
                             : `Come on, you can do it! 💪\n\nWe are subtracting what we already divided: **${currentVal} − ${product}**.\n\nWhat is the result?`,
                         speech: lang === 'es' ? `¿Cuánto es ${currentVal} menos ${product}?` : `What is ${currentVal} minus ${product}?`,
                         visualType: "division",
-                        visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style },
+                        visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                         detailedExplanation: { es: "Persistencia socrática - resta", en: "Socratic persistence - subtraction" }
                     }]
                 };
@@ -469,7 +475,8 @@ export class DivisionTutor {
                             divisionStyle: style,
                             highlightDigit: { row: 0, col: divStr.length },
                             decimalPhase: true,
-                            remainderWithZero: remainderWithZero
+                            remainderWithZero: remainderWithZero,
+                            isNew: false
                         },
                         detailedExplanation: { es: "Inicio decimales", en: "Start decimals" }
                     }]
@@ -482,7 +489,7 @@ export class DivisionTutor {
                             ? `¡Listo! **La división termina aquí.**\n\nResultado: cociente **${quotient}**, residuo **${finalRem}**.\n\n¡Excelente trabajo! 🚀`
                             : `Done! **The division ends here.**\n\nResult: quotient **${quotient}**, remainder **${finalRem}**.\n\nExcellent work! 🚀`,
                         visualType: "division",
-                        visualData: { ...lastState, highlight: "done", divisionStyle: lastState?.divisionStyle ?? style },
+                        visualData: { ...lastState, highlight: "done", divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                         speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} Terminamos por hoy, ¡lo hiciste increíble!` : `${getCorrectFeedback(lang, studentName)} We're done for today, you did amazing!`,
                         detailedExplanation: { es: "Fin con residuo", en: "End with remainder" }
                     }]
@@ -495,7 +502,7 @@ export class DivisionTutor {
                             : `What would you like to do? ✨\n\nType **"point"** to continue dividing with decimals or **"end"** to finish here with the remainder.`,
                         speech: lang === 'es' ? `Piénsalo bien: ¿Punto para seguir o fin para terminar?` : `Think about it, champ: Point to continue or end to finish?`,
                         visualType: "division",
-                        visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style },
+                        visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                         detailedExplanation: { es: "Decisión decimal persistente", en: "Persistent decimal decision" }
                     }]
                 };

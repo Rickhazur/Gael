@@ -327,37 +327,45 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
         }
     }
 
-    // PRIORIDAD 1: Suma de fracciones con kilómetros (3/4 km + 2/5 km, ¿cuántos en total?)
+    // PRIORIDAD 1: Suma de fracciones general (3/4 pizza + 2/5 pizza, 3/4 km + 2/5 km, ¿cuántos en total?)
     // Debe ir primero para no confundir con "dos números y total" (que tomaría 3 y 2 de 3/4 y 2/5)
-    const hasFractionAndKm = /\d+\s*\/\s*\d+/.test(t) && /kil[oó]metro|km/i.test(t) && (/\b(?:en\s+)?total\b|cuántos?\s+kil[oó]metros?/i.test(t) || /\btotal\b/i.test(t));
-    if (hasFractionAndKm) {
-        const fracKmMatch = t.match(/(\d+)\s*\/\s*(\d+)\s*(?:de\s+)?(?:kil[oó]metro|km)[\s\S]*?(?:y|and)[\s\S]*?(\d+)\s*\/\s*(\d+)\s*(?:de\s+)?(?:kil[oó]metro|km)/i);
-        if (fracKmMatch) {
-            const n1 = parseInt(fracKmMatch[1], 10);
-            const d1 = parseInt(fracKmMatch[2], 10);
-            const n2 = parseInt(fracKmMatch[3], 10);
-            const d2 = parseInt(fracKmMatch[4], 10);
+    const hasFractionGeneral = /\d+\s*\/\s*\d+/.test(t) && (/\b(?:en\s+)?total\b|cuánt[oa]s?\b|\bcomieron\b|\bquedan\b|\btotal\b/i.test(t));
+    if (hasFractionGeneral) {
+        // Regex que busca dos fracciones (num/den) separadas por palabras de unión
+        const fracMatch = t.match(/(\d+)\s*\/\s*(\d+)[\s\S]*?(?:y|and|más|plus|con)[\s\S]*?(\d+)\s*\/\s*(\d+)/i);
+        if (fracMatch) {
+            const n1 = parseInt(fracMatch[1], 10);
+            const d1 = parseInt(fracMatch[2], 10);
+            const n2 = parseInt(fracMatch[3], 10);
+            const d2 = parseInt(fracMatch[4], 10);
             if (d1 > 0 && d2 > 0 && n1 > 0 && n2 > 0) {
-                const f1 = `${fracKmMatch[1]}/${fracKmMatch[2]}`;
-                const f2 = `${fracKmMatch[3]}/${fracKmMatch[4]}`;
-                // Datos importantes para colorear en la pizarra (rojo = números/pregunta; otros = contexto)
-                const totalPhrase = (t.match(/\b(en\s+)?total\b/i)?.[0] || t.match(/cuántos?\s+kil[oó]metros?[^.?]*/i)?.[0]?.trim() || 'en total').trim();
+                const f1 = `${fracMatch[1]}/${fracMatch[2]}`;
+                const f2 = `${fracMatch[3]}/${fracMatch[4]}`;
+
+                // Datos importantes para colorear en la pizarra
+                const totalPhrase = (t.match(/\b(en\s+)?total\b/i)?.[0] || t.match(/cuánt[oa]s?[^.?]*/i)?.[0]?.trim() || 'en total').trim();
                 const highlights: { text: string; color: string }[] = [
-                    { text: f1, color: 'red' },
-                    { text: f2, color: 'red' },
+                    { text: f1, color: 'blue' },
+                    { text: f2, color: 'green' },
                     { text: totalPhrase, color: 'red' },
                 ];
+
+                // Detectar unidad (pizza, km, litros, etc.)
+                const unitMatch = t.match(/pizza|pastel|torta|tarta|litros?|L|kg|kilogramos?|km|kil[oó]metros?|metro|m\b/i);
+                const unit = unitMatch ? unitMatch[0] : 'unidades';
+                if (unitMatch) highlights.push({ text: unitMatch[0], color: 'purple' });
+
+                // Contexto temporal opcional
                 const mananaMatch = t.match(/por\s+la\s+mañana|mañana/i)?.[0];
                 if (mananaMatch) highlights.push({ text: mananaMatch.trim(), color: 'orange' });
                 const tardeMatch = t.match(/por\s+la\s+tarde|tarde/i)?.[0];
-                if (tardeMatch) highlights.push({ text: tardeMatch.trim(), color: 'purple' });
-                const kmMatch = t.match(/kil[oó]metros?|km/i)?.[0];
-                if (kmMatch) highlights.push({ text: kmMatch, color: 'blue' });
+                if (tardeMatch) highlights.push({ text: tardeMatch.trim(), color: 'orange' });
+
                 return {
                     type: 'add_fraction_quantities',
                     frac1: { num: n1, den: d1 },
                     frac2: { num: n2, den: d2 },
-                    unit: 'kilómetro',
+                    unit,
                     text: t,
                     highlights,
                 };

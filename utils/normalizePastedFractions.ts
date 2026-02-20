@@ -8,7 +8,16 @@ export function normalizePastedFractions(text: string): string {
         .replace(/\u2156/g, '2/5')   // ⅖
         .replace(/\u00BD/g, '1/2')   // ½
         .replace(/\u2153/g, '1/3')   // ⅓
-        .replace(/\u00BC/g, '1/4');  // ¼
+        .replace(/\u00BC/g, '1/4')   // ¼
+        .replace(/\u2154/g, '2/3')   // ⅔
+        .replace(/\u2151/g, '1/6')   // ⅙
+        .replace(/\u215B/g, '1/8')   // ⅛
+        .replace(/\u2152/g, '5/6');  // ⅚
+
+    // 🍕 GENERIC: "2 3 de pizza", "1 6 de pastel", "3 4 de km"
+    // Detects (Number) (Space) (Number) followed by " de " or units
+    out = out.replace(/(\d+)\s+(\d+)(?=\s*de\s+(?:una?|la|el|los|las|pizza|tarta|pastel|litro|kg|kil[oó]metro|torta|camino|recorrido|obra))/gi, '$1/$2');
+
     // "3 4 4 3" o "2 5 5 2" con espacios (num den den num) antes de "de kilómetro"
     out = out.replace(/(\d)\s+(\d)\s+\2\s+\1(?=\s*de\s+kil[oó]metro)/gi, '$1/$2');
     // "3443" / "2552" sin espacios antes de "de kilómetro"

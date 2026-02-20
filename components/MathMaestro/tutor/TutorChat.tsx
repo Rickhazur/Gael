@@ -1209,18 +1209,31 @@ const TutorChatComponent = (
                     <div className="relative flex items-center gap-3">
                         <div className="relative flex-1 min-w-0 group/input">
                             <div className="absolute inset-0 bg-cyan-500 rounded-2xl blur opacity-10 group-focus-within/input:opacity-30 transition-opacity duration-500" />
-                            <input
-                                type="text"
+                            <textarea
                                 value={inputText}
-                                onChange={(e) => setInputText(e.target.value)}
-                                onKeyDown={(e) => {
-                                    if (e.key === 'Enter') { e.preventDefault(); if (inputText.trim()) { internalAnalyzeText(inputText); setInputText(''); } }
-                                    else if (e.key === 'Escape') { e.preventDefault(); setInputText(''); }
+                                onChange={(e) => {
+                                    setInputText(e.target.value);
+                                    e.target.style.height = 'auto';
+                                    e.target.style.height = `${Math.min(e.target.scrollHeight, 200)}px`;
                                 }}
-                                placeholder={language === 'es' ? "Escribe tu respuesta aquí... (Enter enviar, Esc limpiar)" : "Type your answer here... (Enter send, Esc clear)"}
-                                className="w-full bg-slate-800/80 text-white placeholder-slate-400/70 border border-white/10 rounded-2xl px-6 py-6 focus:outline-none focus:border-cyan-500/50 focus:bg-slate-800 focus:ring-4 focus:ring-cyan-500/10 transition-all text-lg font-medium shadow-inner relative z-50 pointer-events-auto touch-manipulation min-h-[72px]"
+                                onKeyDown={(e) => {
+                                    if (e.key === 'Enter' && !e.shiftKey) {
+                                        e.preventDefault();
+                                        if (inputText.trim()) {
+                                            internalAnalyzeText(inputText);
+                                            setInputText('');
+                                            if (e.currentTarget) e.currentTarget.style.height = 'auto';
+                                        }
+                                    } else if (e.key === 'Escape') {
+                                        e.preventDefault();
+                                        setInputText('');
+                                        if (e.currentTarget) e.currentTarget.style.height = 'auto';
+                                    }
+                                }}
+                                placeholder={language === 'es' ? "Escribe o pega tu problema aquí... (Enter enviar, Shift+Enter nueva línea)" : "Type or paste your problem here... (Enter send, Shift+Enter new line)"}
+                                className="w-full bg-slate-800/80 text-white placeholder-slate-400/70 border border-white/10 rounded-2xl px-6 py-4 focus:outline-none focus:border-cyan-500/50 focus:bg-slate-800 focus:ring-4 focus:ring-cyan-500/10 transition-all text-lg font-medium shadow-inner relative z-50 pointer-events-auto touch-manipulation min-h-[72px] resize-none overflow-y-auto"
                                 autoComplete="off"
-                                disabled={false}
+                                rows={1}
                                 aria-label={language === 'es' ? "Campo de respuesta matemática" : "Math answer input"}
                             />
                         </div>

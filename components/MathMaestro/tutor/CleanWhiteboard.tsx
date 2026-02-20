@@ -111,24 +111,83 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
             }
             const regex = new RegExp(`(${highlightTexts.join('|')})`, 'gi');
             const parts = line.split(regex);
-            parts.forEach(part => {
+            const fractionRegex = /(\d+\/\d+)/g;
+            const subParts = line.split(regex);
+
+            subParts.forEach(part => {
                 if (!part) return;
+
+                // Further split by fractions if not already a highlight
                 const hlMatch = highlights.find(h => h.text && h.text.toLowerCase() === part.toLowerCase());
+
                 if (hlMatch) {
                     const colors = colorMap[hlMatch.color || 'default'] || colorMap.default;
                     ctx.save();
                     ctx.fillStyle = colors.fill;
                     ctx.shadowBlur = 12;
                     ctx.shadowColor = colors.shadow;
-                    ctx.fillText(part, currentX, y);
+
+                    // Even highlights can contain fractions
+                    if (part.includes('/')) {
+                        const fracs = part.split(/(\d+\/\d+)/g);
+                        fracs.forEach(fp => {
+                            if (/\d+\/\d+/.test(fp)) {
+                                currentX = drawMiniFrac(ctx, fp, currentX, y, baseFontSize, colors.fill);
+                            } else {
+                                ctx.fillText(fp, currentX, y);
+                                currentX += ctx.measureText(fp).width;
+                            }
+                        });
+                    } else {
+                        ctx.fillText(part, currentX, y);
+                        currentX += ctx.measureText(part).width;
+                    }
                     ctx.restore();
                 } else {
-                    ctx.fillStyle = "#1e293b";
-                    ctx.fillText(part, currentX, y);
+                    // Not a highlight, check for fractions
+                    const fracs = part.split(/(\d+\/\d+)/g);
+                    fracs.forEach(fp => {
+                        if (/\d+\/\d+/.test(fp)) {
+                            currentX = drawMiniFrac(ctx, fp, currentX, y, baseFontSize, "#1e293b");
+                        } else {
+                            ctx.fillStyle = "#1e293b";
+                            ctx.fillText(fp, currentX, y);
+                            currentX += ctx.measureText(fp).width;
+                        }
+                    });
                 }
-                currentX += ctx.measureText(part).width;
             });
         });
+
+        function drawMiniFrac(ctx: CanvasRenderingContext2D, fracStr: string, x: number, y: number, baseSize: number, color: string) {
+            const [n, d] = fracStr.split('/');
+            const scale = 0.65;
+            const miniFontSize = baseSize * scale;
+            ctx.save();
+            ctx.font = `bold ${miniFontSize}px 'Comic Sans MS', cursive, sans-serif`;
+            ctx.fillStyle = color;
+            ctx.textAlign = 'center';
+
+            const nW = ctx.measureText(n).width;
+            const dW = ctx.measureText(d).width;
+            const fracW = Math.max(nW, dW) + 10;
+            const cX = x + fracW / 2;
+
+            // Num
+            ctx.fillText(n, cX, y - miniFontSize * 0.5);
+            // Den
+            ctx.fillText(d, cX, y + miniFontSize * 0.5);
+            // Line
+            ctx.beginPath();
+            ctx.moveTo(x + 2, y);
+            ctx.lineTo(x + fracW - 2, y);
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            ctx.restore();
+            return x + fracW;
+        }
 
         return totalHeight + startY;
     };
@@ -1919,7 +1978,7 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
             // 🎯 PURE CENTERING LOGIC
             const divW = ctx.measureText(dividend).width;
             const dvrW = ctx.measureText(divisor).width;
-            const bracketW = 30 * finalScale;
+            const bracketW = Math.max(80 * finalScale, fontSize * 0.7);
             const totalOpW = divW + dvrW + bracketW;
 
             // Vertical Metrics
@@ -1967,24 +2026,27 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
                 ctx.fillText(dividend, startX, startY);
 
                 // 2. Draw Bracket L-Shape
-                const bracketX = startX + divW + (bracketW / 2);
+                const bracketX = startX + divW + 20; // Added clear margin
                 ctx.beginPath();
                 ctx.lineWidth = 6;
                 ctx.strokeStyle = "#1e293b";
                 ctx.lineCap = "round";
 
-                // Vertical line (Starting from top of numbers down to baseline + gap)
-                // From visual top (~startY - fontSize) to (startY + 15)
-                ctx.moveTo(bracketX, startY - fontSize + 5);
-                ctx.lineTo(bracketX, startY + 15);
+                // Vertical line (Starting from top of numbers down to baseline + extra height)
+                const vLineTop = startY - fontSize + 5;
+                const vLineBot = startY + fontSize * 1.2; // Longer vertical line
+                ctx.moveTo(bracketX, vLineTop);
+                ctx.lineTo(bracketX, vLineBot);
 
-                // Horizontal line (Strictly UNDER Divisor)
-                // Divisor is to the right. Line goes from bracketX to past divisor.
-                ctx.lineTo(bracketX + dvrW + 30, startY + 15);
+                // Horizontal line (Calculated width based on divisor or quotient)
+                const totalQW_val = ctx.measureText(quotient).width;
+                const horizontalW = Math.max(dvrW, totalQW_val) + 40;
+                ctx.moveTo(bracketX, startY + 15);
+                ctx.lineTo(bracketX + horizontalW, startY + 15);
                 ctx.stroke();
 
                 // 3. Draw Divisor (Right of vertical, Above horizontal)
-                const dvrX = bracketX + (bracketW / 2);
+                const dvrX = bracketX + 20;
                 if (highlight === 'divisor') drawHighlightBox(dvrX, startY, dvrW, fontSize, "Divisor");
                 ctx.fillStyle = highlight === 'divisor' ? "#f43f5e" : colors.divisor;
                 ctx.fillText(divisor, dvrX, startY);
@@ -1992,12 +2054,10 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
                 // 4. Draw Quotient (Strictly UNDER Horizontal Line)
                 if (quotient && quotient.trim() && quotient.trim() !== '_') {
                     const qChars = quotient.split('');
-                    const totalQW = ctx.measureText(quotient).width;
+                    const qTotalW = ctx.measureText(quotient).width;
 
-                    // Center align under divisor, but draw char-by-char for precise highlighting
-                    const qStartX = dvrX + (dvrW - totalQW) / 2;
-                    const qY = startY + fontSize + 25; // One row down
-
+                    const qStartX = dvrX; // Align with divisor start
+                    const qY = startY + fontSize + 15; // Adjusted spacing
                     let curX = qStartX;
 
                     qChars.forEach((char, idx) => {
