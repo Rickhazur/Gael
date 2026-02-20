@@ -1,0 +1,29 @@
+﻿­ƒÄÖ´©Å  Generating: test_feedback_excellent.mp3 -> "┬íExcelente! ┬íMuy bien resuelto!"
+­ƒöæ API Key: e2460b239a...
+­ƒÄñ Voice ID: VmejBeYhbrcTPwDniox7
+­ƒôª Request body: {"text":"┬íExcelente! ┬íMuy bien resuelto!","model_id":"eleven_multilingual_v2","voice_settings":{"stability":0.5,"similarity_boost":0.75}}
+­ƒîÉ Request URL: https://api.elevenlabs.io/v1/text-to-speech/VmejBeYhbrcTPwDniox7
+­ƒôí Status Code: 200
+­ƒôï Headers: {
+  "date": "Mon, 26 Jan 2026 15:52:21 GMT",
+  "server": "uvicorn",
+  "request-id": "tRT56hASc9FWDpDsmE5t",
+  "access-control-expose-headers": "request-id, history-item-id, character-cost, regeneration-count, generation-info, current-concurrent-requests, maximum-concurrent-requests",
+  "history-item-id": "6YG49gcYl6uHEmGiD03c",
+  "current-concurrent-requests": "1",
+  "maximum-concurrent-requests": "2",
+  "character-cost": "31",
+  "tts-latency-ms": "1003",
+  "content-length": "30137",
+  "content-type": "audio/mpeg",
+  "access-control-allow-origin": "*",
+  "access-control-allow-headers": "*",
+  "access-control-allow-methods": "POST, PATCH, OPTIONS, DELETE, GET, PUT",
+  "access-control-max-age": "600",
+  "strict-transport-security": "max-age=1800;",
+  "x-trace-id": "c2ac29685615c4a25f9d67e1b26e4cc0",
+  "x-region": "us-central1",
+  "via": "1.1 google",
+  "alt-svc": "h3=\":443\"; ma=2592000,h3-29=\":443\"; ma=2592000"
+}
+Ô£à Saved: test_feedback_excellent.mp3

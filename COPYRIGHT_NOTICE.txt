@@ -1,0 +1,11 @@
+/*
+ * Nova Schola - AI-Powered Educational Platform
+ * Copyright (c) 2026 [Tu Nombre/Empresa]
+ * All Rights Reserved.
+ * 
+ * This software is proprietary and confidential.
+ * Unauthorized copying, distribution, or use is strictly prohibited.
+ * 
+ * Patent Pending: [Número cuando lo solicites]
+ * Trademark: Nova Schola™
+ */

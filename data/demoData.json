@@ -1,0 +1,317 @@
+{
+
+    "student": {
+
+        "id": "demo-student-001",
+
+        "name": "Sofía Martínez",
+
+        "email": "sofia.demo@novaschola.com",
+
+        "grade": 3,
+
+        "avatar": {
+
+            "character": "girl_superhero",
+
+            "equippedAccessories": {
+
+                "head": "crown_gold",
+
+                "body": "cape_red"
+
+            },
+
+            "ownedAccessories": [
+
+                "crown_gold",
+
+                "cape_red",
+
+                "glasses_star",
+
+                "wand_magic"
+
+            ],
+
+            "coins": 450
+
+        },
+
+        "stats": {
+
+            "level": 5,
+
+            "totalXP": 1250,
+
+            "currentStreak": 7,
+
+            "longestStreak": 12,
+
+            "totalMissionsCompleted": 15,
+
+            "totalCoins": 450,
+
+            "accuracyRate": 87
+
+        }
+
+    },
+
+    "missions": [
+
+        {
+
+            "id": "mission-luna-001",
+
+            "title": "Investigación: El Ciclo del Agua (Para Luna)",
+
+            "subject": "Ciencias Naturales",
+
+            "description": "Luna necesita investigar cómo el agua viaja desde el mar hasta las nubes y vuelve a caer como lluvia.",
+
+            "dueDate": "2026-01-12T09:00:00",
+
+            "status": "pending",
+
+            "difficulty": "medium",
+
+            "estimatedTime": "20 min",
+
+            "xpReward": 150,
+
+            "coinReward": 60,
+
+            "source": "internal",
+
+            "tags": [
+
+                "investigación",
+
+                "luna",
+
+                "agua"
+
+            ]
+
+        },
+
+        {
+
+            "id": "mission-001",
+
+            "title": "Examen de Matemáticas - Fracciones y Decimales",
+
+            "subject": "Matemáticas",
+
+            "description": "Repaso completo de fracciones, decimales y operaciones básicas para el examen del viernes.",
+
+            "dueDate": "2026-01-15T14:00:00",
+
+            "status": "pending",
+
+            "difficulty": "medium",
+
+            "estimatedTime": "45 min",
+
+            "xpReward": 150,
+
+            "coinReward": 50,
+
+            "source": "google_classroom",
+
+            "tags": [
+
+                "examen",
+
+                "fracciones",
+
+                "matemáticas"
+
+            ]
+
+        },
+
+        {
+
+            "id": "mission-002",
+
+            "title": "Quiz de Ciencias Naturales - El Ciclo del Agua",
+
+            "subject": "Ciencias Naturales",
+
+            "description": "Estudiar las etapas del ciclo del agua: evaporación, condensación, precipitación.",
+
+            "dueDate": "2026-01-12T10:00:00",
+
+            "status": "pending",
+
+            "difficulty": "easy",
+
+            "estimatedTime": "30 min",
+
+            "xpReward": 100,
+
+            "coinReward": 30,
+
+            "source": "google_classroom",
+
+            "tags": [
+
+                "quiz",
+
+                "ciencias",
+
+                "agua"
+
+            ]
+
+        }
+
+    ],
+
+    "completedMissions": [
+
+        {
+
+            "id": "mission-006",
+
+            "title": "Tablas de Multiplicar del 6 al 9",
+
+            "subject": "Matemáticas",
+
+            "completedAt": "2026-01-07T14:20:00",
+
+            "score": 92,
+
+            "xpEarned": 100,
+
+            "coinsEarned": 35
+
+        }
+
+    ],
+
+    "flashcards": {
+
+        "activeDeck": {
+
+            "id": "deck-fracciones",
+
+            "title": "Fracciones y Decimales",
+
+            "subject": "Matemáticas",
+
+            "cards": [
+
+                {
+
+                    "id": "card-001",
+
+                    "front": "¿Qué es una fracción?",
+
+                    "back": "Una fracción representa una parte de un todo. Se escribe como a/b, donde 'a' es el numerador y 'b' es el denominador.",
+
+                    "correctCount": 2,
+
+                    "incorrectCount": 0
+
+                }
+
+            ],
+
+            "progress": {
+
+                "currentIndex": 3,
+
+                "reviewed": 3,
+
+                "correct": 2
+
+            }
+
+        }
+
+    },
+
+    "badges": [
+
+        {
+
+            "id": "first-quest",
+
+            "name": "Primer Paso",
+
+            "unlocked": true,
+
+            "unlockedAt": "2026-01-02T09:00:00"
+
+        }
+
+    ],
+
+    "arenaLeaderboard": [
+
+        {
+
+            "rank": 1,
+
+            "name": "Carlos Rodríguez",
+
+            "level": 6,
+
+            "xp": 1450,
+
+            "avatar": "boy_wizard"
+
+        },
+
+        {
+
+            "rank": 2,
+
+            "name": "Sofía Martínez",
+
+            "level": 5,
+
+            "xp": 1250,
+
+            "avatar": "girl_superhero",
+
+            "isCurrentUser": true
+
+        }
+
+    ],
+
+    "parentDashboard": {
+
+        "weeklyProgress": [],
+
+        "subjectPerformance": [],
+
+        "recentAlerts": [],
+
+        "aiRecommendations": []
+
+    },
+
+    "storeItems": [
+
+        {
+
+            "id": "crown_gold",
+
+            "name": "Corona Dorada",
+
+            "category": "head",
+
+            "price": 150,
+
+            "owned": true
+
+        }
+
+    ]
+
+}

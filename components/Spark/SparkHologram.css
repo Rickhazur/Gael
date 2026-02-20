@@ -1,0 +1,106 @@
+/* Hologram Effects for Spark Chat */
+.hologram-container {
+    position: relative;
+    overflow: hidden;
+    border-radius: 50%;
+    box-shadow: 0 0 50px rgba(34, 211, 238, 0.3);
+}
+
+.hologram-container::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%,
+            rgba(0, 0, 0, 0.1) 50%),
+        linear-gradient(90deg,
+            rgba(255, 0, 0, 0.03),
+            rgba(0, 255, 0, 0.01),
+            rgba(0, 0, 255, 0.03));
+    background-size: 100% 4px, 3px 100%;
+    pointer-events: none;
+    animation: scanlines-anim 0.2s linear infinite;
+    opacity: 0.4;
+    z-index: 10;
+}
+
+@keyframes scanlines-anim {
+    0% {
+        background-position: 0 0;
+    }
+
+    100% {
+        background-position: 0 4px;
+    }
+}
+
+.hologram-flicker {
+    animation: flicker 2s linear infinite;
+}
+
+@keyframes flicker {
+    0% {
+        opacity: 0.97;
+        transform: scale(1);
+    }
+
+    5% {
+        opacity: 0.95;
+        transform: scale(1.005);
+        filter: hue-rotate(5deg);
+    }
+
+    10% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+
+    15% {
+        opacity: 0.98;
+        transform: scale(0.99);
+    }
+
+    25% {
+        opacity: 0.95;
+        transform: scale(1.01);
+    }
+
+    30% {
+        opacity: 0.9;
+        transform: scale(1);
+    }
+
+    100% {
+        opacity: 0.98;
+        transform: scale(1);
+    }
+}
+
+.hologram-glow {
+    filter: drop-shadow(0 0 15px rgba(34, 211, 238, 0.6));
+}
+
+.glitch-effect {
+    animation: glitch 4s infinite;
+}
+
+@keyframes glitch {
+    0% {
+        transform: translate(0);
+    }
+
+    2% {
+        transform: translate(-2px, 2px);
+    }
+
+    4% {
+        transform: translate(2px, -2px);
+    }
+
+    6% {
+        transform: translate(0);
+    }
+
+    100% {
+        transform: translate(0);
+    }
+}

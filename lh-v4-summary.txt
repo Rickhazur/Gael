@@ -1,0 +1,26 @@
+﻿=== SCORES v4 (incognito, no extensions) ===
+Performance: 63
+Accessibility: 100
+Best Practices: 81
+SEO: 100
+
+=== FAILED ===
+[binary] is-on-https | score=0 | Does not use HTTPS
+[numeric] first-contentful-paint | score=0.11 | First Contentful Paint
+[numeric] largest-contentful-paint | score=0 | Largest Contentful Paint
+[numeric] speed-index | score=0.66 | Speed Index
+[numeric] interactive | score=0.17 | Time to Interactive
+[metricSavings] total-byte-weight | score=0.5 | Avoid enormous network payloads
+[metricSavings] unminified-javascript | score=0 | Minify JavaScript
+[metricSavings] unused-css-rules | score=0 | Reduce unused CSS
+[metricSavings] unused-javascript | score=0 | Reduce unused JavaScript
+[metricSavings] cache-insight | score=0 | Use efficient cache lifetimes
+[metricSavings] document-latency-insight | score=0.5 | Document request latency
+[numeric] network-dependency-tree-insight | score=0 | Network dependency tree
+[metricSavings] render-blocking-insight | score=0 | Render blocking requests
+
+=== FCP: 4825.5854ms ===
+=== LCP: 11760.770600000002ms ===
+=== TTI: 11760.770600000003ms ===
+=== TBT: 4.5ms ===
+

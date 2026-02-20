@@ -1,0 +1,13 @@
+﻿=== RENDER BLOCKING ===
+  url: http://localhost:3456/assets/index-BU9NrDSG.css  wastedMs: 1206
+
+=== UNUSED JS ===
+  url: http://localhost:3456/assets/vendor-ui-Cbt1Qxv4.js  wasted: 32406  total: 59754
+  url: http://localhost:3456/assets/index-Bx2tnOkK.js  wasted: 31306  total: 76676
+
+=== UNUSED CSS ===
+  url: http://localhost:3456/assets/index-BU9NrDSG.css  wasted: 48400  total: 50674
+
+=== UNMINIFIED JS ===
+  url: http://localhost:3456/assets/vendor-ui-Cbt1Qxv4.js  wasted: 10257  total: 59754
+

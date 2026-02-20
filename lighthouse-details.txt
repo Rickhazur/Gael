@@ -1,0 +1,43 @@
+﻿=== button-name ===
+Title: Buttons do not have an accessible name
+Score: 0
+Items count: 1
+  - snippet: <button class="md:hidden text-slate-600 hover:text-elite-blue transition-colors">
+
+=== color-contrast ===
+Title: Background and foreground colors do not have a sufficient contrast ratio.
+Score: 0
+Items count: 3
+  - snippet: <div class="inline-block px-4 py-1 rounded-full bg-elite-blue/10 text-elite-blue text-…">
+  - snippet: <span class="text-elite-cyan">
+  - snippet: <p class="text-orange-600 font-medium mb-6">
+
+=== heading-order ===
+Title: Heading elements are not in a sequentially-descending order
+Score: 0
+Items count: 1
+  - snippet: <h3 class="font-bold text-lg text-slate-800 mb-2">
+
+=== landmark-one-main ===
+Title: Document does not have a main landmark.
+Score: 0
+Items count: 1
+  - snippet: <html lang="es">
+
+=== robots-txt ===
+Title: robots.txt is not valid
+Score: 0
+Items count: 56
+  - snippet: 
+  - snippet: 
+  - snippet: 
+
+=== render-blocking-insight ===
+Title: Render blocking requests
+Score: 0
+Items count: 6
+  - snippet: 
+  - snippet: 
+  - snippet: 
+
+

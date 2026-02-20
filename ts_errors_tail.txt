@@ -1,0 +1,50 @@
+﻿services/openai.ts(2158,43): error TS18048: 'lastAssistantMsg' is possibly 'undefined'.
+services/openai.ts(2178,44): error TS18047: 'fitMatch' is possibly 'null'.
+services/openai.ts(2179,50): error TS18047: 'fitMatch' is possibly 'null'.
+services/openai.ts(2182,62): error TS18047: 'fullDivMatch' is possibly 'null'.
+services/openai.ts(2185,42): error TS18047: 'divMatch' is possibly 'null'.
+services/openai.ts(2187,44): error TS18047: 'divMatch' is possibly 'null'.
+services/openai.ts(2189,71): error TS18047: 'digitsMatch' is possibly 'null'.
+services/openai.ts(2213,57): error TS18047: 'pMatch' is possibly 'null'.
+services/openai.ts(2261,60): error TS18047: 'qMatch' is possibly 'null'.
+services/openai.ts(2337,43): error TS18048: 'lastAssistantMsg' is possibly 'undefined'.
+services/openai.ts(2364,59): error TS18047: 'drawMatch' is possibly 'null'.
+services/openai.ts(2365,59): error TS18047: 'drawMatch' is possibly 'null'.
+services/openai.ts(2554,62): error TS18047: 'm' is possibly 'null'.
+services/openai.ts(2554,89): error TS18047: 'm' is possibly 'null'.
+services/openai.ts(2608,47): error TS18047: 'addMatch' is possibly 'null'.
+services/openai.ts(2609,47): error TS18047: 'addMatch' is possibly 'null'.
+services/openai.ts(2650,58): error TS18048: 'lastAssistantMsg' is possibly 'undefined'.
+services/openai.ts(2650,109): error TS18048: 'lastAssistantMsg' is possibly 'undefined'.
+services/openai.ts(2651,53): error TS18047: 'productMatch' is possibly 'null'.
+services/openai.ts(2654,38): error TS18048: 'lastAssistantMsg' is possibly 'undefined'.
+services/openai.ts(2656,44): error TS18047: 'prevNums' is possibly 'null'.
+services/openai.ts(2657,44): error TS18047: 'prevNums' is possibly 'null'.
+services/openai.ts(2665,60): error TS18049: 'divisorMatch' is possibly 'null' or 'undefined'.
+services/openai.ts(2666,66): error TS18049: 'divisorMatch' is possibly 'null' or 'undefined'.
+services/openai.ts(2701,47): error TS18047: 'subMatch' is possibly 'null'.
+services/openai.ts(2702,47): error TS18047: 'subMatch' is possibly 'null'.
+services/openai.ts(2710,50): error TS18048: 'divisionContext' is possibly 'undefined'.
+services/openai.ts(2712,63): error TS18047: 'divMatch' is possibly 'null'.
+services/openai.ts(2713,62): error TS18047: 'divMatch' is possibly 'null'.
+services/openai.ts(2784,47): error TS18047: 'mulMatch' is possibly 'null'.
+services/openai.ts(2785,47): error TS18047: 'mulMatch' is possibly 'null'.
+services/openai.ts(2837,46): error TS18047: 'fractionMatch' is possibly 'null'.
+services/openai.ts(2838,46): error TS18047: 'fractionMatch' is possibly 'null'.
+services/openai.ts(2858,60): error TS18047: 'prevFrac' is possibly 'null'.
+services/openai.ts(2859,60): error TS18047: 'prevFrac' is possibly 'null'.
+services/openai.ts(2932,50): error TS18047: 'percentMatch' is possibly 'null'.
+services/openai.ts(2933,48): error TS18047: 'percentMatch' is possibly 'null'.
+services/openai.ts(3011,47): error TS18047: 'dimensionMatch' is possibly 'null'.
+services/openai.ts(3012,47): error TS18047: 'dimensionMatch' is possibly 'null'.
+services/serviceWorkerHelper.ts(134,8): error TS2551: Property 'updateServiceWorker' does not exist on type 'Window & typeof globalThis'. Did you mean 'ServiceWorker'?
+services/serviceWorkerHelper.ts(146,8): error TS2339: Property 'dismissUpdateNotification' does not exist on type 'Window & typeof globalThis'.
+services/teacherReports.ts(94,47): error TS18047: 'supabase' is possibly 'null'.
+services/teacherReports.ts(142,44): error TS18047: 'supabase' is possibly 'null'.
+services/teacherReports.ts(382,41): error TS18047: 'supabase' is possibly 'null'.
+services/teacherReports.ts(388,41): error TS18047: 'supabase' is possibly 'null'.
+services/teacherReports.ts(423,15): error TS18047: 'supabase' is possibly 'null'.
+services/teacherReports.ts(530,48): error TS18047: 'supabase' is possibly 'null'.
+test_algo.ts(6,7): error TS7034: Variable 'history' implicitly has type 'any[]' in some locations where its type cannot be determined.
+test_algo.ts(12,65): error TS7005: Variable 'history' implicitly has an 'any[]' type.
+utils/webVitals.ts(33,24): error TS2339: Property 'onFID' does not exist on type 'typeof import("C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/node_modules/web-vitals/dist/modules/index")'.

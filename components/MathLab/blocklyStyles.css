@@ -1,0 +1,26 @@
+/* Blockly Workspace Tweaks - Transparent Integration */
+.blocklySvg {
+    background-color: transparent !important;
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    /* Overlay mode */
+}
+
+/* Ensure the grid behind shows through */
+.injectionDiv {
+    background-color: transparent !important;
+}
+
+.blocklyToolboxDiv {
+    background-color: #f8fafc !important;
+    /* Slate-50 */
+    border-right: 1px solid #e2e8f0;
+    opacity: 0.95;
+}
+
+.blocklyTreeLabel {
+    color: #475569 !important;
+    font-family: 'Nunito', sans-serif !important;
+    font-weight: 700;
+}

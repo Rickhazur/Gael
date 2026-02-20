@@ -1,0 +1,9 @@
+Para que se vea la imagen de la camiseta Colombia en la Tienda Nova:
+
+1. Guarda la imagen de la camiseta (amarilla, #7, Adidas) en esta misma carpeta.
+2. Nómbrala exactamente: jersey_colombia_7.png
+   (o jersey_colombia_7.jpg si tu imagen es JPG)
+3. Recarga la Tienda Nova en la app (F5 o recargar la página).
+
+Ruta completa de esta carpeta en tu proyecto:
+  public/avatars/jerseys/

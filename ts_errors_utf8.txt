@@ -1,0 +1,98 @@
+﻿components/MathMaestro/tutor/TutorChat.tsx(1,8): error TS1259: Module '"C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/node_modules/@types/react/index"' can only be default-imported using the 'esModuleInterop' flag
+components/MathMaestro/tutor/TutorChat.tsx(3,28): error TS6142: Module './LinaAvatar' was resolved to 'C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/components/MathMaestro/tutor/LinaAvatar.tsx', but '--jsx' is not set.
+components/MathMaestro/tutor/TutorChat.tsx(4,32): error TS6142: Module './RachelleAvatar' was resolved to 'C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/components/MathMaestro/tutor/RachelleAvatar.tsx', but '--jsx' is not set.
+components/MathMaestro/tutor/TutorChat.tsx(5,24): error TS2307: Cannot find module '@/components/ui/button' or its corresponding type declarations.
+components/MathMaestro/tutor/TutorChat.tsx(9,36): error TS6142: Module './CelebrationOverlay' was resolved to 'C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/components/MathMaestro/tutor/CelebrationOverlay.tsx', but '--jsx' is not set.
+components/MathMaestro/tutor/TutorChat.tsx(10,27): error TS6142: Module './ShopModal' was resolved to 'C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/components/MathMaestro/tutor/ShopModal.tsx', but '--jsx' is not set.
+components/MathMaestro/tutor/TutorChat.tsx(11,34): error TS6142: Module './GamificationBar' was resolved to 'C:/Users/devel/OneDrive/Desktop/Nova-Schola-Elementary-main/components/MathMaestro/tutor/GamificationBar.tsx', but '--jsx' is not set.
+components/MathMaestro/tutor/TutorChat.tsx(13,31): error TS2307: Cannot find module '@/context/PetContext' or its corresponding type declarations.
+components/MathMaestro/tutor/TutorChat.tsx(20,8): error TS2307: Cannot find module '@/services/mathValidator' or its corresponding type declarations.
+components/MathMaestro/tutor/TutorChat.tsx(52,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(63,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(576,9): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(577,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(588,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(599,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(600,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(602,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(603,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(604,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(614,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(615,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(617,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(624,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(632,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(633,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(634,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(638,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(639,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(640,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(647,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(649,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(651,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(652,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(653,37): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(654,37): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(655,41): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(656,45): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(659,45): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(662,41): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(669,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(670,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(671,37): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(672,41): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(674,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(676,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(682,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(683,37): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(684,41): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(686,45): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(687,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(688,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(694,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(695,53): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(703,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(704,53): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(710,45): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(711,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(716,53): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(717,84): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(717,120): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(722,49): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(724,57): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(730,61): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(731,61): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(747,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(748,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(749,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(750,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(751,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(752,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(753,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(755,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(761,13): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(762,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(763,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(769,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(773,17): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(779,21): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(780,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(781,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(782,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(793,25): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(794,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(801,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(806,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(809,29): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+components/MathMaestro/tutor/TutorChat.tsx(814,33): error TS17004: Cannot use JSX unless the '--jsx' flag is provided.
+services/elevenlabs.ts(51,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+services/elevenlabs.ts(51,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+services/elevenlabs.ts(56,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+services/elevenlabs.ts(56,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+services/gemini.ts(3,17): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+services/gemini.ts(3,29): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+services/openai.ts(9,20): error TS1343: The 'import.meta' meta-property is only allowed when the '--module' option is 'es2020', 'es2022', 'esnext', 'system', 'node16', 'node18', 'node20', or 'nodenext'.
+services/openai.ts(9,32): error TS2339: Property 'env' does not exist on type 'ImportMeta'.
+services/openai.ts(434,50): error TS1501: This regular expression flag is only available when targeting 'es6' or later.
+services/openai.ts(435,48): error TS1501: This regular expression flag is only available when targeting 'es6' or later.
+services/openai.ts(2382,57): error TS2802: Type 'RegExpStringIterator<RegExpExecArray>' can only be iterated through when using the '--downlevelIteration' flag or with a '--target' of 'es2015' or higher.

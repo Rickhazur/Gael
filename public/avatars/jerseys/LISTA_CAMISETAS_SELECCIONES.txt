@@ -1,0 +1,37 @@
+Camisetas de selecciones – nombres exactos de archivo
+(Pon cada imagen en esta carpeta: public/avatars/jerseys/)
+Estilo: vista frontal plana, como la de Colombia #7 (amarilla, número, escudo, Adidas).
+
+SELECCIONES – JUGADORES FAMOSOS (nuevas)
+-----------------------------------------
+jersey_brasil_neymar.jpg       Brasil - Neymar #10
+jersey_brasil_vinicius.jpg     Brasil - Vinicius Jr #7
+jersey_francia_mbappe.jpg      Francia - Mbappé #10
+jersey_espana_morata.jpg       España - Morata #7
+jersey_espana_pedri.jpg        España - Pedri #8
+jersey_alemania_musiala.jpg    Alemania - Musiala #10
+jersey_inglaterra_kane.jpg     Inglaterra - Kane #9
+jersey_inglaterra_bellingham.jpg  Inglaterra - Bellingham #10
+jersey_uruguay_valverde.jpg    Uruguay - Valverde #15
+jersey_uruguay_nunez.jpg       Uruguay - Núñez #9
+jersey_mexico_lozano.jpg       México - Lozano #22
+jersey_chile_sanchez.jpg       Chile - Sánchez #7
+jersey_ecuador_valencia.jpg    Ecuador - Valencia #13
+jersey_peru_guerrero.jpg       Perú - Guerrero #9
+jersey_venezuela_rondon.jpg    Venezuela - Rondón #23
+jersey_usa_pulisic.jpg         USA - Pulisic #10
+jersey_costa_rica_navas.jpg    Costa Rica - Keylor Navas #1
+jersey_holanda_gakpo.jpg       Holanda - Gakpo #11
+jersey_belgica_debruyne.jpg    Bélgica - De Bruyne #7
+jersey_italia.jpg              Italia - Selección #3
+
+YA EN EL CATÁLOGO (si tienes imagen, usa este nombre)
+-----------------------------------------------------
+jersey_colombia_7.png (o .jpg)   Colombia - Selección #7
+jersey_argentina_messi.jpg       Argentina - Messi #10
+jersey_portugal_ronaldo.jpg      Portugal - Ronaldo #7
+jersey_madrid.jpg                Real Madrid - Mbappé #10
+jersey_city.jpg                  Man City - Haaland #9
+jersey_bayern.jpg                Bayern - Kane #9
+bayern_lucho.jpg                 Bayern - Luis Díaz #7
+(jersey_alnassr, jersey_barca, jersey_liverpool, etc.)

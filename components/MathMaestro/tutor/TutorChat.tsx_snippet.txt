@@ -1,0 +1,46 @@
+            } else if (vType === 'text_command' && step.visualData?.instruction) {
+                const instr = step.visualData.instruction;
+                if (instr.startsWith('DRAW_ADD:')) {
+                    const [_, n1, n2, res, cry] = instr.split(':');
+                    onDrawVerticalOp?.(n1, n2, res === '_' ? '' : res, '+', cry === '_' ? '' : cry, step.highlight);
+                } else if (instr.startsWith('DRAW_SUB:')) {
+                    const [_, n1, n2, res] = instr.split(':');
+                    onDrawVerticalOp?.(n1, n2, res === '_' ? '' : res, '-', '', step.highlight);
+                } else if (instr.startsWith('DRAW_MUL:')) {
+                    const [_, n1, n2, res] = instr.split(':');
+                    onDrawVerticalOp?.(n1, n2, res === '_' ? '' : res, '×', '', step.highlight);
+                } else if (instr.startsWith('DRAW_DIV:')) {
+                    const [_, div, divisor, q, p, r] = instr.split(':');
+                    onDrawDivisionStep?.(div, divisor, q === '_' ? '' : q, p === '_' ? '' : p, r === '_' ? '' : r, step.highlight, divisionStyle || 'us');
+                } else if (instr.startsWith('DRAW_BLOCKS:')) {
+                    const val = parseInt(instr.split(':')[1]);
+                    onDrawBase10Blocks?.(val);
+                } else if (instr.startsWith('OP:DATA:')) {
+                    const [_, __, n1, n2, kw] = instr.split(':');
+                    onDrawText?.(`${n1} y ${n2} (${kw})`, [{ text: kw, color: 'orange' }]);
+                }
+            } else if (onDrawVerticalOp) {
+                // Handles addition, subtraction, multiplication
+                if (step.visualData && (Array.isArray(step.visualData.operands) || step.visualData.operand1)) {
+                    // Pass through all visual data to the board
+                    const v = step.visualData;
+                    // FIX: Ensure operator is passed correctly (step.operator might be undefined, fallback to v.operator)
+                    const operatorToUse = step.operator || v.operator || '+';
+                    const resultToUse = step.result || v.result || '';
+
+                    onDrawVerticalOp(
+                        v.operands || v.operand1,
+                        v.operand2,
+                        resultToUse,
+                        operatorToUse,
+                        step.carry || v.carry,
+                        step.highlight || v.highlight,
+                        v.borrows,
+                        v.helpers,
+                        v
+                    );
+                } else {
+                    // Fallback
+                    onDrawVerticalOp(step.operand1, step.operand2, step.result, step.operator || '+', step.carry, step.highlight);
+                }
+            }

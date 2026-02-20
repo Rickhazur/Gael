@@ -1,0 +1,6 @@
+﻿VITE_SUPABASE_URL=your_supabase_url
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_ELEVENLABS_API_KEY=your_elevenlabs_key
+VITE_GOOGLE_CLIENT_ID=your_google_client_id
+VITE_GOOGLE_CLIENT_SECRET=your_google_client_secret
+VITE_GOOGLE_REDIRECT_URI=http://localhost:5173/api/google/callback

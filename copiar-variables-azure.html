@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Copiar variables Azure</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      max-width: 520px;
+      margin: 40px auto;
+      padding: 24px;
+      background: #f8fafc;
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      color: #1e293b;
+      margin-bottom: 16px;
+    }
+
+    .var {
+      margin-bottom: 12px;
+    }
+
+    .var label {
+      display: block;
+      font-size: 0.75rem;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .var code {
+      font-size: 0.8rem;
+      background: #e2e8f0;
+      padding: 2px 6px;
+      border-radius: 4px;
+    }
+
+    pre {
+      background: #1e293b;
+      color: #e2e8f0;
+      padding: 16px;
+      border-radius: 8px;
+      font-size: 0.8rem;
+      overflow-x: auto;
+      margin: 16px 0;
+      line-height: 1.6;
+    }
+
+    button {
+      background: #0ea5e9;
+      color: white;
+      border: none;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      width: 100%;
+    }
+
+    button:hover {
+      background: #0284c7;
+    }
+
+    button:active {
+      transform: scale(0.98);
+    }
+
+    .ok {
+      color: #22c55e;
+      font-size: 0.9rem;
+      margin-top: 12px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Variables de Azure para Vercel</h1>
+  <p style="color:#64748b;font-size:0.9rem;">Haz clic en el botón para copiar al portapapeles:</p>
+  <pre id="vars">VITE_AZURE_SPEECH_KEY=your_azure_key
+VITE_AZURE_REGION=eastus</pre>
+  <button id="btn">Copiar al portapapeles</button>
+  <p id="msg" class="ok" style="display:none;">Copiado.</p>
+  <script>
+    document.getElementById('btn').onclick = function () {
+      const text = document.getElementById('vars').textContent;
+      navigator.clipboard.writeText(text).then(function () {
+        const msg = document.getElementById('msg');
+        msg.style.display = 'block';
+        msg.textContent = 'Copiado. Pega en Vercel → Settings → Environment Variables.';
+        setTimeout(function () { msg.style.display = 'none'; }, 3000);
+      });
+    };
+  </script>
+</body>
+
+</html>

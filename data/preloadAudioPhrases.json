@@ -1,0 +1,11 @@
+[
+  { "text": "You're flying!", "path": "rachelle/feedback_flying.mp3", "voice": "rachelle" },
+  { "text": "Very good!", "path": "rachelle/feedback_very_good.mp3", "voice": "rachelle" },
+  { "text": "You did it!", "path": "rachelle/feedback_you_did_it.mp3", "voice": "rachelle" },
+  { "text": "That's it!", "path": "rachelle/feedback_thats_it.mp3", "voice": "rachelle" },
+  { "text": "Super!", "path": "rachelle/feedback_super.mp3", "voice": "rachelle" },
+  { "text": "Incredible!", "path": "rachelle/feedback_incredible.mp3", "voice": "rachelle" },
+  { "text": "Keep it up!", "path": "rachelle/feedback_keep_it_up.mp3", "voice": "rachelle" },
+  { "text": "Bravo!", "path": "rachelle/feedback_bravo.mp3", "voice": "rachelle" },
+  { "text": "Exactly!", "path": "rachelle/feedback_exactly.mp3", "voice": "rachelle" }
+]

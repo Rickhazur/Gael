@@ -1,0 +1,169 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap');
+
+@layer base {
+  :root {
+    --background: 220 30% 97%;
+    --foreground: 230 25% 18%;
+
+    --card: 0 0% 100%;
+    --card-foreground: 230 25% 18%;
+
+    --popover: 0 0% 100%;
+    --popover-foreground: 230 25% 18%;
+
+    --primary: 210 100% 56%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 270 60% 70%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 220 20% 94%;
+    --muted-foreground: 220 10% 50%;
+
+    --accent: 45 100% 70%;
+    --accent-foreground: 45 80% 25%;
+
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 210 40% 98%;
+
+    --border: 220 20% 90%;
+    --input: 220 20% 90%;
+    --ring: 210 100% 56%;
+
+    --radius: 1rem;
+
+    /* Custom colors for subjects */
+    --math-gradient-start: 210 100% 94%;
+    --math-gradient-end: 260 80% 94%;
+    --math-accent: 210 100% 56%;
+
+    --science-gradient-start: 45 100% 94%;
+    --science-gradient-end: 35 100% 88%;
+    --science-accent: 45 90% 50%;
+
+    --humanities-gradient-start: 270 70% 94%;
+    --humanities-gradient-end: 290 60% 92%;
+    --humanities-accent: 270 70% 60%;
+
+    --languages-gradient-start: 180 70% 92%;
+    --languages-gradient-end: 200 80% 94%;
+    --languages-accent: 175 80% 45%;
+
+    --arts-gradient-start: 340 70% 94%;
+    --arts-gradient-end: 20 80% 94%;
+    --arts-accent: 340 80% 65%;
+
+    /* Button gradients */
+    --btn-primary-start: 210 100% 56%;
+    --btn-primary-end: 175 80% 50%;
+  }
+
+  .dark {
+    --background: 230 25% 10%;
+    --foreground: 220 20% 95%;
+
+    --card: 230 25% 14%;
+    --card-foreground: 220 20% 95%;
+
+    --popover: 230 25% 14%;
+    --popover-foreground: 220 20% 95%;
+
+    --primary: 210 100% 60%;
+    --primary-foreground: 230 25% 10%;
+
+    --secondary: 270 60% 65%;
+    --secondary-foreground: 230 25% 10%;
+
+    --muted: 230 20% 20%;
+    --muted-foreground: 220 15% 65%;
+
+    --accent: 45 100% 65%;
+    --accent-foreground: 45 80% 15%;
+
+    --destructive: 0 62.8% 50%;
+    --destructive-foreground: 0 0% 100%;
+
+    --border: 230 20% 20%;
+    --input: 230 20% 20%;
+    --ring: 210 100% 60%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground font-nunito;
+  }
+}
+
+@layer components {
+  .card-math {
+    background: linear-gradient(135deg, hsl(var(--math-gradient-start)), hsl(var(--math-gradient-end)));
+  }
+  
+  .card-science {
+    background: linear-gradient(135deg, hsl(var(--science-gradient-start)), hsl(var(--science-gradient-end)));
+  }
+  
+  .card-humanities {
+    background: linear-gradient(135deg, hsl(var(--humanities-gradient-start)), hsl(var(--humanities-gradient-end)));
+  }
+  
+  .card-languages {
+    background: linear-gradient(135deg, hsl(var(--languages-gradient-start)), hsl(var(--languages-gradient-end)));
+  }
+  
+  .card-arts {
+    background: linear-gradient(135deg, hsl(var(--arts-gradient-start)), hsl(var(--arts-gradient-end)));
+  }
+
+  .btn-gradient {
+    background: linear-gradient(135deg, hsl(var(--btn-primary-start)), hsl(var(--btn-primary-end)));
+  }
+
+  .icon-container {
+    @apply w-14 h-14 rounded-2xl flex items-center justify-center;
+  }
+
+  .icon-math {
+    @apply bg-white/80;
+    color: hsl(var(--math-accent));
+  }
+
+  .icon-science {
+    @apply bg-white/80;
+    color: hsl(var(--science-accent));
+  }
+
+  .icon-humanities {
+    @apply bg-white/80;
+    color: hsl(var(--humanities-accent));
+  }
+
+  .icon-languages {
+    @apply bg-white/80;
+    color: hsl(var(--languages-accent));
+  }
+
+  .icon-arts {
+    @apply bg-white/80;
+    color: hsl(var(--arts-accent));
+  }
+}
+
+@layer utilities {
+  .animate-hover-lift {
+    @apply transition-all duration-300 ease-out;
+  }
+  
+  .animate-hover-lift:hover {
+    @apply -translate-y-1 shadow-xl;
+  }
+}

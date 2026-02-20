@@ -1,0 +1,32 @@
+﻿url: https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap
+wastedMs: 917
+
+url: https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap
+wastedMs: 
+
+url: https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&display=swap
+wastedMs: 160
+
+url: http://localhost:3456/assets/index-DSzdS-CG.css
+wastedMs: 1820
+
+url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=zHN4VAR5wAqwtzBv4OKu0aKR3GkZITjOCtm1QFi6PfZSSa0_3e7-nKCEhySdNBrZ
+wastedMs: 5411
+
+url: http://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cDovL2xvY2FsaG9zdDozNDU2Lw
+wastedMs: 5862
+
+=== unused-javascript ===
+url: http://localhost:3456/assets/index-rkOljrq8.js
+wastedBytes: 462417
+totalBytes: 665441
+
+url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=zHN4VAR5wAqwtzBv4OKu0aKR3GkZITjOCtm1QFi6PfZSSa0_3e7-nKCEhySdNBrZ
+wastedBytes: 126721
+totalBytes: 198922
+
+url: https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js
+wastedBytes: 53213
+totalBytes: 81984
+
+

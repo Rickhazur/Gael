@@ -1,0 +1,26 @@
+﻿=== RENDER BLOCKING ===
+  url: http://localhost:3456/assets/index-CcO6K7sb.css  wastedMs: 1819
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=ucjM2MhzSfJIWBWw_Agco00kDX8qRWek4jrUbPoCAnGQuVzp6ocd1RdKKlUCIOFk  wastedMs: 3907
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cDovL2xvY2FsaG9zdDozNDU2Lw  wastedMs: 4208
+
+=== UNUSED JS ===
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=ucjM2MhzSfJIWBWw_Agco00kDX8qRWek4jrUbPoCAnGQuVzp6ocd1RdKKlUCIOFk  wasted: 126769  total: 198922
+  url: http://localhost:3456/assets/vendor-ui-Cbt1Qxv4.js  wasted: 32406  total: 59754
+  url: http://localhost:3456/assets/index-Bfr377u8.js  wasted: 31310  total: 76687
+
+=== UNUSED CSS ===
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cDovL2xvY2FsaG9zdDozNDU2Lw  wasted: 221227  total: 221227
+  url: http://localhost:3456/assets/index-CcO6K7sb.css  wasted: 46915  total: 49063
+  url: .adszone,.adtc,.adtech,.adtech-ad-widget,.adtech-banner,.adtech-boxad,.adtech-copy,.adtech-video-2,…  wasted: 12414  total: 12414
+  url: #AC_ad,#AD_160,#AD_300,#AD_468x60,#AD_G,#AD_L,#AD_ROW,#AD_Top,#AD_text,#ADbox,#Ad-3-Slider,#Ad-4-Sl…  wasted: 11580  total: 11580
+  url: #story3-container.py-2.bg-gray-100,#story4-container.py-2.bg-gray-100,#story5-container.py-2.bg-gra…  wasted: 11234  total: 11234
+
+=== UNMINIFIED JS ===
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=ucjM2MhzSfJIWBWw_Agco00kDX8qRWek4jrUbPoCAnGQuVzp6ocd1RdKKlUCIOFk  wasted: 71328  total: 198922
+  url: http://localhost:3456/assets/vendor-ui-Cbt1Qxv4.js  wasted: 10257  total: 59754
+
+=== FCP: 4911.005300000001ms ===
+=== LCP: 11769.7036ms ===
+=== TTI: 11769.7036ms ===
+=== TBT: 0ms ===
+

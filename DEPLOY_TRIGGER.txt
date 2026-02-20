@@ -1,0 +1,4 @@
+NOVA SCHOLA - DEPLOYMENT TRIGGER
+Timestamp: 2026-01-08T16:21:07-05:00
+Force Deploy: TRUE
+Reason: Fix Vercel not picking up CleanWhiteboard changes.

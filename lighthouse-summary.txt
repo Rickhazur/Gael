@@ -1,0 +1,30 @@
+﻿=== SCORES ===
+Performance: 53
+Accessibility: 82
+Best Practices: 81
+SEO: 91
+
+=== FAILED AUDITS ===
+[binary] is-on-https | score=0 | Does not use HTTPS
+[numeric] first-contentful-paint | score=0 | First Contentful Paint
+[numeric] largest-contentful-paint | score=0 | Largest Contentful Paint
+[numeric] speed-index | score=0.14 | Speed Index
+[numeric] total-blocking-time | score=0.89 | Total Blocking Time
+[numeric] max-potential-fid | score=0.86 | Max Potential First Input Delay
+[numeric] interactive | score=0.01 | Time to Interactive
+[metricSavings] mainthread-work-breakdown | score=0 | Minimize main-thread work
+[binary] valid-source-maps | score=0 | Missing source maps for large first-party JavaScript
+[binary] button-name | score=0 | Buttons do not have an accessible name
+[binary] color-contrast | score=0 | Background and foreground colors do not have a sufficient contrast ratio.
+[binary] heading-order | score=0 | Heading elements are not in a sequentially-descending order
+[binary] landmark-one-main | score=0 | Document does not have a main landmark.
+[metricSavings] total-byte-weight | score=0.5 | Avoid enormous network payloads
+[metricSavings] unminified-javascript | score=0 | Minify JavaScript
+[metricSavings] unused-css-rules | score=0 | Reduce unused CSS
+[metricSavings] unused-javascript | score=0 | Reduce unused JavaScript
+[binary] robots-txt | score=0 | robots.txt is not valid
+[metricSavings] cache-insight | score=0 | Use efficient cache lifetimes
+[metricSavings] document-latency-insight | score=0.5 | Document request latency
+[numeric] network-dependency-tree-insight | score=0 | Network dependency tree
+[metricSavings] render-blocking-insight | score=0 | Render blocking requests
+

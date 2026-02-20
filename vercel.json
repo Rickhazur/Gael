@@ -1,0 +1,22 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/sync-classroom",
+            "schedule": "0 6 * * *"
+        },
+        {
+            "path": "/api/cron/send-daily-reports",
+            "schedule": "0 20 * * *"
+        }
+    ],
+    "rewrites": [
+        {
+            "source": "/api/google/callback",
+            "destination": "/index.html"
+        },
+        {
+            "source": "/(.*)",
+            "destination": "/index.html"
+        }
+    ]
+}

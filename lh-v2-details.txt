@@ -1,0 +1,13 @@
+﻿=== BEST PRACTICES DETAIL ===
+  [0] is-on-https - Does not use HTTPS
+
+=== RENDER BLOCKING ===
+  url: http://localhost:3456/assets/index-Djqf_z2d.css  wastedMs: 2266
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=bFtmr-55v8yr6zj7rJ3XGmeHn__89PU7BnLTR1bzC-ztYRDW_Bh3QHIXL2W_bs0V  wastedMs: 4659
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/E3E8934C-235A-4B0E-825A-35A08381A191/abn/main.css?attr=aHR0cDovL2xvY2FsaG9zdDozNDU2Lw  wastedMs: 4959
+
+=== UNUSED JS ===
+  url: http://localhost:3456/assets/index-rm1_AHjL.js  wasted: 403075  total: 558549
+  url: http://gc.kis.v2.scr.kaspersky-labs.com/FD126C42-EBFA-4E12-B309-BB3FDD723AC1/main.js?attr=bFtmr-55v8yr6zj7rJ3XGmeHn__89PU7BnLTR1bzC-ztYRDW_Bh3QHIXL2W_bs0V  wasted: 126769  total: 198922
+  url: http://localhost:3456/assets/vendor-ui-B8cThIeW.js  wasted: 32400  total: 59743
+

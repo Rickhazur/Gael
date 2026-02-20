@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Test Audio</title>
+</head>
+
+<body>
+    <h1>Test Research Center Audio</h1>
+    <button onclick="playAudio()">Click to Play Audio</button>
+
+    <script>
+        function playAudio() {
+            const audio = new Audio('/audio/station/research_greeting_es.mp3');
+            audio.play().then(() => {
+                console.log('Audio playing successfully');
+            }).catch((error) => {
+                console.error('Audio play failed:', error);
+                alert('Error: ' + error.message);
+            });
+        }
+    </script>
+</body>
+
+</html>

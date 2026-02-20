@@ -1,0 +1,27 @@
+﻿=== FINAL SCORES ===
+Performance: 74
+Accessibility: 100
+Best Practices: 100
+SEO: 100
+
+=== METRICS ===
+FCP: 2512ms
+LCP: 6473ms
+TTI: 6473ms
+TBT: 0ms
+CLS: 0.045150366526788756
+SI: 2512ms
+
+=== REMAINING FAILED AUDITS ===
+[numeric] first-contentful-paint | score=0.67 | First Contentful Paint
+[numeric] largest-contentful-paint | score=0.09 | Largest Contentful Paint
+[numeric] speed-index | score=0.98 | Speed Index
+[numeric] cumulative-layout-shift | score=0.99 | Cumulative Layout Shift
+[numeric] interactive | score=0.59 | Time to Interactive
+[metricSavings] unminified-javascript | score=0 | Minify JavaScript
+[metricSavings] unused-css-rules | score=0 | Reduce unused CSS
+[metricSavings] unused-javascript | score=0 | Reduce unused JavaScript
+[metricSavings] cache-insight | score=0 | Use efficient cache lifetimes
+[numeric] network-dependency-tree-insight | score=0 | Network dependency tree
+[metricSavings] render-blocking-insight | score=0 | Render blocking requests
+
