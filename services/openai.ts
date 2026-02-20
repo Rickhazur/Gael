@@ -1,5 +1,5 @@
 
-import { withTimeoutAndRetry } from "../lib/apiUtils";
+import { withTimeoutAndRetry, safeParseJSON } from "../lib/apiUtils";
 
 const API_KEY = typeof import.meta !== 'undefined'
     ? (import.meta.env?.VITE_OPENAI_API_KEY || '')
@@ -56,12 +56,9 @@ export async function callOpenAI(
         );
 
         if (jsonMode) {
-            try {
-                return JSON.parse(responseText);
-            } catch (e) {
-                console.error("JSON Parse Error on OpenAI response:", responseText);
-                throw e;
-            }
+            const parsed = safeParseJSON(responseText, 'OpenAI');
+            if (parsed === null) throw new Error("JSON inválido de OpenAI");
+            return parsed;
         }
         return responseText;
     } catch (error) {

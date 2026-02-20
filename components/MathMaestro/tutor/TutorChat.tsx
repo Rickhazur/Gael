@@ -820,8 +820,16 @@ const TutorChatComponent = (
                 }
             }
             const errorMsg = isGeminiUnavailable
-                ? (language === 'es' ? "No tengo conexión con el asistente avanzado. Prueba con una operación simple como **25 + 18** o **48 ÷ 6**." : "No connection to the advanced assistant. Try a simple operation like **25 + 18** or **48 ÷ 6**.")
-                : (language === 'es' ? "Lo siento, tuve un problema al procesar tu pregunta. ¿Puedes repetirla?" : "Sorry, I had trouble processing your question. Can you try again?");
+                ? (language === 'es'
+                    ? (String(error?.message || '').includes('429')
+                        ? "🧠 ¡Ups! He trabajado mucho y necesito un pequeño descanso. Pero mientras tanto, ¡probemos con una operación! Escribe algo como **25 + 18** o **48 ÷ 6** y la resolvemos juntos 💪"
+                        : "🧠 ¡Ups! Mi cerebrito se desconectó un momentito. Pero no te preocupes, ¡sigo aquí! Prueba con una operación como **25 + 18** o **48 ÷ 6** y la resolvemos paso a paso 😊")
+                    : (String(error?.message || '').includes('429')
+                        ? "🧠 Oops! I've been working hard and need a tiny break. But meanwhile, let's try an operation! Type something like **25 + 18** or **48 ÷ 6** and we'll solve it together 💪"
+                        : "🧠 Oops! My brain disconnected for a moment. But don't worry, I'm still here! Try an operation like **25 + 18** or **48 ÷ 6** and we'll solve it step by step 😊"))
+                : (language === 'es'
+                    ? "🤔 Hmm, no entendí bien esa pregunta. ¿Me la puedes escribir de otra forma? ¡O prueba con un ejercicio de mates! 📝"
+                    : "🤔 Hmm, I didn't quite understand that question. Can you write it differently? Or try a math exercise! 📝");
             addMessage('nova', errorMsg);
         } finally {
             setIsThinking(false);

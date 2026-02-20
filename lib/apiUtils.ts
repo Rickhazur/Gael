@@ -89,3 +89,68 @@ export async function withTimeoutAndRetry<T>(
     { maxRetries, label }
   );
 }
+
+/**
+ * 🛡️ JSON GUARDRAIL: Safely parse AI-generated JSON with automatic repair.
+ * Handles common AI output issues: truncated JSON, markdown fences, 
+ * trailing commas, unmatched brackets, etc.
+ * Returns null if the JSON is truly unrecoverable.
+ */
+export function safeParseJSON<T = any>(raw: string, label: string = 'AI'): T | null {
+  if (!raw || typeof raw !== 'string') return null;
+
+  // Step 1: Strip markdown code fences (```json ... ```)
+  let cleaned = raw.replace(/```json\s*\n?/gi, '').replace(/```\s*$/g, '').trim();
+
+  // Step 2: Extract JSON object/array if surrounded by text
+  const jsonStartObj = cleaned.indexOf('{');
+  const jsonStartArr = cleaned.indexOf('[');
+  const jsonStart = jsonStartObj >= 0 && jsonStartArr >= 0
+    ? Math.min(jsonStartObj, jsonStartArr)
+    : Math.max(jsonStartObj, jsonStartArr);
+  if (jsonStart > 0) {
+    cleaned = cleaned.substring(jsonStart);
+  }
+
+  // Step 3: Try direct parse first
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch (_) {
+    // Continue to repair
+  }
+
+  // Step 4: Remove trailing commas before } or ]
+  cleaned = cleaned.replace(/,\s*([\]}])/g, '$1');
+
+  // Step 5: Fix truncated JSON - close unmatched brackets
+  let openBraces = 0, openBrackets = 0;
+  let inString = false, escaped = false;
+  for (const ch of cleaned) {
+    if (escaped) { escaped = false; continue; }
+    if (ch === '\\') { escaped = true; continue; }
+    if (ch === '"') { inString = !inString; continue; }
+    if (inString) continue;
+    if (ch === '{') openBraces++;
+    if (ch === '}') openBraces--;
+    if (ch === '[') openBrackets++;
+    if (ch === ']') openBrackets--;
+  }
+
+  // Close unclosed strings
+  if (inString) cleaned += '"';
+
+  // Remove trailing incomplete key-value (e.g., `"key": ` with no value)
+  cleaned = cleaned.replace(/,?\s*"[^"]*"\s*:\s*$/g, '');
+
+  // Close unmatched brackets
+  for (let i = 0; i < openBrackets; i++) cleaned += ']';
+  for (let i = 0; i < openBraces; i++) cleaned += '}';
+
+  // Step 6: Retry parse
+  try {
+    return JSON.parse(cleaned) as T;
+  } catch (e) {
+    console.warn(`🛡️ ${label} JSON repair failed. Raw (first 200 chars):`, raw.substring(0, 200));
+    return null;
+  }
+}

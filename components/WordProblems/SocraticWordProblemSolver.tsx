@@ -4,7 +4,8 @@ import { LinaAvatar } from '../MathMaestro/tutor/LinaAvatar';
 import { edgeTTS } from '@/services/edgeTTS';
 import { callDeepSeek } from '@/services/deepseek';
 import { callGeminiSocratic } from '@/services/gemini';
-import { Brain, Zap, Loader2, BookOpen, Trophy, CheckCircle2, ArrowRight } from 'lucide-react';
+import { callOpenAI } from '@/services/openai';
+import { Brain, Zap, Loader2, BookOpen, Trophy, CheckCircle2, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 
 interface SocraticQuestion {
   id: string;
@@ -103,9 +104,10 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
 
   const [highlightedData, setHighlightedData] = useState<string[]>([]);
   const [userAnswers, setUserAnswers] = useState<Record<string, string>>({});
-  const [currentInput, setCurrentInput] = useState(''); // Separate input state - does NOT trigger validation
-  // Track HINT LEVEL for each question (0=none, 1=first hint, 2=second...)
+  const [currentInput, setCurrentInput] = useState('');
   const [hintLevel, setHintLevel] = useState<Record<string, number>>({});
+  // 🧠 PROFESSOR: Track consecutive errors per question for adaptive scaffolding
+  const [consecutiveErrors, setConsecutiveErrors] = useState<Record<string, number>>({});
 
   const showNextHint = (questionId: string) => {
     setHintLevel(prev => {
@@ -114,14 +116,22 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
     });
   };
   const [isCompleted, setIsCompleted] = useState(false);
-  const [feedback, setFeedback] = useState<string | null>(null); // Show feedback text
+  const [feedback, setFeedback] = useState<string | null>(null);
+
+  const [analysisError, setAnalysisError] = useState<string | null>(null);
+
+  // 🎓 PROFESSOR: Detect frustration/emotional distress patterns
+  const detectFrustration = (input: string): boolean => {
+    const t = input.trim().toLowerCase();
+    return /no\s+(entiendo|puedo|se|sé)\s+(nada|esto|hacerlo)|es\s+(muy|demasiado)\s+dif[ií]cil|me\s+rindo|odio|esto\s+no\s+sirve|no\s+me\s+gusta|estoy\s+cansad[oa]|ya\s+no\s+quiero|es\s+imposible|no\s+puedo\s+más|i\s+give\s+up|too\s+hard|i\s+hate|impossible/i.test(t);
+  };
 
   // --- BRAIN: ANALYZE PROBLEM USING AI ---
-  useEffect(() => {
-    const analyzeProblem = async () => {
-      setIsAnalyzing(true);
-      try {
-        const systemPrompt = `
+  const analyzeProblem = async () => {
+    setIsAnalyzing(true);
+    setAnalysisError(null);
+    try {
+      const systemPrompt = `
           Eres Lina, una tutora experta en el método socrático para niños de primaria. 
           Genera un plan de tutoría socrática en 3 misiones.
           Misión 1: Extraer datos (Personajes, cantidades, acciones).
@@ -162,37 +172,65 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
           IMPORTANTE: "expectedAnswer" SIEMPRE debe ser un array de strings con posibles respuestas aceptables.
         `;
 
-        let response;
-        try {
-          response = await callDeepSeek(systemPrompt, [], `Analiza este problema: "${problem}"`, true);
-        } catch (e) {
+      let response;
+      try {
+        response = await callDeepSeek(systemPrompt, [], `Analiza este problema: "${problem}"`, true);
+      } catch (e: any) {
+        if (e.message?.includes("VITE_DEEPSEEK_API_KEY")) {
+          console.log("ℹ️ DeepSeek API key no encontrada, saltando al siguiente proveedor.");
+        } else {
           console.warn("DeepSeek falló o dio timeout, intentando con Gemini como respaldo...", e);
+        }
+
+        try {
           response = await callGeminiSocratic(systemPrompt, [], `Analiza este problema: "${problem}"`, 'es', true);
+        } catch (gemIniError) {
+          console.warn("Gemini falló (posible límite de cuota), intentando con OpenAI como último recurso...", gemIniError);
+          try {
+            response = await callOpenAI(systemPrompt, [], `Analiza este problema: "${problem}"`, true);
+          } catch (openAiError) {
+            console.error("Todos los proveedores de IA fallaron.");
+            throw new Error("No pudimos analizar el problema en este momento. Por favor verifica tu conexión o las claves API.");
+          }
         }
-
-        if (response && response.problemData) {
-          setDynamicProblemData(response.problemData);
-          // Normalize expectedAnswer to always be an array AND hints to be an array
-          const normalize = (questions: any[]) => (questions || []).map((q: any) => ({
-            ...q,
-            expectedAnswer: Array.isArray(q.expectedAnswer) ? q.expectedAnswer : [String(q.expectedAnswer)],
-            hints: Array.isArray(q.hints) ? q.hints : (q.hint ? [q.hint] : ["Piensa en la pregunta..."])
-          }));
-          setDynamicMissions({
-            m1: normalize(response.m1),
-            m2: normalize(response.m2),
-            m3: normalize(response.m3)
-          });
-        }
-      } catch (error) {
-        console.error("Error analyzing problem:", error);
-      } finally {
-        setIsAnalyzing(false);
       }
-    };
 
+      if (response && response.problemData) {
+        setDynamicProblemData(response.problemData);
+        // Normalize expectedAnswer to always be an array AND hints to be an array
+        const normalizeQ = (questions: any[]) => (questions || []).map((q: any) => ({
+          ...q,
+          expectedAnswer: Array.isArray(q.expectedAnswer) ? q.expectedAnswer : [String(q.expectedAnswer)],
+          hints: Array.isArray(q.hints) ? q.hints : (q.hint ? [q.hint] : ["Piensa en la pregunta..."])
+        }));
+        setDynamicMissions({
+          m1: normalizeQ(response.m1),
+          m2: normalizeQ(response.m2),
+          m3: normalizeQ(response.m3)
+        });
+      } else {
+        throw new Error("El análisis del problema no produjo datos válidos. Reintenta en unos segundos.");
+      }
+    } catch (error: any) {
+      console.error("Error analyzing problem:", error);
+      setAnalysisError(error.message || "Error desconocido al analizar");
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  useEffect(() => {
     analyzeProblem();
   }, [problem]);
+
+  const getCurrentQuestions = () => {
+    switch (currentMission) {
+      case 1: return dynamicMissions.m1;
+      case 2: return dynamicMissions.m2;
+      case 3: return dynamicMissions.m3;
+      default: return [];
+    }
+  };
 
   // --- Lina speaks the current question when step/mission changes ---
   useEffect(() => {
@@ -204,15 +242,6 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
       setFeedback(null);
     }
   }, [currentMission, currentStep, dynamicMissions]);
-
-  const getCurrentQuestions = () => {
-    switch (currentMission) {
-      case 1: return dynamicMissions.m1;
-      case 2: return dynamicMissions.m2;
-      case 3: return dynamicMissions.m3;
-      default: return [];
-    }
-  };
 
   // Only called when pressing "Verificar" button
   const handleVerify = () => {
@@ -226,23 +255,67 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
       return;
     }
 
+    // 🎓 PROFESSOR: Check for frustration BEFORE validation
+    if (detectFrustration(answer)) {
+      const empathyMessages = [
+        '💛 **¡Tranquilo/a!** Esto no es una carrera. Vamos a hacerlo juntos, paso a paso. Mira las pistas de abajo 👇',
+        '🤗 **¡Respira hondo!** Todos nos trabamos a veces. Mira: te voy a dar una pista más fácil...',
+        '💪 **¡No te rindas!** Los mejores detectives se equivocan muchas veces antes de resolver el caso. ¡Tú puedes!'
+      ];
+      const msg = empathyMessages[Math.floor(Math.random() * empathyMessages.length)];
+      setFeedback(msg);
+      edgeTTS.speak('Tranquilo, vamos paso a paso. Mira las pistas.', 'lina');
+      // Auto-reveal next hint to reduce their frustration
+      const currentLevel = hintLevel[currentQuestion.id] || 0;
+      if (currentLevel < (currentQuestion.hints?.length || 1)) {
+        showNextHint(currentQuestion.id);
+      }
+      return;
+    }
+
     setUserAnswers(prev => ({ ...prev, [currentQuestion.id]: answer }));
 
     const expectedAnswers = Array.isArray(currentQuestion.expectedAnswer)
       ? currentQuestion.expectedAnswer
       : [String(currentQuestion.expectedAnswer)];
 
-    // SMART VALIDATION: Check using normalized text and stems
     const isCorrect = checkAnswer(answer, expectedAnswers);
 
     if (isCorrect) {
-      setFeedback('✅ ¡Correcto!');
+      // 🎓 PROFESSOR: Celebrate the PROCESS, not just the result
+      const processCelebrations = [
+        '✅ ¡Excelente razonamiento! Pensaste como un detective matemático 🕵️',
+        '✅ ¡Muy bien! Me encanta cómo analizaste el problema 🧠✨',
+        '✅ ¡Correcto! Eso demuestra que entiendes la lógica del problema 💡',
+        '✅ ¡Genial! Tu estrategia fue perfecta 🎯'
+      ];
+      setFeedback(processCelebrations[Math.floor(Math.random() * processCelebrations.length)]);
+      setConsecutiveErrors(prev => ({ ...prev, [currentQuestion.id]: 0 }));
       handleCorrectAnswer(currentQuestion);
     } else {
-      setFeedback('❌ Intenta de nuevo.');
-      edgeTTS.speak("Intenta de nuevo. Mira la pista para ayudarte.", 'lina');
+      const errCount = (consecutiveErrors[currentQuestion.id] || 0) + 1;
+      setConsecutiveErrors(prev => ({ ...prev, [currentQuestion.id]: errCount }));
 
-      // Auto-show next hint on error if not already showing max
+      // 🎓 PROFESSOR: After 3 errors, give the answer with explanation (never leave them stuck)
+      if (errCount >= 3) {
+        const correctAnswer = expectedAnswers[0];
+        setFeedback(`💡 No te preocupes. La respuesta es: **${correctAnswer}**. A veces lo más importante es entender el camino. ¡Sigamos adelante!`);
+        edgeTTS.speak(`La respuesta es ${correctAnswer}. No pasa nada, sigamos.`, 'lina');
+        // Auto-advance after showing the answer
+        setTimeout(() => handleCorrectAnswer(currentQuestion), 2500);
+        return;
+      }
+
+      // 🎓 PROFESSOR: Socratic counter-question instead of cold "try again"
+      const counterQuestions = [
+        `🤔 Casi... Mira la pista de abajo e intenta de nuevo. ¿Qué datos ves en el problema?`,
+        `🔍 No del todo... Vuelve a leer la pregunta. ¿Qué parte te confunde?`,
+        `💭 Hmm, no es esa. Piensa: ¿qué información del problema nos ayuda aquí?`
+      ];
+      setFeedback(counterQuestions[Math.min(errCount - 1, counterQuestions.length - 1)]);
+      edgeTTS.speak('No del todo. Mira la pista para ayudarte.', 'lina');
+
+      // Auto-show next hint on error
       const currentLevel = hintLevel[currentQuestion.id] || 0;
       if (currentLevel < (currentQuestion.hints?.length || 1)) {
         showNextHint(currentQuestion.id);
@@ -330,6 +403,26 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
     );
   }
 
+  if (analysisError) {
+    return (
+      <div className="flex flex-col items-center justify-center p-12 bg-red-50 backdrop-blur-xl rounded-[3rem] border-4 border-red-100 shadow-2xl text-center">
+        <AlertCircle className="w-20 h-20 text-red-500 mb-6" />
+        <h2 className="text-2xl font-black text-red-800 mb-2">¡Ups! Lina está distraída</h2>
+        <p className="text-red-600 mb-8 max-w-md italic">
+          "{analysisError.includes('429') || analysisError.toLowerCase().includes('quota')
+            ? "He trabajado mucho hoy y necesito un breve descanso (límite de cuota). ¿Intentamos de nuevo en unos segundos?"
+            : "Parece que hubo un problema técnico al analizar el problema. ¿Quieres reintentar?"}"
+        </p>
+        <button
+          onClick={() => analyzeProblem()}
+          className="flex items-center gap-3 px-8 py-4 bg-red-600 hover:bg-red-700 text-white rounded-2xl font-black transition-all shadow-xl hover:scale-105 active:scale-95"
+        >
+          <RefreshCw size={20} /> REINTENTAR ANÁLISIS
+        </button>
+      </div>
+    );
+  }
+
   if (isCompleted) {
     return (
       <motion.div
@@ -361,6 +454,39 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
               <CheckCircle2 className="text-green-500" size={28} />
               RESUMEN DE TU DESCUBRIMIENTO
             </h4>
+
+            {/* 🎓 PROFESSOR: Learning Journey Summary */}
+            {(() => {
+              const totalQuestions = dynamicMissions.m1.length + dynamicMissions.m2.length + dynamicMissions.m3.length;
+              const totalHintsUsed = Object.values(hintLevel).reduce((sum, v) => sum + v, 0);
+              const totalErrors = Object.values(consecutiveErrors).reduce((sum, v) => sum + v, 0);
+              return (
+                <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-2xl p-5 mb-6 border-2 border-purple-100">
+                  <p className="text-sm font-bold text-purple-700 mb-3">🗺️ Tu Viaje de Aprendizaje:</p>
+                  <div className="grid grid-cols-3 gap-3 text-center">
+                    <div>
+                      <p className="text-2xl font-black text-purple-600">{totalQuestions}</p>
+                      <p className="text-[10px] font-bold text-purple-400 uppercase">Preguntas resueltas</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-yellow-500">{totalHintsUsed}</p>
+                      <p className="text-[10px] font-bold text-yellow-500 uppercase">Pistas usadas</p>
+                    </div>
+                    <div>
+                      <p className="text-2xl font-black text-green-500">{totalErrors === 0 ? '🌟' : '💪'}</p>
+                      <p className="text-[10px] font-bold text-green-500 uppercase">
+                        {totalErrors === 0 ? '¡Perfecto!' : 'Perseverancia'}
+                      </p>
+                    </div>
+                  </div>
+                  {totalErrors > 0 && (
+                    <p className="text-xs text-purple-500 mt-3 italic text-center">
+                      "Te equivocaste {totalErrors} {totalErrors === 1 ? 'vez' : 'veces'} pero no te rendiste. Eso es lo más valioso." — Lina 💜
+                    </p>
+                  )}
+                </div>
+              );
+            })()}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
               <div className="bg-blue-50 p-4 rounded-2xl border-2 border-blue-100">

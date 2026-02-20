@@ -1,5 +1,5 @@
 
-import { withTimeoutAndRetry } from "../lib/apiUtils";
+import { withTimeoutAndRetry, safeParseJSON } from "../lib/apiUtils";
 
 const API_KEY = typeof import.meta !== 'undefined'
     ? (import.meta.env?.VITE_DEEPSEEK_API_KEY || '').trim()
@@ -43,9 +43,9 @@ export async function callDeepSeek(
             const data = await res.json();
             let content = data.choices[0].message.content;
             if (jsonMode) {
-                // Strip markdown code blocks if present
-                content = content.replace(/```json\n?|```/g, '').trim();
-                return JSON.parse(content);
+                const parsed = safeParseJSON(content, 'DeepSeek');
+                if (parsed === null) throw new Error("JSON inválido de DeepSeek");
+                return parsed;
             }
             return content;
         },

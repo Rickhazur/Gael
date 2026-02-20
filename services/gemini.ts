@@ -1,5 +1,5 @@
 
-import { withTimeoutAndRetry } from "../lib/apiUtils";
+import { withTimeoutAndRetry, safeParseJSON } from "../lib/apiUtils";
 
 const API_KEY = typeof import.meta !== 'undefined'
     ? (import.meta.env?.VITE_GEMINI_API_KEY || import.meta.env?.VITE_GOOGLE_GEMINI_API_KEY || '').trim()
@@ -42,7 +42,7 @@ export async function callGeminiSocratic(
     }
 
     // LISTA DE MODELOS A INTENTAR (v1beta endpoint)
-    const MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite"];
+    const MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
 
     async function tryGemini(modelName: string) {
         // v1beta soporta response_mime_type para JSON mode
@@ -89,8 +89,9 @@ export async function callGeminiSocratic(
                 try {
                     const textResult = await tryGemini(model);
                     if (jsonMode) {
-                        const cleanText = textResult.replace(/```json\n?|```/g, '').trim();
-                        return JSON.parse(cleanText);
+                        const parsed = safeParseJSON(textResult, `Gemini-${model}`);
+                        if (parsed === null) throw new Error(`JSON inválido de ${model}`);
+                        return parsed;
                     }
                     return textResult;
                 } catch (e) {
@@ -145,8 +146,9 @@ export async function callGeminiVision(
 
             const data = await res.json();
             const textResult = data.candidates[0].content.parts[0].text;
-            const cleanText = textResult.replace(/```json\n?|```/g, '').trim();
-            return JSON.parse(cleanText);
+            const parsed = safeParseJSON(textResult, 'Gemini-Vision');
+            if (parsed === null) throw new Error('JSON inválido de Gemini Vision');
+            return parsed;
         },
         { timeoutMs: 60_000, maxRetries: 2, label: "Gemini-Vision" }
     );
