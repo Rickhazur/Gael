@@ -436,6 +436,17 @@ const STORE_ITEMS = [
         color: 'bg-zinc-800 border-zinc-600',
         type: 'jersey',
         dept: 'custom'
+    },
+    {
+        id: 'acc_jersey_nova_stellar',
+        name: 'Jersey Nova Stellar ✨',
+        nameEn: 'Nova Stellar Jersey',
+        description: '¡El poder de las estrellas en tu diseño Élite! Brilla como ningún otro.',
+        price: 4500,
+        icon: '/avatars/jerseys/Gemini_Generated_Image_vdc3nivdc3nivdc3.png',
+        color: 'bg-indigo-50 border-indigo-200',
+        type: 'jersey',
+        dept: 'custom'
     }
 ];
 
@@ -451,7 +462,7 @@ interface PrizeStoreProps {
 
 export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
     const { coins, savingsBalance, spendCoins, xp, withdrawCoinsFromBank } = useGamification();
-    const { buyAccessory, equipAccessory, ownedAccessories, deleteAccessory, userId, deletedCatalogItems, hideFromCatalog } = useAvatar();
+    const { buyAccessory, equipAccessory, ownedAccessories, deleteAccessory, userId, deletedCatalogItems, hideFromCatalog, userRole } = useAvatar();
     const [activeTab, setActiveTab] = useState<'avatar_shop' | 'general_shop' | 'trophies' | 'inventory' | 'family'>(() =>
         demoData?.openStore ? 'avatar_shop' : 'avatar_shop'
     );
@@ -908,8 +919,8 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                                         )}
                                                     </div>
 
-                                                    {/* PILOT ADMIN: HIDE FROM CATALOG FOREVER */}
-                                                    {userId === 'test-pilot-quinto' && (
+                                                    {/* ADMIN/PILOT: HIDE FROM CATALOG FOREVER */}
+                                                    {(userId === 'test-pilot-quinto' || userRole === 'ADMIN') && (
                                                         <div className="absolute top-4 left-4 z-50">
                                                             <Button
                                                                 size="icon"

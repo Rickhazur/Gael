@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Smartphone, ShieldCheck, Eye, EyeOff, Globe, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { registerStudent } from '../services/supabase';
-import { Toaster, toast } from 'sonner';
+import { toast } from 'sonner';
 import { AvatarDisplay } from './Gamification/AvatarDisplay';
 
 interface LoginPageProps {
@@ -42,6 +42,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
     const [showParentPassword, setShowParentPassword] = useState(false);
     const [showStudentPassword, setShowStudentPassword] = useState(false);
     const [isHabeasAccepted, setIsHabeasAccepted] = useState(false);
+    const [regStep, setRegStep] = useState(1); // 1: Parent, 2: Child, 3: WhatsApp, 4: Consent
 
     const [savedAvatarId, setSavedAvatarId] = useState<string | null>(() => {
         return localStorage.getItem('nova_avatar_id');
@@ -137,6 +138,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                 });
 
                 if (result.success) {
+                    setRegStep(1); // Reset step on success
+
                     // Opcional: conectar Moodle en segundo plano (sin que el niño tenga que hacer nada)
                     if (formData.connectMoodle && formData.moodleUrl?.trim() && formData.moodleUsername?.trim() && formData.moodlePassword?.trim() && result.user?.id) {
                         try {
@@ -274,112 +277,226 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                             ESTUDIANTE
                         </button>
                         <button
-                            onClick={() => { setMode('PARENT'); setIsRegistering(false); }}
+                            onClick={() => { setMode('PARENT'); setIsRegistering(false); setRegStep(1); }}
                             className={`flex-1 py-3 text-xs font-black relative z-10 transition-colors ${mode === 'PARENT' ? 'text-white' : 'text-slate-500'}`}
                         >
                             PADRES
                         </button>
                     </div>
 
+                    {/* Step Indicator (Only for Parent Registration) */}
+                    {isRegistering && mode === 'PARENT' && (
+                        <div className="flex justify-between mb-4 px-2">
+                            {[1, 2, 3, 4].map((s) => (
+                                <div
+                                    key={s}
+                                    className={`h-1.5 flex-1 mx-0.5 rounded-full transition-all ${s <= regStep ? 'bg-cyan-500' : 'bg-slate-800'}`}
+                                />
+                            ))}
+                        </div>
+                    )}
+
+
                     <form onSubmit={handleSubmit} className="space-y-4">
 
                         {/* REGISTRATION FIELDS */}
-                        <AnimatePresence>
+                        <AnimatePresence mode="wait">
                             {isRegistering && (
-                                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="space-y-4 overflow-hidden">
-
-                                    {/* Parent Name (Parent Mode) */}
-                                    {mode === 'PARENT' && (
-                                        <>
+                                <motion.div
+                                    key="register-fields"
+                                    initial={{ height: 0, opacity: 0 }}
+                                    animate={{ height: 'auto', opacity: 1 }}
+                                    exit={{ height: 0, opacity: 0 }}
+                                    className="space-y-4 overflow-hidden"
+                                >
+                                    {/* Parent Multi-step Steps */}
+                                    {mode === 'PARENT' && regStep === 1 && (
+                                        <div className="space-y-4">
                                             <div className="space-y-1">
+                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Tu Nombre Completo</label>
                                                 <input
                                                     type="text"
                                                     value={formData.name}
                                                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-bold placeholder:text-slate-600"
-                                                    placeholder="Tu Nombre Completo"
+                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                    placeholder="Nombre del Padre/Madre"
                                                 />
                                             </div>
-                                            {/* Mobile WhatsApp Field */}
-                                            <div className="space-y-1 pt-1">
-                                                <div className="flex justify-between items-center px-1">
-                                                    <label className="text-[10px] text-stone-400 font-bold uppercase">WhatsApp (Opcional)</label>
-                                                    <span className="text-[9px] text-emerald-400 bg-emerald-900/30 px-1.5 py-0.5 rounded border border-emerald-500/30">Para Reportes</span>
-                                                </div>
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Tu Correo Electrónico</label>
+                                                <input
+                                                    type="email"
+                                                    value={formData.email}
+                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                    placeholder="ejemplo@correo.com"
+                                                />
+                                            </div>
+                                            <div className="space-y-1 relative">
+                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Contraseña Segura</label>
+                                                <input
+                                                    type={showPassword ? "text" : "password"}
+                                                    value={formData.password}
+                                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                    placeholder="Mínimo 6 caracteres"
+                                                />
+                                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 bottom-3.5 text-slate-500">
+                                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                </button>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (formData.name && formData.email && formData.password.length >= 6) setRegStep(2);
+                                                    else toast.error("Completa todos los campos.");
+                                                }}
+                                                className="w-full h-12 bg-cyan-600 font-bold rounded-xl"
+                                            >
+                                                SIGUIENTE: DATOS DEL NIÑO →
+                                            </Button>
+                                        </div>
+                                    )}
+
+                                    {mode === 'PARENT' && regStep === 2 && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Nombre del Niño/a</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.studentName}
+                                                    onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                    placeholder="Nombre de tu hijo/a"
+                                                />
+                                            </div>
+                                            <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5">
+                                                <label className="text-[10px] uppercase font-bold text-slate-500 mb-2 block">Grado Escolar</label>
+                                                <GradeSelector
+                                                    selectedGrade={formData.gradeLevel}
+                                                    onSelect={(g) => setFormData({ ...formData, gradeLevel: g })}
+                                                    variant="mobile"
+                                                />
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button type="button" onClick={() => setRegStep(1)} className="flex-1 h-12 bg-slate-700 font-bold rounded-xl">ATRÁS</Button>
+                                                <Button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (formData.studentName) setRegStep(3);
+                                                        else toast.error("Escribe el nombre de tu hijo/a.");
+                                                    }}
+                                                    className="flex-[2] h-12 bg-cyan-600 font-bold rounded-xl"
+                                                >
+                                                    CONTINUAR →
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {mode === 'PARENT' && regStep === 3 && (
+                                        <div className="space-y-4">
+                                            <div className="space-y-1">
+                                                <label className="text-[10px] text-stone-400 font-bold uppercase">WhatsApp para Reportes</label>
                                                 <input
                                                     type="tel"
                                                     value={formData.whatsappPhone}
                                                     onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
-                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all font-bold placeholder:text-slate-600"
+                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-slate-600"
                                                     placeholder="+57 300..."
                                                 />
+                                                <p className="text-[10px] text-slate-500 px-1 italic">Recibirás boletines semanales.</p>
                                             </div>
-                                        </>
+                                            <div className="flex gap-2">
+                                                <Button type="button" onClick={() => setRegStep(2)} className="flex-1 h-12 bg-slate-700 font-bold rounded-xl">ATRÁS</Button>
+                                                <Button type="button" onClick={() => setRegStep(4)} className="flex-[2] h-12 bg-cyan-600 font-bold rounded-xl">SIGUIENTE →</Button>
+                                            </div>
+                                        </div>
                                     )}
 
-                                    {/* Student Name (Both Modes) */}
-                                    {(mode === 'STUDENT' || mode === 'PARENT') && (
-                                        <div className="space-y-1">
+                                    {mode === 'PARENT' && regStep === 4 && (
+                                        <div className="space-y-4">
+                                            <div className="bg-slate-800/60 p-4 rounded-xl border border-white/5">
+                                                <div className="flex items-start gap-3">
+                                                    <input
+                                                        type="checkbox"
+                                                        checked={isHabeasAccepted}
+                                                        onChange={(e) => setIsHabeasAccepted(e.target.checked)}
+                                                        className="w-5 h-5 mt-0.5 rounded border-2 border-cyan-500 bg-slate-900"
+                                                    />
+                                                    <label className="text-[11px] text-slate-300 leading-tight">
+                                                        Acepto el tratamiento de datos para fines educativos (Ley 1581 de 2012).
+                                                    </label>
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-2">
+                                                <Button type="button" onClick={() => setRegStep(3)} className="flex-1 h-12 bg-slate-700 font-bold rounded-xl">ATRÁS</Button>
+                                                <Button type="submit" disabled={loading} className="flex-[2] h-12 bg-gradient-to-r from-cyan-600 to-blue-600 font-black rounded-xl">
+                                                    {loading ? <Loader2 className="animate-spin" /> : "FINALIZAR REGISTRO 🚀"}
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    )}
+
+                                    {/* Regular Student Register */}
+                                    {mode === 'STUDENT' && (
+                                        <div className="space-y-4">
                                             <input
                                                 type="text"
-                                                value={mode === 'STUDENT' ? formData.name : formData.studentName}
-                                                onChange={(e) => mode === 'STUDENT' ? setFormData({ ...formData, name: e.target.value }) : setFormData({ ...formData, studentName: e.target.value })}
-                                                className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-bold placeholder:text-slate-600"
-                                                placeholder={mode === 'PARENT' ? "Nombre del Estudiante" : "Tu Nombre Completo"}
+                                                value={formData.name}
+                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-indigo-500 font-bold"
+                                                placeholder="Tu Nombre Completo"
                                             />
+                                            <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5">
+                                                <GradeSelector
+                                                    selectedGrade={formData.gradeLevel}
+                                                    onSelect={(g) => setFormData({ ...formData, gradeLevel: g })}
+                                                    variant="mobile"
+                                                />
+                                            </div>
                                         </div>
                                     )}
-
-                                    {/* Student Email (Parent Mode) */}
-                                    {mode === 'PARENT' && (
-                                        <div className="space-y-1">
-                                            <input
-                                                type="email"
-                                                value={formData.studentEmail}
-                                                onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
-                                                className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all font-bold placeholder:text-slate-600"
-                                                placeholder="Correo del Estudiante"
-                                            />
-                                        </div>
-                                    )}
-
-                                    {/* Grade Selection */}
-                                    <div className="bg-slate-800/40 p-3 rounded-xl border border-white/5">
-                                        <label className="text-[10px] uppercase font-bold text-slate-500 mb-2 block">Grado Escolar</label>
-                                        <GradeSelector
-                                            selectedGrade={formData.gradeLevel}
-                                            onSelect={(g) => setFormData({ ...formData, gradeLevel: g })}
-                                            variant="mobile"
-                                        />
-                                    </div>
                                 </motion.div>
                             )}
                         </AnimatePresence>
 
-                        {/* EMAIL & PASSWORD (ALWAYS VISIBLE) */}
-                        <div className="space-y-2">
-                            <input
-                                type="email"
-                                value={formData.email}
-                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                required
-                                className="w-full bg-slate-800/60 border border-white/10 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500 font-bold"
-                                placeholder={mode === 'STUDENT' ? "Tu Correo" : "Tu Correo (Padre)"}
-                            />
-                            <div className="relative">
-                                <input
-                                    type={showPassword ? "text" : "password"}
-                                    value={formData.password}
-                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                    required
-                                    className="w-full bg-slate-800/60 border border-white/10 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500 font-bold"
-                                    placeholder="Contraseña"
-                                />
-                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
-                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                </button>
+
+                        {/* ONLY SHOW LOGIN FIELDS IF NOT PARENT REGISTERING */}
+                        {(!isRegistering || (isRegistering && mode === 'STUDENT')) && (
+                            <div className="space-y-4">
+                                <div className="space-y-2">
+                                    <input
+                                        type="email"
+                                        value={formData.email}
+                                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                        required
+                                        className="w-full bg-slate-800/60 border border-white/10 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500 font-bold"
+                                        placeholder={mode === 'STUDENT' ? "Tu Correo" : "Tu Correo (Padre)"}
+                                    />
+                                    <div className="relative">
+                                        <input
+                                            type={showPassword ? "text" : "password"}
+                                            value={formData.password}
+                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                            required
+                                            className="w-full bg-slate-800/60 border border-white/10 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500 font-bold"
+                                            placeholder="Contraseña"
+                                        />
+                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500">
+                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                        </button>
+                                    </div>
+                                </div>
+                                <Button
+                                    type="submit" disabled={loading}
+                                    className={`w-full h-14 font-black rounded-xl text-lg shadow-[0_0_20px_rgba(0,0,0,0.5)] transition-all active:scale-95 ${mode === 'PARENT' ? 'bg-gradient-to-r from-cyan-600 to-blue-600 hover:from-cyan-500 hover:to-blue-500 text-white' : 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white'}`}
+                                >
+                                    {loading ? <Loader2 className="w-6 h-6 animate-spin" /> : (isRegistering ? "CREAR MI CUENTA" : "INICIAR AVENTURA")}
+                                </Button>
                             </div>
-                        </div>
+                        )}
+
 
                         {/* Habeas Data Checkbox - ONLY FOR REGISTRATION */}
                         {isRegistering && (
@@ -405,15 +522,18 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                         >
                             {loading ? (
                                 <Loader2 className="w-6 h-6 animate-spin" />
-                            ) : (isRegistering ? "CREAR MI CUENTA" : "INICIAR AVENTURA")}
+                            ) : (isRegistering ? (mode === 'PARENT' ? `REGISTRAR PASO ${regStep}/4` : "CREAR MI CUENTA") : "INICIAR AVENTURA")}
                         </Button>
                     </form>
 
-                    {/* Toggle Login/Register (solo padres pueden crear cuenta; el niño solo inicia sesión) */}
+                    {/* Toggle Login/Register */}
                     <div className="mt-6 flex flex-col items-center gap-4">
                         {mode === 'PARENT' && (
                             <button
-                                onClick={() => setIsRegistering(!isRegistering)}
+                                onClick={() => {
+                                    setIsRegistering(!isRegistering);
+                                    setRegStep(1);
+                                }}
                                 className="text-slate-400 text-sm font-medium hover:text-white transition-colors"
                             >
                                 {isRegistering ? "¿Ya tienes cuenta? Inicia Sesión" : "¿No tienes cuenta? Regístrate Gratis"}
@@ -435,14 +555,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                             <span className="text-xl group-hover:scale-110 transition-transform">🎬</span> VER DEMO RÁPIDO
                         </button>
                     </div>
-
                 </div>
-
-                {/* Footer */}
-                <div className="absolute bottom-6 text-center z-0 opacity-50">
-                    <p className="text-slate-600 text-[10px] font-bold tracking-widest uppercase">Nova Schola Inc. © 2024</p>
-                </div>
-                <Toaster position="top-center" theme="dark" />
             </div>
         );
     }
@@ -518,7 +631,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                             {text.admin}
                         </button>
                         <button
-                            onClick={() => { setMode('PARENT'); setIsRegistering(false); }}
+                            onClick={() => { setMode('PARENT'); setIsRegistering(false); setRegStep(1); }}
                             className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all duration-300 ${mode === 'PARENT'
                                 ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
                                 : 'text-stone-500 hover:text-stone-700'
@@ -529,6 +642,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                         </button>
                     </div>
 
+                    {/* Desktop Step Indicator */}
+                    {isRegistering && mode === 'PARENT' && (
+                        <div className="flex items-center justify-center mb-8 gap-10">
+                            {[1, 2, 3, 4].map((s) => (
+                                <div key={s} className="flex flex-col items-center gap-2">
+                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold transition-all ${s === regStep ? 'bg-indigo-600 text-white scale-110 shadow-lg' : s < regStep ? 'bg-green-500 text-white' : 'bg-stone-100 text-stone-400'}`}>
+                                        {s < regStep ? '✓' : s}
+                                    </div>
+                                    <span className={`text-[9px] uppercase font-black tracking-widest ${s === regStep ? 'text-indigo-600' : 'text-stone-400'}`}>
+                                        {s === 1 ? 'Acudiente' : s === 2 ? 'Estudiante' : s === 3 ? 'WhatsApp' : 'Legal'}
+                                    </span>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+
                     {/* Form Card */}
                     <div className="bg-white/80 backdrop-blur-xl border border-stone-200 rounded-3xl p-8 shadow-xl">
                         <div className="mb-8">
@@ -536,360 +666,243 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                 {isRegistering ? text.welcomeRegister : text.welcomeLogin}
                             </h2>
                             <p className="text-stone-500 text-sm">
-                                {isRegistering ? (mode === 'PARENT' ? text.subtitleRegisterParent : text.subtitleRegisterStudent) : (mode === 'PARENT' ? text.subtitleLoginParent : text.subtitleLoginStudent)}
+                                {isRegistering ? text.subtitleRegisterParent : (mode === 'PARENT' ? text.subtitleLoginParent : mode === 'ADMIN' ? 'Acceso administrativo' : text.subtitleLoginStudent)}
                             </p>
                         </div>
 
-                        <form onSubmit={handleSubmit} className="space-y-5">
-
-                            {isRegistering && mode === 'PARENT' && (
+                        <form onSubmit={handleSubmit} className="space-y-6">
+                            {isRegistering && mode === 'PARENT' ? (
                                 <div className="space-y-6">
-                                    {/* Parent Info Section */}
-                                    <div className="space-y-4">
-                                        <div className="flex items-center gap-2 border-b border-stone-100 pb-2">
-                                            <ShieldCheck className="w-4 h-4 text-indigo-600" />
-                                            <span className="text-sm font-bold text-stone-800 uppercase tracking-wider">{text.parentInfo}</span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentName}</label>
-                                            <input
-                                                type="text"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all"
-                                                placeholder={text.placeholderName}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentEmail}</label>
-                                            <input
-                                                type="email"
-                                                value={formData.email}
-                                                onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                required
-                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all"
-                                                placeholder={text.placeholderEmail}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.password} (Padre)</label>
-                                            <div className="relative">
+                                    {/* STEP 1: Parent Info */}
+                                    {regStep === 1 && (
+                                        <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentName}</label>
                                                 <input
-                                                    type={showParentPassword ? "text" : "password"}
-                                                    value={formData.password}
-                                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                    required
-                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all"
-                                                    placeholder="••••••••"
+                                                    type="text"
+                                                    value={formData.name}
+                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                    placeholder={text.placeholderName}
                                                 />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowParentPassword(!showParentPassword)}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                                                >
-                                                    {showParentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                                </button>
                                             </div>
-                                        </div>
-                                        {/* Optional WhatsApp Field */}
-                                        <div className="space-y-2">
-                                            <div className="flex justify-between items-center">
-                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentPhone}</label>
-                                                <span className="text-[10px] uppercase font-bold text-green-600 bg-green-50 px-2 py-0.5 rounded-full border border-green-100 flex items-center gap-1">
-                                                    <Smartphone className="w-3 h-3" /> Reportes
-                                                </span>
-                                            </div>
-                                            <input
-                                                type="tel"
-                                                value={formData.whatsappPhone}
-                                                onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
-                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-green-500 transition-all focus:ring-1 focus:ring-green-500/20 placeholder:text-stone-400"
-                                                placeholder="+57 300 123 4567"
-                                            />
-                                            <p className="text-[10px] text-stone-400 ml-1">
-                                                {text.parentPhoneDesc}
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    {/* Student Info Section */}
-                                    <div className="space-y-4 pt-4">
-                                        <div className="flex items-center gap-2 border-b border-stone-100 pb-2">
-                                            <Brain className="w-4 h-4 text-indigo-600" />
-                                            <span className="text-sm font-bold text-stone-800 uppercase tracking-wider">{text.studentInfo}</span>
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.studentName}</label>
-                                            <input
-                                                type="text"
-                                                value={formData.studentName}
-                                                onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
-                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all"
-                                                placeholder={text.placeholderName}
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.studentEmail}</label>
-                                            <input
-                                                type="email"
-                                                value={formData.studentEmail}
-                                                onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
-                                                required
-                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all"
-                                                placeholder="estudiante@ejemplo.com"
-                                            />
-                                        </div>
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.password} (Estudiante)</label>
-                                            <div className="relative">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentEmail}</label>
                                                 <input
-                                                    type={showStudentPassword ? "text" : "password"}
-                                                    value={formData.studentPassword}
-                                                    onChange={(e) => setFormData({ ...formData, studentPassword: e.target.value })}
-                                                    required={isRegistering && mode === 'PARENT'}
-                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all"
-                                                    placeholder="••••••••"
+                                                    type="email"
+                                                    value={formData.email}
+                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                    placeholder={text.placeholderEmail}
                                                 />
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setShowStudentPassword(!showStudentPassword)}
-                                                    className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                                                >
-                                                    {showStudentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                                </button>
                                             </div>
-                                        </div>
-
-                                        {/* Grade Selection for Parent-Student Register */}
-                                        <div className="space-y-4 pt-2">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">
-                                                    {text.gradeSelect}
-                                                </label>
-                                                <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-wider">
-                                                    {text.grade} {formData.gradeLevel}°
-                                                </span>
-                                            </div>
-                                            <GradeSelector
-                                                selectedGrade={formData.gradeLevel}
-                                                onSelect={(g) => setFormData({ ...formData, gradeLevel: g })}
-                                                variant="desktop"
-                                            />
-                                        </div>
-
-                                        {/* Bilingual School Toggle */}
-                                        <div className="space-y-3 pt-2">
-                                            <div className="flex items-center justify-between bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100">
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-bold text-stone-800">{text.isBilingual}</p>
-                                                    <p className="text-[10px] text-stone-500 leading-tight pr-4">{text.bilingualDesc}</p>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.password}</label>
+                                                <div className="relative">
+                                                    <input
+                                                        type={showParentPassword ? "text" : "password"}
+                                                        value={formData.password}
+                                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                        className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                        placeholder="Mínimo 6 caracteres"
+                                                    />
+                                                    <button type="button" onClick={() => setShowParentPassword(!showParentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400">
+                                                        {showParentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                    </button>
                                                 </div>
+                                            </div>
+                                            <Button
+                                                type="button"
+                                                onClick={() => {
+                                                    if (formData.name && formData.email && formData.password.length >= 6) setRegStep(2);
+                                                    else toast.error("Completa todos los campos de padre.");
+                                                }}
+                                                className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg mt-4"
+                                            >
+                                                SIGUIENTE: DATOS DEL ESTUDIANTE →
+                                            </Button>
+                                        </motion.div>
+                                    )}
+
+                                    {/* STEP 2: Student Info */}
+                                    {regStep === 2 && (
+                                        <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="space-y-4">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.studentName}</label>
+                                                <input
+                                                    type="text"
+                                                    value={formData.studentName}
+                                                    onChange={(e) => setFormData({ ...formData, studentName: e.target.value })}
+                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                    placeholder="Nombre de tu hijo/a"
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.studentEmail}</label>
+                                                <input
+                                                    type="email"
+                                                    value={formData.studentEmail}
+                                                    onChange={(e) => setFormData({ ...formData, studentEmail: e.target.value })}
+                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                    placeholder="hijo@ejemplo.com"
+                                                />
+                                            </div>
+                                            <div className="space-y-4 pt-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.gradeSelect}</label>
+                                                <GradeSelector
+                                                    selectedGrade={formData.gradeLevel}
+                                                    onSelect={(g) => setFormData({ ...formData, gradeLevel: g })}
+                                                    variant="desktop"
+                                                />
+                                            </div>
+                                            <div className="flex items-center justify-between bg-indigo-50 p-4 rounded-2xl border border-indigo-100">
+                                                <span className="text-sm font-bold text-stone-800">{text.isBilingual}</span>
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, isBilingual: !formData.isBilingual })}
-                                                    className={`w-14 h-8 rounded-full transition-all relative ${formData.isBilingual ? 'bg-indigo-600' : 'bg-stone-200'}`}
+                                                    className={`w-14 h-8 rounded-full relative transition-all ${formData.isBilingual ? 'bg-indigo-600' : 'bg-stone-200'}`}
                                                 >
-                                                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${formData.isBilingual ? 'left-7' : 'left-1'}`} />
+                                                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${formData.isBilingual ? 'left-7' : 'left-1'}`} />
                                                 </button>
                                             </div>
-                                        </div>
+                                            <div className="flex gap-4 mt-4">
+                                                <Button type="button" onClick={() => setRegStep(1)} className="flex-1 h-12 bg-stone-100 text-stone-500 font-bold rounded-xl">VOLVER</Button>
+                                                <Button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        if (formData.studentName && formData.studentEmail) setRegStep(3);
+                                                        else toast.error("Completa los datos de tu hijo/a.");
+                                                    }}
+                                                    className="flex-[2] h-12 bg-indigo-600 text-white font-bold rounded-xl"
+                                                >
+                                                    SIGUIENTE →
+                                                </Button>
+                                            </div>
+                                        </motion.div>
+                                    )}
 
-                                        {/* Moodle Connection - Optional */}
-                                        <div className="space-y-3 pt-4 border-t border-stone-100">
-                                            <div className="flex items-center justify-between bg-orange-50/50 p-4 rounded-2xl border border-orange-100">
-                                                <div className="flex-1 flex items-center gap-2">
+                                    {/* STEP 3: WhatsApp & Optional Integrations */}
+                                    {regStep === 3 && (
+                                        <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="space-y-6">
+                                            <div className="space-y-2">
+                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentPhone}</label>
+                                                <input
+                                                    type="tel"
+                                                    value={formData.whatsappPhone}
+                                                    onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
+                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-green-500 transition-all font-bold"
+                                                    placeholder="+57 300..."
+                                                />
+                                                <p className="text-[11px] text-stone-400 italic">{text.parentPhoneDesc}</p>
+                                            </div>
+                                            <div className="bg-orange-50/50 p-4 rounded-2xl border border-orange-100 flex items-center justify-between">
+                                                <div className="flex items-center gap-3">
                                                     <BookOpen className="w-5 h-5 text-orange-600" />
-                                                    <div>
-                                                        <p className="text-sm font-bold text-stone-800">
-                                                            {language === 'es' ? '¿Tu colegio usa Moodle?' : 'Does your school use Moodle?'}
-                                                        </p>
-                                                        <p className="text-[10px] text-stone-500 leading-tight pr-2">
-                                                            {language === 'es'
-                                                                ? 'Conecta las tareas de tu hijo. No guardamos la contraseña.'
-                                                                : 'Connect your child\'s tasks. We don\'t store the password.'}
-                                                        </p>
-                                                    </div>
+                                                    <span className="text-sm font-bold text-stone-800">Conectar Moodle</span>
                                                 </div>
                                                 <button
                                                     type="button"
                                                     onClick={() => setFormData({ ...formData, connectMoodle: !formData.connectMoodle })}
-                                                    className={`w-14 h-8 rounded-full transition-all relative ${formData.connectMoodle ? 'bg-orange-600' : 'bg-stone-200'}`}
+                                                    className={`w-14 h-8 rounded-full relative transition-all ${formData.connectMoodle ? 'bg-orange-600' : 'bg-stone-200'}`}
                                                 >
                                                     <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${formData.connectMoodle ? 'left-7' : 'left-1'}`} />
                                                 </button>
                                             </div>
                                             {formData.connectMoodle && (
-                                                <div className="space-y-3 p-4 rounded-2xl bg-orange-50/30 border border-orange-100">
-                                                    <input
-                                                        type="url"
-                                                        value={formData.moodleUrl}
-                                                        onChange={(e) => setFormData({ ...formData, moodleUrl: e.target.value })}
-                                                        placeholder={language === 'es' ? 'URL de Moodle (ej: https://virtual.colegio.edu.co)' : 'Moodle URL (e.g. https://virtual.school.edu)'}
-                                                        className="w-full bg-white border border-stone-200 text-stone-900 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
-                                                    />
-                                                    <input
-                                                        type="text"
-                                                        value={formData.moodleUsername}
-                                                        onChange={(e) => setFormData({ ...formData, moodleUsername: e.target.value })}
-                                                        placeholder={language === 'es' ? 'Usuario Moodle del niño' : 'Child\'s Moodle username'}
-                                                        className="w-full bg-white border border-stone-200 text-stone-900 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
-                                                    />
-                                                    <input
-                                                        type="password"
-                                                        value={formData.moodlePassword}
-                                                        onChange={(e) => setFormData({ ...formData, moodlePassword: e.target.value })}
-                                                        placeholder={language === 'es' ? 'Contraseña Moodle del niño' : 'Child\'s Moodle password'}
-                                                        className="w-full bg-white border border-stone-200 text-stone-900 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-orange-500"
-                                                    />
+                                                <div className="p-4 rounded-2xl bg-white border border-orange-100 space-y-3">
+                                                    <input type="url" placeholder="URL Moodle" className="w-full p-2 border rounded-lg text-sm" value={formData.moodleUrl} onChange={e => setFormData({ ...formData, moodleUrl: e.target.value })} />
+                                                    <input type="text" placeholder="Usuario" className="w-full p-2 border rounded-lg text-sm" value={formData.moodleUsername} onChange={e => setFormData({ ...formData, moodleUsername: e.target.value })} />
+                                                    <input type="password" placeholder="Contraseña" className="w-full p-2 border rounded-lg text-sm" value={formData.moodlePassword} onChange={e => setFormData({ ...formData, moodlePassword: e.target.value })} />
                                                 </div>
                                             )}
-                                        </div>
-                                    </div>
-                                </div>
-                            )}
-
-                            {/* Original Fields (Only if not dual register) */}
-                            {(!isRegistering || mode !== 'PARENT') && (
-                                <>
-                                    {/* Student Name Key Field (Only Register Mode) */}
-                                    {isRegistering && mode === 'STUDENT' && (
-                                        <div className="space-y-2">
-                                            <label className="text-xs font-bold text-stone-500 uppercase ml-1">
-                                                {text.studentName}
-                                            </label>
-                                            <input
-                                                type="text"
-                                                value={formData.name}
-                                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-stone-400"
-                                            />
-                                        </div>
+                                            <div className="flex gap-4 mt-4">
+                                                <Button type="button" onClick={() => setRegStep(2)} className="flex-1 h-12 bg-stone-100 text-stone-500 font-bold rounded-xl">VOLVER</Button>
+                                                <Button type="button" onClick={() => setRegStep(4)} className="flex-[2] h-12 bg-indigo-600 text-white font-bold rounded-xl">SIGUIENTE →</Button>
+                                            </div>
+                                        </motion.div>
                                     )}
 
-                                    {/* Grade Selection (Only Student Register) */}
-                                    {isRegistering && mode === 'STUDENT' && (
-                                        <div className="space-y-4">
-                                            <div className="flex items-center justify-between">
-                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">
-                                                    {text.gradeSelect}
-                                                </label>
-                                                <span className="text-sm font-bold text-indigo-600 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-100 uppercase tracking-wider">
-                                                    {text.grade} {formData.gradeLevel}°
-                                                </span>
-                                            </div>
-                                            <div className="grid grid-cols-7 gap-2">
-                                                {[1, 2, 3, 4, 5, 6, 7].map((g) => (
-                                                    <button
-                                                        key={g}
-                                                        type="button"
-                                                        onClick={() => setFormData({ ...formData, gradeLevel: g })}
-                                                        className={`h-12 rounded-2xl font-bold transition-all transform active:scale-95 ${formData.gradeLevel === g
-                                                            ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200 ring-2 ring-indigo-200'
-                                                            : 'bg-stone-50 text-stone-400 border border-stone-100 hover:border-indigo-300 hover:text-indigo-500 hover:bg-white'
-                                                            }`}
-                                                    >
-                                                        {g}°
-                                                    </button>
-                                                ))}
-                                            </div>
-                                            <p className="text-[10px] text-stone-400 font-medium px-1 flex items-center gap-1.5 leading-relaxed">
-                                                <Smartphone className="w-3 h-3 text-indigo-400" />
-                                                {language === 'es' ? 'Crucial para adaptar el vocabulario y retos DBA.' : 'Crucial for adapting vocabulary and DBA challenges.'}
-                                            </p>
-
-                                            {/* Bilingual School Toggle for Student */}
-                                            <div className="flex items-center justify-between bg-indigo-50/50 p-4 rounded-2xl border border-indigo-100 mt-4">
-                                                <div className="flex-1">
-                                                    <p className="text-sm font-bold text-stone-800">{text.isBilingual}</p>
+                                    {/* STEP 4: Consent */}
+                                    {regStep === 4 && (
+                                        <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="space-y-6">
+                                            <div className="p-6 bg-indigo-50 border-2 border-indigo-100 rounded-3xl space-y-4">
+                                                <div className="flex items-start gap-4">
+                                                    <input
+                                                        type="checkbox"
+                                                        id="consentDesktop"
+                                                        checked={isHabeasAccepted}
+                                                        onChange={(e) => setIsHabeasAccepted(e.target.checked)}
+                                                        className="w-6 h-6 rounded-md border-indigo-300 text-indigo-600 mt-1"
+                                                    />
+                                                    <label htmlFor="consentDesktop" className="text-sm text-stone-600 leading-relaxed font-medium">
+                                                        {text.habeasData}
+                                                    </label>
                                                 </div>
-                                                <button
-                                                    type="button"
-                                                    onClick={() => setFormData({ ...formData, isBilingual: !formData.isBilingual })}
-                                                    className={`w-14 h-8 rounded-full transition-all relative ${formData.isBilingual ? 'bg-indigo-600' : 'bg-stone-200'}`}
-                                                >
-                                                    <div className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow-sm transition-all ${formData.isBilingual ? 'left-7' : 'left-1'}`} />
-                                                </button>
                                             </div>
-                                        </div>
+                                            <div className="flex gap-4">
+                                                <Button type="button" onClick={() => setRegStep(3)} className="flex-1 h-12 bg-stone-100 text-stone-500 font-bold rounded-xl">VOLVER</Button>
+                                                <Button type="submit" disabled={loading} className="flex-[2] h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl text-lg">
+                                                    {loading ? 'REGISTRANDO...' : '¡EMPEZAR AVENTURA! 🚀'}
+                                                </Button>
+                                            </div>
+                                        </motion.div>
                                     )}
-
+                                </div>
+                            ) : (
+                                <div className="space-y-5">
                                     <div className="space-y-2">
                                         <label className="text-xs font-bold text-stone-500 uppercase ml-1">
-                                            {mode === 'STUDENT' ? text.studentEmail : text.email}
+                                            {mode === 'STUDENT' ? text.studentEmail : (mode === 'ADMIN' ? 'Correo de Admin' : text.email)}
                                         </label>
                                         <input
                                             type="email"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             required
-                                            className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-stone-400"
+                                            className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
                                             placeholder={text.placeholderEmail}
                                         />
                                     </div>
 
-                                    {/* Removed guardianPhone section */}
-                                </>
-                            )}
-
-                            {(!isRegistering || mode !== 'PARENT') && (
-                                <div className="space-y-2">
-                                    <label className="text-xs font-bold text-stone-500 uppercase ml-1">
-                                        {text.password}
-                                    </label>
-                                    <div className="relative">
-                                        <input
-                                            type={showPassword ? "text" : "password"}
-                                            value={formData.password}
-                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                            required
-                                            className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-all placeholder:text-stone-400"
-                                            placeholder={text.placeholderPass}
-                                        />
-                                        <button
-                                            type="button"
-                                            onClick={() => setShowPassword(!showPassword)}
-                                            className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400 hover:text-stone-600 transition-colors"
-                                        >
-                                            {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                        </button>
+                                    <div className="space-y-2">
+                                        <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.password}</label>
+                                        <div className="relative">
+                                            <input
+                                                type={showPassword ? "text" : "password"}
+                                                value={formData.password}
+                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                required
+                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                placeholder={text.placeholderPass}
+                                            />
+                                            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400">
+                                                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                            </button>
+                                        </div>
                                     </div>
+
+                                    <Button type="submit" disabled={loading} className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-xl text-lg mt-2">
+                                        {loading ? <Loader2 className="animate-spin" /> : text.loginButton}
+                                    </Button>
+
+                                    {!isRegistering && (
+                                        <div className="flex justify-center">
+                                            <button type="button" className="text-sm text-stone-400 hover:text-indigo-600 transition-colors">
+                                                {text.forgotPass}
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
                             )}
 
-                            {/* Habeas Data Checkbox - ONLY FOR REGISTRATION */}
-                            {isRegistering && (
-                                <div className="flex items-start gap-3 mt-4 p-3 bg-indigo-50/50 rounded-xl border border-indigo-100">
-                                    <div className="pt-0.5">
-                                        <input
-                                            type="checkbox"
-                                            id="habeasData"
-                                            checked={isHabeasAccepted}
-                                            onChange={(e) => setIsHabeasAccepted(e.target.checked)}
-                                            className="w-5 h-5 rounded-md border-2 border-indigo-300 text-indigo-600 focus:ring-indigo-500 cursor-pointer"
-                                        />
-                                    </div>
-                                    <label htmlFor="habeasData" className="text-xs text-stone-600 leading-relaxed cursor-pointer select-none">
-                                        {text.habeasData}
-                                    </label>
-                                </div>
-                            )}
-
-                            <Button
-                                type="submit"
-                                disabled={loading}
-                                className="w-full h-12 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl shadow-lg shadow-indigo-200 text-base mt-2 disabled:opacity-50"
-                            >
-                                {loading ? '...' : (isRegistering ? text.registerButton : text.loginButton)}
-                            </Button>
-
-                            {/* DEMO MODE BUTTON - For Presentations */}
-                            <div className="relative">
+                            {/* DEMO MODE BUTTON */}
+                            <div className="relative my-8">
                                 <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-stone-200"></div>
+                                    <div className="w-full border-t border-stone-100"></div>
                                 </div>
                                 <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-white px-2 text-stone-400 font-bold">
-                                        {language === 'es' ? 'Modo Presentación' : 'Presentation Mode'}
+                                    <span className="bg-white px-2 text-stone-400 font-bold tracking-widest">
+                                        {language === 'es' ? 'Presentación Rápida' : 'Quick Demo'}
                                     </span>
                                 </div>
                             </div>
@@ -897,15 +910,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                             <button
                                 type="button"
                                 onClick={() => {
-                                    // Auto-login with demo credentials
-                                    setFormData({
-                                        ...formData,
-                                        email: 'sofia.demo@novaschola.com',
-                                        password: 'demo2024'
-                                    });
-                                    // Trigger login, then start the tour
+                                    setFormData({ ...formData, email: 'sofia.demo@novaschola.com', password: 'demo2024' });
                                     onLogin({ email: 'sofia.demo@novaschola.com', password: 'demo2024' }, 'STUDENT');
-                                    // Start tour after a short delay to ensure login completes
                                     setTimeout(() => startTour(), 500);
                                 }}
                                 className="w-full h-14 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 hover:from-amber-500 hover:via-orange-600 hover:to-rose-600 text-white font-black rounded-2xl shadow-xl shadow-orange-200 text-base transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 border-2 border-white/20"
@@ -914,52 +920,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                 <span>{language === 'es' ? 'VER DEMO INTERACTIVA' : 'VIEW INTERACTIVE DEMO'}</span>
                             </button>
 
-                            <p className="text-center text-xs text-stone-400 -mt-2">
-                                {language === 'es'
-                                    ? 'Perfecto para presentaciones en colegios y padres de familia'
-                                    : 'Perfect for school and parent presentations'}
-                            </p>
-
-                            <div className="flex flex-col items-center gap-4 mt-6">
-                                {!isRegistering && (
-                                    <button type="button" className="text-sm text-stone-400 hover:text-indigo-600 transition-colors">
-                                        {text.forgotPass}
-                                    </button>
-                                )}
-
-                                {/* Solo el padre puede crear cuenta; el estudiante solo inicia sesión */}
-                                {mode === 'PARENT' && !isRegistering && (
+                            {mode === 'PARENT' && (
+                                <div className="flex flex-col items-center gap-4 mt-8">
                                     <div className="flex items-center gap-1 text-sm text-stone-500">
-                                        <span>{text.noAccount}</span>
+                                        <span>{isRegistering ? text.hasAccount : text.noAccount}</span>
                                         <button
                                             type="button"
-                                            onClick={() => setIsRegistering(true)}
+                                            onClick={() => {
+                                                setIsRegistering(!isRegistering);
+                                                setRegStep(1);
+                                            }}
                                             className="text-indigo-600 font-bold hover:underline"
                                         >
-                                            {text.createAccount}
+                                            {isRegistering ? text.loginLink : text.createAccount}
                                         </button>
                                     </div>
-                                )}
-
-                                {mode === 'PARENT' && isRegistering && (
-                                    <div className="flex items-center gap-1 text-sm text-stone-500">
-                                        <span>{text.hasAccount}</span>
-                                        <button
-                                            type="button"
-                                            onClick={() => setIsRegistering(false)}
-                                            className="text-indigo-600 font-bold hover:underline"
-                                        >
-                                            {text.loginLink}
-                                        </button>
-                                    </div>
-                                )}
-                            </div>
+                                </div>
+                            )}
                         </form>
                     </div>
                 </div>
             </div>
-            <Toaster />
-        </div >
+        </div>
     );
 };
 

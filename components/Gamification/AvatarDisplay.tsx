@@ -28,6 +28,20 @@ interface AvatarDisplayProps {
     showName?: boolean;
 }
 
+const getChromaWatchFilter = (id: string, baseFilterId: string) => {
+    let suffix = 'saturate(1.2)';
+    if (id.includes('red')) suffix = 'hue-rotate(330deg) saturate(1.5)';
+    else if (id.includes('blue')) suffix = 'hue-rotate(210deg) saturate(1.2)';
+    else if (id.includes('green')) suffix = 'hue-rotate(90deg) saturate(1.5)';
+    else if (id.includes('yellow')) suffix = 'hue-rotate(30deg) saturate(1.8)';
+    else if (id.includes('purple')) suffix = 'hue-rotate(250deg) saturate(1.5)';
+    else if (id.includes('pink')) suffix = 'hue-rotate(290deg) saturate(1.2)';
+    else if (id.includes('cyan')) suffix = 'hue-rotate(150deg) saturate(1.5)';
+    else if (id.includes('silver')) suffix = 'grayscale(1) brightness(1.3) contrast(1.1)';
+    else if (id.includes('gold')) suffix = 'sepia(1) saturate(3) hue-rotate(10deg) brightness(1.2)';
+    return `url(#${baseFilterId}) ${suffix}`;
+};
+
 export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
     avatarId,
     size = 'md',
@@ -41,6 +55,12 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
 }) => {
     const { currentAvatar, studentName, equippedAccessories: localAccessories, accessoryOffsets, grade } = useAvatar();
     const { level } = useGamification();
+    const filterPrefix = React.useId().replace(/:/g, '');
+    const whiteToAlphaId = `whiteToAlpha-${filterPrefix}`;
+    const cleanJerseyId = `cleanJersey-${filterPrefix}`;
+    const extraCleanJerseyId = `extraCleanJersey-${filterPrefix}`;
+    const whiteToAlphaJerseyId = `whiteToAlphaJersey-${filterPrefix}`;
+    const blackToAlphaId = `blackToAlpha-${filterPrefix}`;
 
     const activeId = avatarId || currentAvatar;
     const equippedAccessories = accessoriesOverride || localAccessories;
@@ -110,18 +130,21 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                 if (!isBackLayer) z = 50;
                 break;
             case 'torso':
-                const isSticker = item.id.includes('sticker') || item.id.includes('medal');
-                const isJersey = item.id.includes('jersey') || item.id.includes('tshirt');
-
-                if (isJersey) {
+                if (item.id.includes('jersey') || item.id.includes('tshirt')) {
                     yPos = '42%';
                     if (!isBackLayer) z = 25;
                 } else {
-                    yPos = isSticker ? '38%' : '52%';
-                    sizeClass = isSmall ? (isSticker ? 'text-[0.4em]' : 'text-[0.45em]') : (isSticker ? 'text-[0.95em]' : 'text-[1.2em]');
+                    yPos = '52%';
+                    sizeClass = isSmall ? 'text-[0.45em]' : 'text-[1.2em]';
                     if (!isBackLayer) z = 45;
                 }
-                rotate = isSticker ? -2 : 0;
+                rotate = 0;
+                break;
+            case 'sticker':
+                yPos = '38%';
+                sizeClass = isSmall ? 'text-[0.4em]' : 'text-[0.95em]';
+                if (!isBackLayer) z = 45;
+                rotate = -2;
                 break;
             case 'legs':
                 yPos = '88%';
@@ -176,8 +199,8 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
         const custom = (accessoryOffsetsOverride?.[item.id] ?? accessoryOffsets[item.id]) || { x: 0, y: 0, scale: 1, rotate: 0, neck: 22, shoulders: 0, sleeves: 0 };
 
         const isPopUp = item.id.includes('popup') || item.id.includes('spider_pop');
-        const isSticker = item.type === 'torso' && (item.id.includes('sticker') || item.id.includes('medal') || isPopUp);
-        const isJersey = item.id.includes('jersey') || item.id.includes('tshirt');
+        const isSticker = item.type === 'sticker' || (item.type === 'torso' && (item.id.includes('sticker') || item.id.includes('medal') || isPopUp));
+        const isJersey = item.id.includes('jersey') || item.id.includes('tshirt') || (item.type === 'torso' && !isSticker);
         const isShorts = item.type === 'legs';
         const isSocks = item.type === 'socks';
         const isCleats = item.type === 'feet';
@@ -202,7 +225,13 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                                                 isSticker ? (isSmall ? '1.2em' : '2.4em') : 'auto';
 
         const rotDeg = (custom as AccessoryOffsetValues).rotate ?? 0;
-        const iconToUse = isBackLayer ? item.backIcon : item.icon;
+
+        // --- 🚀 AUTO-BACK COLLAR LOGIC ---
+        // If it's a jersey and we're on the back layer but there's no specific backIcon, 
+        // we reuse the front icon but darken it and mask it to only show the collar area.
+        const isAutoBackCollar = isBackLayer && isJersey && !item.backIcon;
+        const iconToUse = isAutoBackCollar ? item.icon : (isBackLayer ? item.backIcon : item.icon);
+
         if (!iconToUse) return null;
 
         return (
@@ -239,46 +268,65 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                         <img
                             src={iconToUse}
                             className={cn(
-                                "object-contain",
-                                isSticker ? "w-full h-full scale-110" : "w-full h-full",
-                                isJersey && (isSmall ? "scale-[1.15] translate-y-[-4%]" :
+                                isJersey ? "w-full h-full object-cover" : "w-full h-full object-contain",
+                                isSticker && "scale-110",
+                                isJersey && (isSmall ? "scale-[1.18] translate-y-[-1%]" :
                                     (item.id.includes('messi') ? "scale-[0.55] translate-y-[17%] -translate-x-[2%]" :
-                                        ((item.id.includes('nova_official') || item.id.includes('nova_premium') || item.id.includes('retro') || item.id.includes('spiderman') || item.id.includes('diamond') || item.id.includes('black'))
+                                        ((item.id.includes('nova_official') || item.id.includes('nova_premium') || item.id.includes('retro') || item.id.includes('spiderman') || item.id.includes('diamond') || item.id.includes('black') || item.id.includes('gemini'))
                                             ? "scale-[1.28] translate-y-[-5%] brightness-[1.05]"
-                                            : (item.id.includes('velocidad') ? "scale-[1.12] translate-y-[-1%] brightness-[1.05]" : (item.id.includes('nova') ? "scale-[1.15] translate-y-[-3%] brightness-110" : "scale-[1.12] translate-y-[-4%]"))))
+                                            : (item.id.includes('velocidad') ? "scale-[1.15] translate-y-[-1%] brightness-[1.05]" : (item.id.includes('nova') ? "scale-[1.18] translate-y-[-2%] brightness-110" : "scale-[1.22] translate-y-[0.5%]"))))
                                 ),
-                                isShorts && "scale-90 translate-y-1",
-                                isSocks && "scale-90 translate-y-2",
-                                isCleats && "scale-90 translate-y-1",
-                                (isFace || isHead) && "scale-100"
+                                isShorts && "scale-90 translate-y-1 object-contain",
+                                isSocks && "scale-90 translate-y-2 object-contain",
+                                isCleats && "scale-90 translate-y-1 object-contain",
+                                (isFace || isHead) && "scale-100 object-contain"
                             )}
                             style={{
                                 ...(isJersey || isWatch ? {
-                                    filter: item.id.includes('nova_gold')
-                                        ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
-                                        : (item.id.includes('nova_neon')
-                                            ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
-                                            : (item.id.includes('velocidad')
-                                                ? 'url(#blackToAlpha)'
-                                                : (item.id.includes('nova_premium') || item.id.includes('retro') || item.id.includes('spiderman') || item.id.includes('black')
-                                                    ? 'url(#premiumJerseyFilter)'
-                                                    : (iconToUse.toLowerCase().endsWith('.jpg') || iconToUse.toLowerCase().endsWith('.png') || item.id.includes('pro') || isWatch ? 'url(#blackToAlpha)' : 'url(#whiteToAlphaJersey)')))),
-                                    clipPath: (isWatch && (item.id.includes('elite') || item.id.includes('phantom') || item.id.includes('quantum')))
-                                        ? 'inset(20% 25% 20% 25% round 50%)'
-                                        : (
-                                            (custom.shoulders || custom.sleeves)
-                                                ? `polygon(${0 + (custom.shoulders || 0)}% 0%, ${100 - (custom.shoulders || 0)}% 0%, ${100 - (custom.sleeves || 0)}% 35%, ${100 - (custom.sleeves || 0)}% 100%, ${0 + (custom.sleeves || 0)}% 100%, ${0 + (custom.sleeves || 0)}% 35%)`
-                                                : (item.id.includes('messi') ? 'inset(2% 12% 0 12%)' : (item.id.includes('velocidad') ? 'polygon(10% 0%, 90% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%)' : 'inset(14% 2% 0 2%)'))
-                                        ),
-                                    maskImage: (isJersey && !isBackLayer)
-                                        ? `radial-gradient(ellipse at 50% -10%, transparent ${(custom.neck || 22) - 5}%, black ${custom.neck || 22}%, black 85%, transparent 100%)`
-                                        : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none',
-                                    WebkitMaskImage: (isJersey && !isBackLayer)
-                                        ? `radial-gradient(ellipse at 50% -10%, transparent ${(custom.neck || 22) - 5}%, black ${custom.neck || 22}%, black 85%, transparent 100%)`
-                                        : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none',
+                                    filter: isAutoBackCollar
+                                        ? 'brightness(0.6) contrast(1.2) saturate(0.8)'
+                                        : (isWatch && item.id.includes('nova_chroma')
+                                            ? getChromaWatchFilter(item.id, extraCleanJerseyId)
+                                            : (item.id.includes('nova_gold')
+                                                ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
+                                                : (item.id.includes('nova_neon')
+                                                    ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
+                                                    : `url(#${extraCleanJerseyId})`))),
+                                    clipPath: isJersey
+                                        ? `polygon(
+                                            37% 6%, 
+                                            ${8 - (custom.shoulders || 0)}% 16%, 
+                                            ${0 - (custom.shoulders || 0)}% ${55 + (custom.sleeves || 0)}%, 
+                                            15% ${66 + (custom.sleeves || 0)}%, 
+                                            25% 45%, 
+                                            28% 85%, 
+                                            50% 88%, 
+                                            72% 85%, 
+                                            75% 45%, 
+                                            85% ${66 + (custom.sleeves || 0)}%, 
+                                            ${100 + (custom.shoulders || 0)}% ${55 + (custom.sleeves || 0)}%, 
+                                            ${92 + (custom.shoulders || 0)}% 16%, 
+                                            63% 6%, 
+                                            58% ${isBackLayer ? '2%' : Math.max(6, (custom.neck || 22) - 8)}%, 
+                                            50% ${isBackLayer ? (custom.neck || 22) - 2 : (custom.neck || 22)}%, 
+                                            42% ${isBackLayer ? '2%' : Math.max(6, (custom.neck || 22) - 8)}%
+                                        )`
+                                        : (isWatch && (item.id.includes('elite') || item.id.includes('phantom') || item.id.includes('quantum') || item.id.includes('chroma')))
+                                            ? 'inset(20% 25% 20% 25% round 50%)'
+                                            : (item.id.includes('messi') ? 'inset(2% 12% 0 12%)' : (item.id.includes('velocidad') ? 'polygon(10% 0%, 90% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%)' : 'inset(14% 2% 0 2%)')),
+                                    maskImage: isAutoBackCollar
+                                        ? `linear-gradient(to bottom, black 0%, black ${custom.neck || 15}%, transparent ${(custom.neck || 15) + 4}%)`
+                                        : ((isJersey && !isBackLayer)
+                                            ? `radial-gradient(ellipse at 50% 0%, transparent ${(custom.neck || 15) - 3}%, black ${custom.neck || 15}%, black 85%, transparent 94%)`
+                                            : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none'),
+                                    WebkitMaskImage: isAutoBackCollar
+                                        ? `linear-gradient(to bottom, black 0%, black ${custom.neck || 15}%, transparent ${(custom.neck || 15) + 4}%)`
+                                        : ((isJersey && !isBackLayer)
+                                            ? `radial-gradient(ellipse at 50% 0%, transparent ${(custom.neck || 15) - 3}%, black ${custom.neck || 15}%, black 85%, transparent 94%)`
+                                            : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none'),
                                     objectFit: 'cover',
                                     objectPosition: 'top center',
-                                } : (isShorts || isSocks || isCleats ? { filter: (iconToUse.toLowerCase().endsWith('.jpg') || item.id.includes('shorts')) ? 'url(#blackToAlpha)' : 'url(#whiteToAlpha)' } : {})),
+                                } : (isShorts || isSocks || isCleats ? { filter: (iconToUse.toLowerCase().endsWith('.jpg') || item.id.includes('shorts')) ? `url(#${blackToAlphaId})` : `url(#${whiteToAlphaJerseyId})` } : {})),
                             }}
                         />
                     ) : (
@@ -304,37 +352,34 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
             className={cn("flex flex-col items-center", className)}
         >
             <div className={cn("relative flex items-center justify-center", sizeClasses[size])} style={{ fontSize: containerFontSize }}>
-                {/* Filtro suave para el avatar (imagen de antes); filtro fuerte solo para camisetas */}
-                <svg style={{ position: 'absolute', width: 0, height: 0 }}>
-                    <filter id="whiteToAlpha" colorInterpolationFilters="sRGB">
+                {/* HIDDEN SVG FILTERS PARA TODOS LOS ACCESORIOS DE ESTE COMPONENTE (ÚNICOS) */}
+                <svg style={{ position: 'absolute', width: 0, height: 0 }} aria-hidden="true">
+                    {/* Filtro general The Matrix para eliminar fondo blanco del Avatar */}
+                    <filter id={whiteToAlphaId} colorInterpolationFilters="sRGB">
                         <feColorMatrix type="matrix" values="
                         1 0 0 0 0
                         0 1 0 0 0
                         0 0 1 0 0
-                        -1.5 -1.5 -1.5 4.5 -0.1
+                        -12 -12 -12 0 33
                     " />
-                        <feMorphology operator="erode" radius="0.5" />
                     </filter>
-                    {/* Elite Jersey Filter: Kills BOTH white and light grey backgrounds while keeping colors punchy */}
-                    <filter id="premiumJerseyFilter" colorInterpolationFilters="sRGB">
-                        <feColorMatrix type="matrix" values="
-                        1 0 0 0 0
-                        0 1 0 0 0
-                        0 0 1 0 0
-                        -6 -6 -6 0 15
-                    " />
+                    {/* White to Alpha: Removes white/light backgrounds from images */}
+                    <filter id={cleanJerseyId} colorInterpolationFilters="sRGB">
+                        <feComponentTransfer>
+                            <feFuncA type="table" tableValues="0 0 0 1 1" />
+                        </feComponentTransfer>
                     </filter>
                     {/* Solo quitar fondo blanco de la camiseta; dejar colores de la prenda al 100% opacos */}
-                    <filter id="whiteToAlphaJersey" colorInterpolationFilters="sRGB">
+                    <filter id={whiteToAlphaJerseyId} colorInterpolationFilters="sRGB">
                         <feColorMatrix type="matrix" values="
                         1 0 0 0 0
                         0 1 0 0 0
                         0 0 1 0 0
-                        -1.2 -1.2 -1.2 0 3.2
+                        -6 -6 -6 0 16
                     " />
                     </filter>
                     {/* Killer filter for BLACK backgrounds: Kills absolute black and dark grey artifacts */}
-                    <filter id="blackToAlpha" colorInterpolationFilters="sRGB">
+                    <filter id={blackToAlphaId} colorInterpolationFilters="sRGB">
                         <feColorMatrix type="matrix" values="
                         1 0 0 0 0
                         0 1 0 0 0
@@ -342,13 +387,13 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                         12 12 12 0 -2
                     " />
                     </filter>
-                    {/* Extra Clean: Combined approach for difficult JPG backgrounds */}
-                    <filter id="extraCleanJersey" colorInterpolationFilters="sRGB">
+                    {/* Extra Clean: Supreme threshold to obliterate ALL white/grey backgrounds permanently */}
+                    <filter id={extraCleanJerseyId} colorInterpolationFilters="sRGB">
                         <feColorMatrix type="matrix" values="
                         1.1 0 0 0 0
                         0 1.1 0 0 0
                         0 0 1.1 0 0
-                        -2 -2 -2 0 5.4
+                        -15 -15 -15 36 -4
                     " />
                     </filter>
                 </svg>
@@ -379,8 +424,9 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                         <div
                             className="relative w-full h-full flex items-center justify-center"
                             style={{
-                                maskImage: 'radial-gradient(circle, black 60%, transparent 95%)',
-                                WebkitMaskImage: 'radial-gradient(circle, black 60%, transparent 95%)',
+                                // Removing the heavy linear-gradient mask so the avatar's arms and base torso are never cut out, fixing the 'floating neck' and missing arms issue!
+                                maskImage: 'none',
+                                WebkitMaskImage: 'none',
                                 zIndex: 10
                             }}
                         >
@@ -391,7 +437,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                                 style={{
                                     position: 'relative',
                                     zIndex: 10,
-                                    filter: 'url(#whiteToAlpha) contrast(1.05) brightness(1.05)'
+                                    filter: `url(#${whiteToAlphaId}) contrast(1.05) brightness(1.05)`
                                 }}
                                 draggable={false}
                             />

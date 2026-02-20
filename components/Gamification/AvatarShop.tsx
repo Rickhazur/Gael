@@ -26,14 +26,14 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
         buyAccessory, equipAccessory, isOwned, unequipAccessory, deleteAccessory,
         ownedAccessories, equippedAccessories, setAvatar,
         currentAvatar, updateAccessoryOffset, accessoryOffsets, grade,
-        userId, deletedCatalogItems, hideFromCatalog
+        userId, deletedCatalogItems, hideFromCatalog, userRole
     } = useAvatar();
 
     const { coins } = useGamification();
     const { playStoreOpen, playPurchase, playStickerApply, playNudge, playClick, playBack } = useNovaSound();
 
     const [mainTab, setMainTab] = React.useState<'characters' | 'accessories' | 'backpack'>('accessories');
-    const VALID_CATEGORIES = ['glasses', 'jerseys', 'shorts', 'stickers', 'watches', 'hats', 'favorites', 'nova'];
+    const VALID_CATEGORIES = ['glasses', 'jerseys', 'stickers', 'watches', 'hats', 'back', 'favorites', 'nova'];
     const [activeCategory, setActiveCategory] = React.useState(() =>
         demoData?.defaultCategory && VALID_CATEGORIES.includes(demoData.defaultCategory)
             ? demoData.defaultCategory
@@ -300,9 +300,9 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                             >
                                 {cat === 'glasses' ? 'GAFAS' :
                                     cat === 'jerseys' ? 'CAMISETAS' :
-                                        cat === 'shorts' ? 'PANTALONES' :
-                                            cat === 'stickers' ? 'STICKERS' :
-                                                cat === 'watches' ? 'RELOJES' :
+                                        cat === 'stickers' ? 'STICKERS' :
+                                            cat === 'watches' ? 'RELOJES' :
+                                                cat === 'back' ? 'MOCHILAS' :
                                                     cat === 'favorites' ? 'PERSONAJES 3D' :
                                                         cat === 'nova' ? 'EXCLUSIVO NOVA' :
                                                             cat === 'hats' ? 'SOMBREROS' : cat.toUpperCase()}
@@ -323,8 +323,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                         if (deletedCatalogItems.includes(i.id)) return false;
                                         if (activeCategory === 'glasses') return i.type === 'glasses';
                                         if (activeCategory === 'jerseys') return i.type === 'torso' && (i.id.includes('jersey') || i.id.includes('tshirt') || i.id.includes('nova'));
-                                        if (activeCategory === 'shorts') return i.type === 'legs';
-                                        if (activeCategory === 'stickers') return i.type === 'torso' && (i.id.includes('sticker') || i.id.includes('medal'));
+                                        if (activeCategory === 'stickers') return (i.type === 'sticker' || (i.type === 'torso' && (i.id.includes('sticker') || i.id.includes('medal'))));
                                         if (activeCategory === 'favorites') return i.id.includes('popup');
                                         if (activeCategory === 'nova') return i.id.includes('nova');
                                         if (activeCategory === 'watches') return i.type === 'watch';
@@ -342,11 +341,17 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                                 transition={{ delay: idx * 0.05, type: 'spring' }}
                                                 className="relative flex flex-col items-center group cursor-pointer"
                                                 onClick={() => {
-                                                    if (owned && !equipped) {
-                                                        equipAccessory(item);
-                                                        setFittingAccessory(item);
-                                                        setShowFittingRoom(true);
-                                                    } else if (!owned) handleBuy(item);
+                                                    if (owned) {
+                                                        if (equipped) {
+                                                            unequipAccessory(item.type);
+                                                            toast.success(`Te quitaste ${item.name}`);
+                                                            playClick();
+                                                        } else {
+                                                            equipAccessory(item);
+                                                            setFittingAccessory(item);
+                                                            setShowFittingRoom(true);
+                                                        }
+                                                    } else handleBuy(item);
                                                 }}
                                             >
                                                 {/* 🧊 THE HEXAGONAL VITRINE */}
@@ -403,8 +408,8 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                                         </div>
                                                     )}
 
-                                                    {/* 🛠️ PILOT ADMIN: HIDE FROM CATALOG FOREVER */}
-                                                    {userId === 'test-pilot-quinto' && (
+                                                    {/* 🛠️ ADMIN/PILOT: HIDE FROM CATALOG FOREVER */}
+                                                    {(userId === 'test-pilot-quinto' || userRole === 'ADMIN') && (
                                                         <div className="absolute top-4 left-4 z-50">
                                                             <Button
                                                                 size="icon"
@@ -437,9 +442,6 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                                         {(() => {
                                                             // --- 🚀 NEW: ELITE ASSET MAPPING FOR DEMO ---
                                                             let displayIcon = imageUrlFallback[item.id] || item.icon;
-                                                            if (item.id === 'acc_jersey_madrid') displayIcon = 'C:/Users/devel/.gemini/antigravity/brain/28919836-1c4d-4102-b008-569335effacb/jersey_madrid_mbappe_1770071698068.png';
-                                                            if (item.id === 'acc_jersey_city') displayIcon = 'C:/Users/devel/.gemini/antigravity/brain/28919836-1c4d-4102-b008-569335effacb/jersey_man_city_haaland_1770071710860.png';
-                                                            if (item.id === 'acc_jersey_alnassr') displayIcon = 'C:/Users/devel/.gemini/antigravity/brain/28919836-1c4d-4102-b008-569335effacb/jersey_alnassr_ronaldo_1770071725197.png';
 
                                                             if (displayIcon.startsWith('/') || displayIcon.startsWith('http') || displayIcon.startsWith('C:') || displayIcon.startsWith('data:')) {
                                                                 if (failedImageIds[item.id] && !displayIcon.startsWith('C:')) {

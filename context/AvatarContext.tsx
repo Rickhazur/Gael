@@ -28,6 +28,7 @@ interface AvatarContextType {
     isOwned: (id: string) => boolean;
     deleteAccessory: (id: string) => void;
     hideFromCatalog: (id: string) => void;
+    userRole: string | null;
 }
 
 const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
@@ -35,6 +36,7 @@ const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
 export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { coins, spendCoins } = useGamification();
     const [userId, setUserId] = useState<string | null>(null);
+    const [userRole, setUserRole] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [studentName, setStudentName] = useState<string>('');
 
@@ -83,7 +85,7 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                 try {
                     const { data, error } = await supabase
                         .from('profiles')
-                        .select('avatar, owned_accessories, equipped_accessories, grade_level, accessory_offsets, name')
+                        .select('avatar, owned_accessories, equipped_accessories, grade_level, accessory_offsets, name, role')
                         .eq('id', user.id)
                         .single();
 
@@ -98,6 +100,24 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                         if (data.owned_accessories) setOwnedAccessories(data.owned_accessories);
                         if (data.equipped_accessories) setEquippedAccessories(data.equipped_accessories);
                         if (data.accessory_offsets) setAccessoryOffsets(data.accessory_offsets as any);
+                        if (data.role) setUserRole(data.role);
+
+                        // 1b. Fetch Global Exclusions
+                        try {
+                            const { data: globalExData } = await supabase
+                                .from('profiles')
+                                .select('owned_accessories')
+                                .eq('id', '00000000-0000-0000-0000-000000000000')
+                                .maybeSingle();
+                            if (globalExData?.owned_accessories) {
+                                setDeletedCatalogItems(prev => {
+                                    const combined = Array.from(new Set([...prev, ...(globalExData.owned_accessories as string[])]));
+                                    return combined;
+                                });
+                            }
+                        } catch (e) {
+                            console.warn("Global exclusions fetch failed:", e);
+                        }
                     } else if (error) {
                         // Fallback: Column might not exist yet
                         const { data: fallbackData } = await supabase
@@ -116,6 +136,7 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                                 setGrade((fallbackData as any).grade_level);
                                 localStorage.setItem('nova_student_grade', (fallbackData as any).grade_level.toString());
                             }
+                            if ((fallbackData as any).role) setUserRole((fallbackData as any).role);
                         }
                     }
                 } catch (e) {
@@ -137,6 +158,7 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                         if (newData.owned_accessories) setOwnedAccessories(newData.owned_accessories);
                         if (newData.equipped_accessories) setEquippedAccessories(newData.equipped_accessories);
                         if (newData.accessory_offsets) setAccessoryOffsets(newData.accessory_offsets as any);
+                        if (newData.role) setUserRole(newData.role);
                     }
                 });
             } else {
@@ -462,15 +484,46 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         });
     };
 
-    const hideFromCatalog = (id: string) => {
+    const hideFromCatalog = async (id: string) => {
+        // Confirmation for global delete if admin
+        let isGlobal = false;
+        if (userRole === 'ADMIN') {
+            isGlobal = window.confirm(`¿Quieres eliminar "${id}" de la tienda para TODOS los estudiantes de manera definitiva?`);
+        }
+
         setDeletedCatalogItems(prev => {
             const next = [...prev, id];
             localStorage.setItem('nova_deleted_catalog_items', JSON.stringify(next));
             return next;
         });
+
+        if (isGlobal && supabase) {
+            try {
+                // Fetch current global list
+                const { data: globalRow } = await supabase
+                    .from('profiles')
+                    .select('owned_accessories')
+                    .eq('id', '00000000-0000-0000-0000-000000000000')
+                    .maybeSingle();
+
+                const currentExclusions = (globalRow?.owned_accessories as string[]) || [];
+                if (!currentExclusions.includes(id)) {
+                    await supabase.from('profiles').upsert({
+                        id: '00000000-0000-0000-0000-000000000000',
+                        owned_accessories: [...currentExclusions, id],
+                        name: 'GLOBAL_CATALOG_CONFIG'
+                    }, { onConflict: 'id' });
+                }
+            } catch (e) {
+                console.error("Global exclusion failed:", e);
+            }
+        }
+
         toast({
-            title: "Artículo removido",
-            description: "Este accesorio ha sido removido de la Tienda Nova para siempre.",
+            title: isGlobal ? "Eliminado Globalmente" : "Artículo removido",
+            description: isGlobal
+                ? "Este accesorio ha sido removido de la Tienda Nova para todos los usuarios."
+                : "Este accesorio ha sido removido de tu vista de la Tienda Nova.",
         });
     };
 
@@ -492,7 +545,8 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             updateAccessoryOffset,
             isOwned,
             deleteAccessory,
-            hideFromCatalog
+            hideFromCatalog,
+            userRole
         }}>
             {children}
         </AvatarContext.Provider>
