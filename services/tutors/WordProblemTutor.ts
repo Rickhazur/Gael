@@ -6,7 +6,8 @@
 
 import { StepResponse } from './types';
 import { StateHelper } from './utils';
-import type { WordProblemParsed, GenericWordProblemParsed, MultiStepWordProblemParsed, GeometryWordProblemParsed } from '../../data/wordProblemParser';
+import type { WordProblemParsed, GenericWordProblemParsed, MultiStepWordProblemParsed, GeometryWordProblemParsed, ProportionWordProblemParsed } from '../../data/wordProblemParser';
+import { ProportionTutor } from './ProportionTutor';
 
 type WPPhase = 'intro' | 'dato_1' | 'dato_2' | 'dato_3' | 'op' | 'parte_1_intro' | 'parte_1_resolver' | 'parte_2_intro' | 'parte_2_resolver' | 'intro_understand' | 'socratic_1' | 'socratic_2' | 'socratic_3' | 'socratic_4' | 'socratic_5' | 'socratic_6' | 'socratic_7' | 'socratic_8' | 'socratic_9' | 'socratic_10' | 'step1' | 'step2' | 'step3' | 'step4' | 'step5' | 'strategy' | 'calc_units' | 'calc_revenue' | 'calc_profit' | 'perimeter' | 'area' | 'squares' | 'done';
 
@@ -148,6 +149,10 @@ export class WordProblemTutor {
         const lastState = StateHelper.getCurrentVisualState(history) as any;
         const type = prob.wpType || prob.type;
         const phase: WPPhase = lastState?.wpPhase || (prob.isNew ? 'intro' : 'intro');
+
+        if (type === 'proportion') {
+            return ProportionTutor.handleProportion(input, prob, lang, history, _studentName);
+        }
 
         // --- FLUJO SUMA DE FRACCIONES: 3/4 km + 2/5 km, ¿cuántos en total? ---
         if (type === 'add_fraction_quantities' && prob.frac1 && prob.frac2) {
@@ -929,6 +934,22 @@ export class WordProblemTutor {
                     }],
                 };
             }
+
+            // Sign check for 6th/7th grade integers
+            if (userNum !== null && Math.abs(userNum) === Math.abs(expected) && userNum !== expected) {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Casi! 😮 El número es correcto, pero **revisa el signo**. \n\nRecuerda: si la temperatura era **${n1}** y **${type === 'add_quantities' ? 'subió' : 'bajó'}** **${n2}**, ¿en qué dirección nos movemos? ¿Debería ser positivo (+) o negativo (-)?`
+                            : `Almost! 😮 The value is correct, but **check the sign**. \n\nRemember: if the temperature was **${n1}** and it **${type === 'add_quantities' ? 'went up' : 'went down'}** **${n2}**, which way are we moving? Should it be positive (+) or negative (-)?`,
+                        speech: lang === 'es' ? '¡Muy cerca! Revisa el signo. ¿Es positivo o negativo?' : 'Very close! Check the sign. Is it positive or negative?',
+                        visualType: 'vertical_op',
+                        visualData: { ...visualDataWithProblem(prob, lastState, { wpPhase: 'step1' }), operand1: String(n1), operand2: String(n2), operator: opSymbol, result: '' },
+                        detailedExplanation: { es: 'Error de signo detectado', en: 'Sign error detected' },
+                    }],
+                };
+            }
+
             const opForVertical = type === 'add_quantities' ? '+' : '-';
             return {
                 steps: [{

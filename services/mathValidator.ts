@@ -534,15 +534,31 @@ export function parseMathProblem(problem: string): {
     // we SKIP this simple pair detection so generateStepsForProblem can handle it correctly.
     const isFractionEquation = (problem.match(/\//g) || []).length >= 2 || /(\d+)\/\d+[\+\-\*]/.test(problem.replace(/\s+/g, ''));
 
-    const mulMatch = !isFractionEquation ? problem.match(/(\d+(?:\.\d+)?)\s*[×x*]\s*(\d+(?:\.\d+)?)/i) : null;
-    const divMatch = !isFractionEquation ? problem.match(/(\d+(?:\.\d+)?)\s*[÷/]\s*(\d+(?:\.\d+)?)/i) : null;
-    const addMatch = !isFractionEquation ? problem.match(/(\d+(?:\.\d+)?)\s*[+]\s*(\d+(?:\.\d+)?)/) : null;
-    const subMatch = !isFractionEquation ? problem.match(/(\d+(?:\.\d+)?)\s*[-]\s*(\d+(?:\.\d+)?)/) : null;
+    const mulMatch = !isFractionEquation ? problem.match(/(-?\d+(?:\.\d+)?)\s*[×x*]\s*(-?\d+(?:\.\d+)?)/i) : null;
+    const divMatch = !isFractionEquation ? problem.match(/(-?\d+(?:\.\d+)?)\s*[÷/]\s*(-?\d+(?:\.\d+)?)/i) : null;
+    const addMatch = !isFractionEquation ? problem.match(/(-?\d+(?:\.\d+)?)\s*[+]\s*(-?\d+(?:\.\d+)?)/) : null;
+    const subMatch = !isFractionEquation ? problem.match(/(-?\d+(?:\.\d+)?)\s*[-]\s*(-?\d+(?:\.\d+)?)/) : null;
 
-    if (mulMatch) return { num1: parseFloat(mulMatch[1]), num2: parseFloat(mulMatch[2]), operator: '×' };
-    if (divMatch) return { num1: parseFloat(divMatch[1]), num2: parseFloat(divMatch[2]), operator: '÷' };
-    if (addMatch) return { num1: parseFloat(addMatch[1]), num2: parseFloat(addMatch[2]), operator: '+' };
-    if (subMatch) return { num1: parseFloat(subMatch[1]), num2: parseFloat(subMatch[2]), operator: '-' };
+    if (mulMatch) {
+        const n1 = parseFloat(mulMatch[1]), n2 = parseFloat(mulMatch[2]);
+        if (n1 < 0 || n2 < 0) return null; // Delegate to AlgorithmicTutor for negative numbers
+        return { num1: n1, num2: n2, operator: '×' };
+    }
+    if (divMatch) {
+        const n1 = parseFloat(divMatch[1]), n2 = parseFloat(divMatch[2]);
+        if (n1 < 0 || n2 < 0) return null;
+        return { num1: n1, num2: n2, operator: '÷' };
+    }
+    if (addMatch) {
+        const n1 = parseFloat(addMatch[1]), n2 = parseFloat(addMatch[2]);
+        if (n1 < 0 || n2 < 0) return null;
+        return { num1: n1, num2: n2, operator: '+' };
+    }
+    if (subMatch) {
+        const n1 = parseFloat(subMatch[1]), n2 = parseFloat(subMatch[2]);
+        if (n1 < 0 || n2 < 0) return null;
+        return { num1: n1, num2: n2, operator: '-' };
+    }
 
     // 3. Geometry & Word Problems (Greedy detection)
     /* 

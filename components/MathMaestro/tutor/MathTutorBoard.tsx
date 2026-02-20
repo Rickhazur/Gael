@@ -1435,9 +1435,12 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                         }}
                         onDrawBase10Blocks={(v) => whiteboardRef.current?.drawBase10Blocks(v)}
                         onDrawDecomposition={(n1, f1, n2, f2) => whiteboardRef.current?.drawDecomposition(n1, f1, n2, f2)}
+                        onDrawAlgebra={(eq, v, p, hl) => whiteboardRef.current?.drawAlgebra(eq, v, p, hl)}
+                        onDrawCoordinateGrid={(pts, cp, p) => whiteboardRef.current?.drawCoordinateGrid(pts, cp, p)}
                         onDrawMultiplicationGroups={(n, i, t) => whiteboardRef.current?.drawMultiplicationGroups(n, i, t)}
                         onDrawImage={(url) => whiteboardRef.current?.drawImage(url)}
                         onSetupDragAndDrop={(bg, items) => whiteboardRef.current?.setupDragAndDrop(bg, items)}
+                        onDrawProportionTable={(a1, b1, a2, b2, unitA, unitB, highlight) => whiteboardRef.current?.drawProportionTable(a1, b1, a2, b2, unitA, unitB, highlight)}
                         onTriggerCelebration={(type) => whiteboardRef.current?.triggerCelebration(type)}
                         masteryMode={masteryMode}
                         isDemo={tourState.isActive}

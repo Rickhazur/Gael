@@ -63,6 +63,23 @@ export interface FinancialChallengeParsed {
     highlights: { text: string; color: string }[];
 }
 
+/** Problema de Regla de Tres (Proporcionalidad): A -> B, C -> X */
+export interface ProportionWordProblemParsed {
+    type: 'proportion';
+    /** Primer dato (ej. 2 libros) */
+    a1: number;
+    /** Segundo dato (ej. 10 dólares) */
+    b1: number;
+    /** Tercer dato (ej. 5 libros) */
+    a2: number;
+    /** Unidad A (ej. libros) */
+    unitA: string;
+    /** Unidad B (ej. dólares) */
+    unitB: string;
+    text: string;
+    highlights: { text: string; color: string }[];
+}
+
 export interface WordProblemParsed {
     type?: string;
     /** Texto original del problema */
@@ -117,15 +134,15 @@ const ADD_PATTERNS = [
 
 function parseNumber(s: string): number {
     const trimmed = s.trim().replace(/\s/g, '');
-    // Caso 1: Formato "1.260,50" o "1.260" (punto miles, coma decimal)
-    if (/^\d{1,3}(\.\d{3})*(,\d+)?$/.test(trimmed)) {
+    // Caso 1: Formato "-1.260,50" o "1.260" (punto miles, coma decimal)
+    if (/^-?\d{1,3}(\.\d{3})*(,\d+)?$/.test(trimmed)) {
         return parseFloat(trimmed.replace(/\./g, '').replace(',', '.'));
     }
-    // Caso 2: Formato "1,260.50" o "1,260" (coma miles, punto decimal)
-    if (/^\d{1,3}(,\d{3})*(\.\d+)?$/.test(trimmed)) {
+    // Caso 2: Formato "-1,260.50" o "1,260" (coma miles, punto decimal)
+    if (/^-?\d{1,3}(,\d{3})*(\.\d+)?$/.test(trimmed)) {
         return parseFloat(trimmed.replace(/,/g, ''));
     }
-    // Caso 3: Solo número con punto o coma decimal simple (ej. "10.5" o "10,5")
+    // Caso 3: Solo número con punto o coma decimal simple (ej. "-10.5" o "10,5")
     return parseFloat(trimmed.replace(',', '.'));
 }
 
@@ -243,7 +260,7 @@ export interface GeometryWordProblemParsed {
  * Problemas verbales genéricos: suma/resta de cantidades (kg, litros, etc.).
  * Misma secuencia: mostrar problema con palabras clave coloreadas → preguntar → validar o pista.
  */
-export type AnyWordProblemParsed = GenericWordProblemParsed | MultiStepWordProblemParsed | GeometryWordProblemParsed | FinancialChallengeParsed;
+export type AnyWordProblemParsed = GenericWordProblemParsed | MultiStepWordProblemParsed | GeometryWordProblemParsed | FinancialChallengeParsed | ProportionWordProblemParsed;
 
 export function parseGenericWordProblem(text: string): AnyWordProblemParsed | null {
     const t = text.trim();
@@ -407,11 +424,11 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     }
 
     // Resta: "tenía X kg, vendió/usó Y kg, ¿cuántos kg quedan?"
-    const subtractTwo = t.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|unidades?)?[^.]*?(?:vendió|gastó|usó|perdió|sold|spent|used|lost)[^.]*?(\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L)?/i);
-    if (subtractTwo && /\bquedan\b|cuántos?\s+quedan|how\s+many\s+(?:left|remain)|quedaron|restan/i.test(t)) {
+    const subtractTwo = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|unidades?|°C|grados)?[^.]*?(?:vendió|gastó|usó|perdió|sold|spent|used|lost|bajó|descendió|disminuyó|decreció|lost|lost)[^.]*?(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|°C|grados)?/i);
+    if (subtractTwo && /\bquedan\b|cuántos?\s+quedan|how\s+many\s+(?:left|remain)|quedaron|restan|final\b/i.test(t)) {
         const n1 = parseNum(subtractTwo[1]);
         const n2 = parseNum(subtractTwo[2]);
-        if (n1 > 0 && n2 > 0 && n2 <= n1) {
+        if (n1 !== 0 || n2 !== 0) {
             const unit = /\bkg\b|kilogramos?/i.test(t) ? 'kg' : /\blitros?\b|L\b/i.test(t) ? 'litros' : 'unidades';
             const keywordSub = t.match(/\b(vendió|gastó|usó|perdió|sold|spent|used|lost)\b/i)?.[0];
             const highlights: { text: string; color: string }[] = [
@@ -425,9 +442,9 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     }
 
     // Multiplicación: "4 cajas con 12 manzanas cada una", "4 × 12", "4 packs of 6"
-    const multMatch = t.match(/(\d+)\s*(?:cajas?|paquetes?|packs?|bolsas?|veces)\s*(?:de|con|of)\s*(\d+)\s*(?:unidades?|manzanas?|each)?/i)
-        || t.match(/(\d+)\s*(?:×|x|\*|por|times)\s*(\d+)/)
-        || t.match(/(\d+)\s*(?:cada\s+una|cada\s+uno|each)\s*[^.]*?(\d+)/i);
+    const multMatch = t.match(/(-?\d+)\s*(?:cajas?|paquetes?|packs?|bolsas?|veces)\s*(?:de|con|of)\s*(-?\d+)\s*(?:unidades?|manzanas?|each)?/i)
+        || t.match(/(-?\d+)\s*(?:×|x|\*|por|times)\s*(-?\d+)/)
+        || t.match(/(-?\d+)\s*(?:cada\s+una|cada\s+uno|each)\s*[^.]*?(-?\d+)/i);
     if (multMatch && (/\bcuántas?\b|total\b|how\s+many|in\s+total/i.test(t) || multMatch[0].includes('×') || multMatch[0].includes('x'))) {
         const n1 = parseNum(multMatch[1]);
         const n2 = parseNum(multMatch[2]);
@@ -445,13 +462,13 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     }
 
     // División: "36 manzanas entre 6 niños", "36 ÷ 6", "repartir 36 entre 6"
-    const divMatch = t.match(/(\d+)\s*(?:manzanas?|galletas?|dulces?|entre|÷|\/)\s*(\d+)\s*(?:niños?|personas?|children|people)?/i)
-        || t.match(/repartir\s+(\d+)\s+entre\s+(\d+)/i)
-        || t.match(/(\d+)\s*[÷\/]\s*(\d+)/);
+    const divMatch = t.match(/(-?\d+)\s*(?:manzanas?|galletas?|dulces?|entre|÷|\/)\s*(-?\d+)\s*(?:niños?|personas?|children|people)?/i)
+        || t.match(/repartir\s+(-?\d+)\s+entre\s+(-?\d+)/i)
+        || t.match(/(-?\d+)\s*[÷\/]\s*(-?\d+)/);
 
     // División Agrupación (Contenedores): "125 alumnos. Cada autobús lleva 48. ¿Cuántos autobuses...?"
     // Patrón: (Num Total) ... Cada (Singular) ... (Num Capacidad) ... Cuántos (Plural)
-    const groupingMatch = t.match(/(\d+)\s*(?:alumnos?|personas?|litros?|kg|libros?|unidades?)?[\s\S]*?cada\s+(?:uno|autobús|bus|caja|bote|auto|coche|viaje|bolsa)\s*(?:puede\s+llevar|caben|tiene|lleva|hace)?\s*(\d+)/i);
+    const groupingMatch = t.match(/(-?\d+)\s*(?:alumnos?|personas?|litros?|kg|libros?|unidades?)?[\s\S]*?cada\s+(?:uno|autobús|bus|caja|bote|auto|coche|viaje|bolsa)\s*(?:puede\s+llevar|caben|tiene|lleva|hace)?\s*(-?\d+)/i);
 
     if ((divMatch && (/\bcuántas?\s+cada\b|how\s+many\s+each|cada\s+uno|per\s+person/i.test(t) || divMatch[0].includes('÷') || /repartir/i.test(t))) ||
         (groupingMatch && /\bcuántos?\s+(?:autobuses|buses|cajas|botes|viajes|bolsas|necesitan)\b/i.test(t))) {
@@ -529,15 +546,15 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     }
 
     // Multi-paso: "hay 1.260 libros, se prestan 378, llegan 245" o "tenía 50, compró 30, vendió 20" - tres números, dos operaciones
-    const threeNums = t.match(/(\d+(?:[.,]\d+)?)[\s\S]*?(\d+(?:[.,]\d+)?)[\s\S]*?(\d+(?:[.,]\d+)?)/);
+    const threeNums = t.match(/(-?\d+(?:[.,]\d+)?)[\s\S]*?(-?\d+(?:[.,]\d+)?)[\s\S]*?(-?\d+(?:[.,]\d+)?)/);
     if (threeNums && t.length > 45) {
         const n1 = parseNumMultiStep(threeNums[1]);
         const n2 = parseNumMultiStep(threeNums[2]);
         const n3 = parseNumMultiStep(threeNums[3]);
         const between1and2 = t.split(threeNums[1])[1]?.split(threeNums[2])[0] || '';
         const between2and3 = t.split(threeNums[2])[1]?.split(threeNums[3])[0] || '';
-        const addRe = /compr[oóé]|añadi[oó]|agreg[oó]|recibi[oó]|sum[oó]|regalaron|llegaron|llegan|más|más\s+que|bought|added|received|got|more/i;
-        const subRe = /gast[oó]|vend[ií]|regal[oó]|perdi[oó]|prestan|prestaron|se\s+prestan|quitan|quedan|sobran|spent|sold|gave|lost|left|remain/i;
+        const addRe = /compr[oóé]|añadi[oó]|agreg[oó]|recibi[oó]|sum[oó]|regalaron|llegaron|llegan|más|más\s+que|subi[oó]|aument[oó]|bought|added|received|got|more|up|increased/i;
+        const subRe = /gast[oó]|vend[ií]|regal[oó]|perdi[oó]|prestan|prestaron|se\s+prestan|quitan|quedan|sobran|baj[oó]|descendi[oó]|disminuy[oó]|decreci[oó]|spent|sold|gave|lost|left|remain|down|decreased/i;
         const multRe = /cada\s+alumno|cada\s+uno|cada\s+una|cada\s+bus|cada\s+vehículo|por\s+cada|veces|times|each|per/i;
         const divRe = /repartir|dividir|reparten|distribuir|repartido|entre|en\s+grupos|en\s+buses|en\s+cajas|divide|share|distribute/i;
 
@@ -606,22 +623,48 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
         }
     }
 
-    // Suma genérica: dos números y "total" / "cuántos"
-    const twoNums = t.match(/(\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|m|metros?)?[^.]*?(?:y|and)\s*[^.]*?(\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|m)?/i);
-    if (twoNums && /\b(?:en\s+)?total\b|cuántos?|how\s+many/i.test(t)) {
+    // Suma genérica: dos números y "total" / "cuántos" / "subió"
+    const twoNums = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|m|metros?|°C|grados)?[^.]*?(?:y|and|y|entonces|subió|aumentó|increased|up)\s*[^.]*?(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|m|°C|grados)?/i);
+    if (twoNums && /\b(?:en\s+)?total\b|cuántos?|how\s+many|final|resultado\b/i.test(t)) {
         if (/\d+\s*\/\s*\d+/.test(t) && /kil[oó]metro|km/i.test(t)) return null;
         const n1 = parseNum(twoNums[1]);
         const n2 = parseNum(twoNums[2]);
-        if (n1 > 0 && n2 > 0) {
-            const unit = /\bkg\b|kilogramos?/i.test(t) ? 'kg' : /\blitros?\b|L\b/i.test(t) ? 'litros' : '';
-            const keyAdd = t.match(/\b(en\s+)?total\b|compr[oó]|más\b|sumar|bought|added|plus\b/i)?.[0];
+        if (n1 !== 0 || n2 !== 0) {
+            const unit = /\bkg\b|kilogramos?/i.test(t) ? 'kg' : /\blitros?\b|L\b/i.test(t) ? 'litros' : /\b°C|grados\b/i.test(t) ? 'grados' : '';
+            const keyAdd = t.match(/\b(en\s+)?total\b|compr[oó]|más\b|sumar|subi[oó]|aument[oó]|bought|added|plus\b/i)?.[0];
             const highlights: { text: string; color: string }[] = [
                 { text: twoNums[1], color: 'blue' },
                 { text: twoNums[2], color: 'green' },
-                { text: (t.match(/\b(en\s+)?total\b/i)?.[0] || t.match(/cuántos?[^.?]*/i)?.[0] || 'total')?.trim() || 'total', color: 'red' },
+                { text: (t.match(/\b(en\s+)?total\b/i)?.[0] || t.match(/cuántos?[^.?]*/i)?.[0] || t.match(/\bfinal\b/i)?.[0] || 'total')?.trim() || 'total', color: 'red' },
             ];
             if (keyAdd) highlights.splice(2, 0, { text: keyAdd.trim(), color: 'orange' });
             return { type: 'add_quantities', n1, n2, unit: unit || 'unidades', text: t, highlights };
+        }
+    }
+
+    // REGLA DE TRES: "Si 2 libros cuestan 10, ¿cuánto cuestan 5?"
+    if (t.length > 25 && (t.includes('si') || t.includes('if')) && (t.includes('cuestan') || t.includes('valen') || t.includes('cada') || t.includes('cost'))) {
+        const allNums = t.match(/(-?\d+(?:[.,]\d+)?)/g);
+        if (allNums && allNums.length >= 3) {
+            const a1 = parseNum(allNums[0]);
+            const b1 = parseNum(allNums[1]);
+            const a2 = parseNum(allNums[2]);
+            if (a1 > 0 && b1 !== 0 && a2 > 0) {
+                // Tries to extract units
+                const unitMatch = t.match(/(\d+(?:[.,]\d+)?)\s*([a-zA-ZñÑáéíóúÁÉÍÓÚ]+)/g);
+                let unitA = 'unidades';
+                let unitB = 'resultado';
+                if (unitMatch && unitMatch.length >= 2) {
+                    unitA = unitMatch[0].replace(/[\d\s\.,]+/g, '').trim() || 'unidades';
+                    unitB = unitMatch[1].replace(/[\d\s\.,]+/g, '').trim() || 'resultado';
+                }
+                const highlights: { text: string; color: string }[] = [
+                    { text: allNums[0], color: 'blue' },
+                    { text: allNums[1], color: 'green' },
+                    { text: allNums[2], color: 'orange' },
+                ];
+                return { type: 'proportion', a1, b1, a2, unitA, unitB, text: t, highlights };
+            }
         }
     }
 

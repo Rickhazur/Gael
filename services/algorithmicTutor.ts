@@ -21,6 +21,8 @@ import { DecimalTutor } from './tutors/DecimalTutor';
 import { GeometryTutor } from './tutors/GeometryTutor';
 import { WordProblemTutor } from './tutors/WordProblemTutor';
 import { IntegerTutor } from './tutors/IntegerTutor';
+import { AlgebraTutor } from './tutors/AlgebraTutor';
+import { CoordinateTutor } from './tutors/CoordinateTutor';
 import { parseWordProblem, parseGenericWordProblem } from '../data/wordProblemParser';
 
 export class AlgorithmicTutor {
@@ -133,6 +135,7 @@ export class AlgorithmicTutor {
     private static normalizeInput(text: string): string {
         if (typeof text !== 'string') return '';
         return text
+            .replace(/[\u2212\u2013\u2014\u2015]/g, '-') // Normalize dashes/minuses to ASCII hyphen-minus
             .replace(/\u2044/g, '/')   // Unicode fraction slash ⁄
             .replace(/\u2215/g, '/')   // Division slash ∕
             .replace(/\u00A0/g, ' ')   // Non-breaking space
@@ -148,10 +151,10 @@ export class AlgorithmicTutor {
         studentName?: string,
         grade: GradeLevel = 3
     ): StepResponse | null {
-        const normalized = this.normalizeInput(currentText);
-        let problem = this.detectProblem(normalized, history);
+        const normalized = AlgorithmicTutor.normalizeInput(currentText);
+        let problem = AlgorithmicTutor.detectProblem(normalized, history);
         if (!problem) {
-            const lastState = this.getCurrentVisualState(history);
+            const lastState = AlgorithmicTutor.getCurrentVisualState(history);
             if (lastState?.phase === 'chained_same_denom') {
                 problem = { type: 'fraction', isChainedAnswer: true, lastState };
             } else if (lastState?.originalOp && (lastState?.remaining != null || lastState?.type === 'mcm_intro')) {
@@ -176,15 +179,17 @@ export class AlgorithmicTutor {
                 return MultiplicationTutor.handleMultiplication(currentText, problem, language, history, studentName, grade);
             case 'division':
                 if (problem.isDecimal) return DecimalTutor.handleDecimal(currentText, { operator: '÷', n1: problem.dividend, n2: problem.divisor, isNew: problem.isNew }, language, history, studentName);
-                return this.handleDivision(currentText, problem, language, history, studentName, grade);
+                return AlgorithmicTutor.handleDivision(currentText, problem, language, history, studentName, grade);
             case 'fraction': return FractionTutor.handleFractions(currentText, problem, language, history, studentName);
-            case 'percentage': return this.handlePercentage(currentText, problem, language, history, studentName);
-            case 'wordProblem': return this.handleWordProblem(currentText, problem, language, history, studentName);
+            case 'percentage': return AlgorithmicTutor.handlePercentage(currentText, problem, language, history, studentName);
+            case 'wordProblem': return AlgorithmicTutor.handleWordProblem(currentText, problem, language, history, studentName);
             case 'conversion': return ConversionTutor.handleConversion(currentText, problem, language, history, studentName);
             case 'lcm': return AlgorithmicTutor.handleLCM(currentText, problem, language, history, studentName);
             case 'decimal': return DecimalTutor.handleDecimal(currentText, problem, language, history, studentName);
             case 'geometry': return GeometryTutor.handleGeometry(currentText, problem, language, history, studentName);
             case 'integer': return IntegerTutor.handleIntegers(currentText, problem, language, history, studentName);
+            case 'algebra': return AlgebraTutor.handleAlgebra(currentText, problem, language, history, studentName);
+            case 'coordinates': return CoordinateTutor.handleCoordinates(currentText, problem, language, history, studentName);
             default: return null;
         }
     }
@@ -260,31 +265,37 @@ export class AlgorithmicTutor {
             }
 
             // 3. STANDARD OPS (Division, Mult, Sub, Add)
-            const divMatch = clean.match(/(\d+(?:\.\d+)?)\s*(\/|÷|entre|dividido)\s*(\d+(?:\.\d+)?)/i);
+            const divMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*(\/|÷|entre|dividido)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*(\/|÷|entre|dividido)\s*(-?\d+(?:\.\d+)?)/i);
             if (divMatch) {
                 const isDecimal = divMatch[1].includes('.') || divMatch[3].includes('.');
-                return { isNew: true, type: 'division', dividend: divMatch[1], divisor: divMatch[3], isDecimal };
+                const isNegative = divMatch[1].startsWith('-') || divMatch[3].startsWith('-');
+                const type = isNegative ? 'integer' : 'division';
+                return { isNew: true, type, dividend: divMatch[1], divisor: divMatch[3], isDecimal };
+            }
+
+            const mulMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*(x|\*|×|por)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*(x|\*|×|por)\s*(-?\d+(?:\.\d+)?)/i);
+            if (mulMatch) {
+                const isNegative = mulMatch[1].startsWith('-') || mulMatch[3].startsWith('-');
+                const type = isNegative ? 'integer' : 'multiplication';
+                return { isNew: true, type, n1: mulMatch[1], n2: mulMatch[3], operator: '×', isDecimal: mulMatch[1].includes('.') || mulMatch[3].includes('.') };
             }
 
             // Resume context for "dividir" or "repartir"
             if (clean === 'dividir' || clean === 'repartir' || clean === 'divide' || clean === 'share') {
-                const last = this.getCurrentVisualState(history);
+                const last = AlgorithmicTutor.getCurrentVisualState(history);
                 if (last?.dividend && last?.divisor) {
                     return { type: 'division', dividend: last.dividend, divisor: last.divisor, isNew: false, divisionStyle: last.divisionStyle };
                 }
             }
 
-            const mulMatch = clean.match(/(\d+(?:\.\d+)?)\s*(x|\*|×|por)\s*(\d+(?:\.\d+)?)/i);
-            if (mulMatch) return { isNew: true, type: 'multiplication', n1: mulMatch[1], n2: mulMatch[3], operator: '×', isDecimal: mulMatch[1].includes('.') || mulMatch[3].includes('.') };
-
-            const subMatch = clean.match(/(-?\d+(?:\.\d+)?)\s*([\-\−\–]|menos)\s*(-?\d+(?:\.\d+)?)/i);
+            const subMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*([\-\−\–]|menos)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*([\-\−\–]|menos)\s*(-?\d+(?:\.\d+)?)/i);
             if (subMatch) {
                 const isNegative = subMatch[1].startsWith('-') || subMatch[3].startsWith('-');
                 const type = isNegative ? 'integer' : 'subtraction';
                 return { isNew: true, type, n1: subMatch[1], n2: subMatch[3], isDecimal: subMatch[1].includes('.') || subMatch[3].includes('.'), operator: '-' };
             }
 
-            const addMatch = clean.match(/(-?\d+(?:\.\d+)?)\s*(\+|más|mas)\s*(-?\d+(?:\.\d+)?)/i);
+            const addMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*(\+|más|mas)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*(\+|más|mas)\s*(-?\d+(?:\.\d+)?)/i);
             if (addMatch) {
                 const isNegative = addMatch[1].startsWith('-') || addMatch[3].startsWith('-');
                 const type = isNegative ? 'integer' : 'addition';
@@ -363,11 +374,26 @@ export class AlgorithmicTutor {
                 if (a > 0 && b > 0) return { isNew: true, type: 'geometry', shape: 'right_triangle', geometryType: 'pythagoras', n1: String(a), n2: String(b) };
             }
 
+            // 7. ALGEBRA (Simple Equations: x + 5 = 10, 2x = 8)
+            const eqMatch = clean.replace(/\s+/g, '').match(/([a-z])([\+\-])(\d+)=(\d+)/i)
+                || clean.replace(/\s+/g, '').match(/(\d+)([\+\-])([a-z])=(\d+)/i)
+                || clean.replace(/\s+/g, '').match(/(\d+)([a-z])=(\d+)/i);
+            if (eqMatch) {
+                const variable = eqMatch[1].length === 1 && /[a-z]/i.test(eqMatch[1]) ? eqMatch[1] : (eqMatch[3].length === 1 ? eqMatch[3] : (eqMatch[2].length === 1 ? eqMatch[2] : 'x'));
+                return { type: 'algebra', equation: clean, variable, isNew: true };
+            }
+
+            // 8. COORDINATES: (3, 4), (-2, 5)
+            const coordMatch = clean.match(/\((-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\)/);
+            if (coordMatch) {
+                return { type: 'coordinates', x: coordMatch[1], y: coordMatch[2], isNew: true };
+            }
+
             return null;
         };
 
         // 1. Check current text (Is New?)
-        const lastState = this.getCurrentVisualState(history);
+        const lastState = AlgorithmicTutor.getCurrentVisualState(history);
 
         // 🧩 WORD PROBLEM – misma secuencia para todos: pizarra con highlights y respuesta siempre
         if (lastState?.wpPhase && lastState?.wpParsed) {

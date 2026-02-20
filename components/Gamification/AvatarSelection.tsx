@@ -102,53 +102,27 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                                 <div className="flex items-center gap-4 mb-4">
                                     <div
                                         className={cn(
-                                            "w-20 h-20 rounded-2xl flex items-center justify-center text-4xl border-2 shadow-inner",
+                                            "w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden border-2 shadow-inner",
                                             isSelected ? "bg-kid-green/10 border-kid-green" : "bg-slate-100 border-slate-200"
                                         )}
                                         style={{ backgroundColor: isSelected ? undefined : avatar.colors[0] + '20' }}
                                     >
-                                        {/* Placeholder Logic Based on Grade */}
-                                        {/* Placeholder Logic Based on Grade */}
-                                        {/* Simple fallback emoji logic based on ID string match */}
-                                        {avatar.id.includes('bunny') ? '🐰' :
-                                            avatar.id.includes('dino') ? '🦖' :
-                                                avatar.id.includes('princess') ? '👸' :
-                                                    avatar.id.includes('knight') ? '🛡️' :
-                                                        avatar.id.includes('cat') ? '🐱' :
-                                                            avatar.id.includes('robot') ? '🤖' :
-                                                                avatar.id.includes('hero_girl') ? '🦸‍♀️' :
-                                                                    avatar.id.includes('hero_boy') ? '🦸‍♂️' :
-                                                                        // G2
-                                                                        avatar.id.includes('explorer') ? '🤠' :
-                                                                            avatar.id.includes('mermaid') ? '🧜‍♀️' :
-                                                                                avatar.id.includes('pirate') ? '🏴‍☠️' :
-                                                                                    avatar.id.includes('fairy') ? '🧚‍♀️' :
-                                                                                        avatar.id.includes('elf') ? '🧝' :
-                                                                                            avatar.id.includes('doc') ? '🩺' :
-                                                                                                avatar.id.includes('builder') ? '👷' :
-                                                                                                    // G3
-                                                                                                    avatar.id.includes('wizard') ? '🧙‍♂️' :
-                                                                                                        avatar.id.includes('witch') ? '🧙‍♀️' :
-                                                                                                            avatar.id.includes('skater') ? '🛹' :
-                                                                                                                avatar.id.includes('detective') ? '🕵️' :
-                                                                                                                    avatar.id.includes('ninja') ? '🥷' :
-                                                                                                                        avatar.id.includes('artist') ? '🎨' :
-                                                                                                                            avatar.id.includes('rock') ? '🎸' :
-                                                                                                                                // G4
-                                                                                                                                avatar.id.includes('astro') ? '🧑‍🚀' :
-                                                                                                                                    avatar.id.includes('pixel') ? '👾' :
-                                                                                                                                        avatar.id.includes('street') ? '🧥' :
-                                                                                                                                            avatar.id.includes('tech') ? '🤓' :
-                                                                                                                                                avatar.id.includes('anime') ? '🤺' :
-                                                                                                                                                    avatar.id.includes('gamer') ? '🎮' :
-                                                                                                                                                        // G5
-                                                                                                                                                        avatar.id.includes('imaginaut') ? '🌌' :
-                                                                                                                                                            avatar.id.includes('maga') ? '🔮' :
-                                                                                                                                                                avatar.id.includes('synth') ? '🦾' :
-                                                                                                                                                                    avatar.id.includes('vis') ? '💠' :
-                                                                                                                                                                        avatar.id.includes('cyber') ? '⚡' : '✨'}
-                                        {/* Fallback */}
-                                        {avatar.baseImage.includes('astro') || avatar.baseImage.includes('imaginaut') ? '' : '✨'}
+                                        <img
+                                            src={avatar.baseImage}
+                                            alt={avatar.name}
+                                            className="w-full h-full object-cover"
+                                            onError={(e) => {
+                                                const target = e.target as HTMLImageElement;
+                                                target.style.display = 'none';
+                                                const parent = target.parentElement;
+                                                if (parent) {
+                                                    const fallback = document.createElement('span');
+                                                    fallback.innerText = '✨';
+                                                    fallback.className = 'text-4xl';
+                                                    parent.appendChild(fallback);
+                                                }
+                                            }}
+                                        />
                                     </div>
                                     <div>
                                         <h3 className="font-fredoka text-xl font-black text-slate-800 leading-tight">

@@ -25,7 +25,7 @@ import { LinaAvatar } from '../MathMaestro/tutor/LinaAvatar';
 import confetti from 'canvas-confetti';
 import { sfx } from '@/services/soundEffects';
 import { UniversalNotebook, type NoteData } from '@/components/Notebook/UniversalNotebook';
-import type { SourceInfo } from '@/types/research';
+import type { SourceInfo, Grade } from '@/types/research';
 import { notebookService } from '@/services/notebookService';
 import { motion } from 'framer-motion';
 import { ModelGallery } from '@/components/3D/ModelGallery';
@@ -59,8 +59,8 @@ export function ResearchCenter({ gradeLevel }: ResearchCenterProps) {
 
   // Sync app grade (e.g. pilot quinto) to Research Center
   useEffect(() => {
-    if (gradeLevel != null && gradeLevel >= 1 && gradeLevel <= 5 && gradeLevel !== state.grade) {
-      setGrade(gradeLevel as 1 | 2 | 3 | 4 | 5);
+    if (gradeLevel != null && gradeLevel >= 1 && gradeLevel <= 7 && gradeLevel !== state.grade) {
+      setGrade(gradeLevel as Grade);
     }
   }, [gradeLevel, state.grade, setGrade]);
 
@@ -350,7 +350,7 @@ export function ResearchCenter({ gradeLevel }: ResearchCenterProps) {
         boardImage: null,
         subject: notebookSubject as any,
       };
-      notebookService.saveNote(note, { silent: opts?.silent ?? true });
+      notebookService.saveNote(note as any, { silent: opts?.silent ?? true });
     },
     [searchQuery, state.hypothesis, state.paraphrasedText, state.sourceText, notebookSubject]
   );

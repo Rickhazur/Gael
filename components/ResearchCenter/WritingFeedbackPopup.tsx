@@ -27,7 +27,7 @@ const feedbackStyles: Record<FeedbackType, string> = {
 
 export function WritingFeedbackPopup({ feedback, onDismiss }: WritingFeedbackPopupProps) {
   const [isVisible, setIsVisible] = useState(false);
-  
+
   useEffect(() => {
     if (feedback) {
       setIsVisible(true);
@@ -38,9 +38,9 @@ export function WritingFeedbackPopup({ feedback, onDismiss }: WritingFeedbackPop
       return () => clearTimeout(timer);
     }
   }, [feedback, onDismiss]);
-  
+
   if (!feedback) return null;
-  
+
   return (
     <div
       className={cn(
@@ -67,7 +67,7 @@ export function generateWritingFeedback(
 ): WritingFeedback | null {
   const wordCount = text.split(/\s+/).filter(w => w.length > 0).length;
   const sentenceCount = text.split(/[.!?]+/).filter(s => s.trim().length > 5).length;
-  
+
   // Grade-specific expectations
   const gradeExpectations = {
     1: { minWords: 15, minSentences: 2, maxWords: 40 },
@@ -75,29 +75,31 @@ export function generateWritingFeedback(
     3: { minWords: 40, minSentences: 4, maxWords: 100 },
     4: { minWords: 60, minSentences: 5, maxWords: 150 },
     5: { minWords: 80, minSentences: 6, maxWords: 200 },
+    6: { minWords: 100, minSentences: 8, maxWords: 250 },
+    7: { minWords: 120, minSentences: 10, maxWords: 300 },
   };
-  
+
   const expectations = gradeExpectations[grade];
-  
+
   // Check for copied text
   if (sourceText && text.length > 20) {
     const sourceWords = sourceText.toLowerCase().split(/\s+/).filter(w => w.length > 3);
     const textWords = text.toLowerCase().split(/\s+/).filter(w => w.length > 3);
     const copiedCount = textWords.filter(w => sourceWords.includes(w)).length;
     const copyRatio = textWords.length > 0 ? copiedCount / textWords.length : 0;
-    
+
     if (copyRatio > 0.6) {
       return {
         id: 'copy-warning',
         type: 'warning',
-        message: language === 'es' 
+        message: language === 'es'
           ? '⚠️ ¡Espera! Estás copiando mucho del texto original. ¡Usa tus propias palabras!'
           : '⚠️ Wait! You\'re copying a lot from the original. Use your own words!',
         icon: <AlertCircle className="w-6 h-6" />,
       };
     }
   }
-  
+
   // Progress milestones
   if (wordCount === 10 || wordCount === 25 || wordCount === 50 || wordCount === 75 || wordCount === 100) {
     return {
@@ -109,7 +111,7 @@ export function generateWritingFeedback(
       icon: <Star className="w-6 h-6" />,
     };
   }
-  
+
   // Check sentence completion
   if (text.endsWith('.') || text.endsWith('!') || text.endsWith('?')) {
     if (sentenceCount === 1) {
@@ -133,7 +135,7 @@ export function generateWritingFeedback(
       };
     }
   }
-  
+
   // Short writing tip based on grade
   if (wordCount > 5 && wordCount < expectations.minWords && wordCount % 8 === 0) {
     const tips = language === 'es' ? {
@@ -142,14 +144,18 @@ export function generateWritingFeedback(
       3: '💡 Tip: Explica por qué es importante.',
       4: '💡 Tip: Conecta esta idea con otra que conoces.',
       5: '💡 Tip: Añade un ejemplo o evidencia.',
+      6: '💡 Tip: Analiza diferentes puntos de vista.',
+      7: '💡 Tip: Incluye una conclusión crítica.',
     } : {
       1: '💡 Tip: Describe what you see or what happened.',
       2: '💡 Tip: Add how this makes you feel.',
       3: '💡 Tip: Explain why this is important.',
       4: '💡 Tip: Connect this idea to something you know.',
       5: '💡 Tip: Add an example or evidence.',
+      6: '💡 Tip: Analyze different points of view.',
+      7: '💡 Tip: Include a critical conclusion.',
     };
-    
+
     return {
       id: `grade-tip-${grade}`,
       type: 'tip',
@@ -157,7 +163,7 @@ export function generateWritingFeedback(
       icon: <Lightbulb className="w-6 h-6" />,
     };
   }
-  
+
   // Reached minimum word count
   if (wordCount >= expectations.minWords && wordCount < expectations.minWords + 5) {
     return {
@@ -169,6 +175,6 @@ export function generateWritingFeedback(
       icon: <CheckCircle className="w-6 h-6" />,
     };
   }
-  
+
   return null;
 }

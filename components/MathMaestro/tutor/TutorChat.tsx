@@ -87,7 +87,7 @@ const AnimatedWordText = ({ text }: { text: string }) => {
 };
 
 const TutorChatComponent = (
-    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onSetupDragAndDrop }: TutorChatProps,
+    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onSetupDragAndDrop, onDrawProportionTable }: TutorChatProps,
     ref: React.ForwardedRef<TutorChatRef>
 ) => {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -398,6 +398,21 @@ const TutorChatComponent = (
                 onDrawGeometry(step.visualData.shape, step.visualData);
             } else if (vType === 'geometry' && onDrawGeometry) {
                 onDrawGeometry(step.visualData.shape, step.visualData);
+            } else if (vType === 'algebra_op' && onDrawAlgebra) {
+                onDrawAlgebra(step.visualData.equation || "", step.visualData.variable || "x", step.visualData.phase || "algebra_start", step.visualData.highlight);
+            } else if (vType === 'coordinate_grid' && onDrawCoordinateGrid) {
+                onDrawCoordinateGrid(step.visualData.points || [], step.visualData.currentPoint, step.visualData.phase);
+            } else if (vType === 'proportion_table' && onDrawProportionTable) {
+                const v = step.visualData;
+                onDrawProportionTable(
+                    String(v.a1 || ""),
+                    String(v.b1 || ""),
+                    String(v.a2 || ""),
+                    String(v.b2 || ""),
+                    v.unitA || "A",
+                    v.unitB || "B",
+                    v.highlight
+                );
             } else if (vType === 'text_only' && onDrawText) {
                 const rawText = (step.visualData?.text ?? step.text ?? (typeof step.message === 'object' ? step.message?.[language] : step.message) ?? '').toString();
                 const normalizedText = normalizePastedFractions(rawText).trim();
@@ -464,7 +479,10 @@ const TutorChatComponent = (
                 else if (vType === 'vertical_op' && op === '×') operationType = 'multiplication';
                 else if (vType === 'vertical_op' && op === '+') operationType = 'addition';
                 else if (vType === 'vertical_op' && op === '-') operationType = 'subtraction';
-                else if (vType === 'geometry') operationType = 'geometry';
+                else if (vType === 'geometry' || vType === 'geometry_interactive') operationType = 'geometry';
+                else if (vType === 'algebra_op') operationType = 'algebra';
+                else if (vType === 'coordinate_grid') operationType = 'coordinates';
+
                 if (operationType !== 'other') {
                     onExerciseComplete?.(operationType);
                     onPersistProgress?.(operationType);
@@ -776,8 +794,7 @@ const TutorChatComponent = (
 
             if (isCelebration) {
                 // Award points via hook
-                // if masteryMode is true, usedHints is false -> More points!
-                gamification.recordCorrectAnswer(true, !masteryMode);
+                gamification.recordCorrectAnswer();
             }
         } catch (error: any) {
             console.error("AI Call Error:", error);

@@ -14,10 +14,13 @@ export interface WhiteboardRef {
     drawBase10Blocks: (value: number) => void;
     drawMultiplicationGroups: (numGroups: number, itemsPerGroup: number, itemType?: string) => void;
     drawDecomposition: (n1: number, factors1: number[], n2: number, factors2: number[]) => void;
+    drawAlgebra: (equation: string, variable: string, phase: string, highlight?: string) => void;
+    drawCoordinateGrid: (points: { x: number; y: number; label?: string }[], currentPoint?: { x: number; y: number }, phase?: string) => void;
     drawSolutionSteps: (steps: string[], currentStepIndex?: number) => void;
     triggerCelebration: (type?: 'stars' | 'confetti' | 'bubbles') => void;
     setShowGrid: (show: boolean) => void;
     setupDragAndDrop: (bgUrl: string, items: { id: string, imgUrl: string, count: number }[]) => void;
+    drawProportionTable: (a1: string, b1: string, a2: string, b2: string, unitA: string, unitB: string, highlight?: string) => void;
 }
 
 export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
@@ -2383,7 +2386,11 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
                 ctx.strokeStyle = "#3b82f6";
                 ctx.lineWidth = 4;
                 ctx.beginPath();
-                ctx.roundRect(x - 60, startY - 40, 120, 80, 15);
+                if (typeof (ctx as any).roundRect === 'function') {
+                    (ctx as any).roundRect(x - 60, startY - 40, 120, 80, 15);
+                } else {
+                    ctx.rect(x - 60, startY - 40, 120, 80);
+                }
                 ctx.stroke();
                 ctx.fill();
 
@@ -2428,6 +2435,241 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
             ctx.fillStyle = "#6366f1";
             ctx.font = "italic 22px 'Comic Sans MS'";
             ctx.fillText("Decomposition Matrix complete. Calculating LCD...", cW / 2, cH - 40);
+        },
+
+        drawAlgebra: (equation: string, variable: string, phase: string, highlight?: string) => {
+            stopAnimation();
+            const ctx = contextRef.current; const canvas = canvasRef.current;
+            if (!ctx || !canvas) return;
+            const dpr = window.devicePixelRatio || 1, cW = canvas.width / dpr, cH = canvas.height / dpr;
+            ctx.clearRect(0, 0, cW, cH);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, cW, cH);
+
+            const cX = cW / 2;
+            const cY = cH / 2;
+
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Title
+            ctx.fillStyle = '#1e293b';
+            ctx.font = "bold 32px 'Outfit', sans-serif";
+            ctx.fillText('Álgebra: Ecuación Lineal', cX, 60);
+
+            // Display Equation
+            const eqFontSize = 72;
+            ctx.font = `bold ${eqFontSize}px 'Comic Sans MS', cursive`;
+
+            // Equation part decomposition for highlighting
+            // Simple: "x + 5 = 10"
+            const parts = equation.split(' ');
+            let totalW = 0;
+            const partsData = parts.map(p => {
+                const w = ctx.measureText(p + " ").width;
+                const data = { text: p, w };
+                totalW += w;
+                return data;
+            });
+
+            let currentX = cX - totalW / 2;
+            partsData.forEach(p => {
+                const isVariable = p.text.toLowerCase().includes(variable.toLowerCase());
+                const isHighlight = highlight && p.text.includes(highlight);
+
+                if (isHighlight) {
+                    ctx.fillStyle = 'rgba(244, 63, 94, 0.15)';
+                    ctx.fillRect(currentX - 5, cY - eqFontSize / 2, p.w, eqFontSize);
+                    ctx.fillStyle = '#f43f5e';
+                } else if (isVariable) {
+                    ctx.fillStyle = '#3b82f6';
+                } else {
+                    ctx.fillStyle = '#1e293b';
+                }
+
+                ctx.fillText(p.text, currentX + p.w / 2, cY);
+                currentX += p.w;
+            });
+
+            // Help text
+            ctx.font = "24px 'Outfit'";
+            ctx.fillStyle = '#64748b';
+            let help = "Encuentra el valor de la variable.";
+            if (phase === 'algebra_step') help = "¡Hagamos lo mismo en ambos lados!";
+            if (phase === 'algebra_final') help = "¡Variable despejada!";
+            ctx.fillText(help, cX, cH - 80);
+        },
+
+        drawCoordinateGrid: (points: { x: number; y: number; label?: string }[], currentPoint?: { x: number; y: number }, phase?: string) => {
+            stopAnimation();
+            const ctx = contextRef.current; const canvas = canvasRef.current;
+            if (!ctx || !canvas) return;
+            const dpr = window.devicePixelRatio || 1, cW = canvas.width / dpr, cH = canvas.height / dpr;
+            ctx.clearRect(0, 0, cW, cH);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, cW, cH);
+
+            const cX = cW / 2;
+            const cY = cH / 2;
+            const size = Math.min(cW, cH) * 0.8;
+            const gridCells = 10;
+            const step = size / gridCells;
+
+            // Draw Grid Lines
+            ctx.strokeStyle = '#e2e8f0';
+            ctx.lineWidth = 1;
+            for (let i = -5; i <= 5; i++) {
+                // Vertical
+                ctx.beginPath();
+                ctx.moveTo(cX + i * step, cY - size / 2);
+                ctx.lineTo(cX + i * step, cY + size / 2);
+                ctx.stroke();
+                // Horizontal
+                ctx.beginPath();
+                ctx.moveTo(cX - size / 2, cY + i * step);
+                ctx.lineTo(cX + size / 2, cY + i * step);
+                ctx.stroke();
+            }
+
+            // Draw Main Axes
+            ctx.strokeStyle = '#475569';
+            ctx.lineWidth = 3;
+            // X-Axis
+            ctx.beginPath();
+            ctx.moveTo(cX - size / 2 - 20, cY);
+            ctx.lineTo(cX + size / 2 + 20, cY);
+            ctx.stroke();
+            // Y-Axis
+            ctx.beginPath();
+            ctx.moveTo(cX, cY - size / 2 - 20);
+            ctx.lineTo(cX, cY + size / 2 + 20);
+            ctx.stroke();
+
+            // Labels
+            ctx.fillStyle = '#475569';
+            ctx.font = "bold 16px 'Outfit'";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            for (let i = -5; i <= 5; i++) {
+                if (i === 0) continue;
+                ctx.fillText(i.toString(), cX + i * step, cY + 20);
+                ctx.fillText((-i).toString(), cX - 25, cY + i * step);
+            }
+            ctx.font = "bold 20px 'Outfit'";
+            ctx.fillText("X", cX + size / 2 + 35, cY);
+            ctx.fillText("Y", cX, cY - size / 2 - 35);
+
+            // Draw Saved Points
+            points.forEach(p => {
+                const px = cX + p.x * step;
+                const py = cY - p.y * step;
+                ctx.beginPath();
+                ctx.arc(px, py, 6, 0, Math.PI * 2);
+                ctx.fillStyle = '#3b82f6';
+                ctx.fill();
+                if (p.label) {
+                    ctx.fillStyle = '#1e3a8a';
+                    ctx.font = "bold 14px 'Outfit'";
+                    ctx.fillText(p.label, px + 15, py - 10);
+                }
+            });
+
+            // Draw Current/Target Point
+            if (currentPoint) {
+                const tx = cX + currentPoint.x * step;
+                const ty = cY - currentPoint.y * step;
+
+                if (phase === 'coords_plot') {
+                    // Blink effect or ghost point
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+                    ctx.strokeStyle = '#f43f5e';
+                    ctx.setLineDash([4, 4]);
+                    ctx.stroke();
+                    ctx.setLineDash([]);
+
+                    ctx.fillStyle = '#f43f5e';
+                    ctx.font = "bold 18px 'Outfit'";
+                    ctx.fillText(`¿Dónde está (${currentPoint.x}, ${currentPoint.y})?`, cX, 40);
+                } else if (phase === 'coords_done') {
+                    ctx.beginPath();
+                    ctx.arc(tx, ty, 8, 0, Math.PI * 2);
+                    ctx.fillStyle = '#10b981';
+                    ctx.fill();
+                    ctx.fillText(`¡Punto localizado!`, cX, 40);
+                }
+            }
+        },
+
+        drawProportionTable: (a1: string, b1: string, a2: string, b2: string, unitA: string, unitB: string, highlight?: string) => {
+            stopAnimation();
+            const ctx = contextRef.current; const canvas = canvasRef.current;
+            if (!ctx || !canvas) return;
+            const dpr = window.devicePixelRatio || 1, cW = canvas.width / dpr, cH = canvas.height / dpr;
+            ctx.clearRect(0, 0, cW, cH);
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(0, 0, cW, cH);
+
+            const cX = cW / 2;
+            const cY = cH / 2;
+
+            // Title
+            ctx.fillStyle = "#1e293b";
+            ctx.font = "bold 34px 'Outfit', sans-serif";
+            ctx.textAlign = 'center';
+            ctx.fillText("Proporcionalidad (Regla de Tres)", cX, 70);
+
+            // Table Settings
+            const cellW = 180;
+            const cellH = 100;
+            const tableX = cX - cellW;
+            const tableY = cY - 80;
+
+            // Header labels
+            ctx.font = "bold 24px 'Outfit'";
+            ctx.fillStyle = "#64748b";
+            ctx.fillText(unitA, tableX + cellW / 2, tableY - 30);
+            ctx.fillText(unitB, tableX + cellW * 1.5, tableY - 30);
+
+            // Draw Table Grid
+            ctx.strokeStyle = "#cbd5e1";
+            ctx.lineWidth = 2;
+            ctx.strokeRect(tableX, tableY, cellW * 2, cellH * 2);
+            ctx.beginPath();
+            ctx.moveTo(cX, tableY);
+            ctx.lineTo(cX, tableY + cellH * 2);
+            ctx.moveTo(tableX, tableY + cellH);
+            ctx.lineTo(tableX + cellW * 2, tableY + cellH);
+            ctx.stroke();
+
+            // Arrows or Relation lines
+            ctx.beginPath();
+            ctx.moveTo(tableX + cellW / 2 + 50, tableY + cellH / 2);
+            ctx.lineTo(tableX + cellW * 1.5 - 50, tableY + cellH / 2);
+            ctx.strokeStyle = "#3b82f6";
+            ctx.lineWidth = 3;
+            ctx.stroke();
+
+            // Values
+            const values = [
+                { val: a1, x: tableX + cellW / 2, y: tableY + cellH / 2, id: 'a1' },
+                { val: b1, x: tableX + cellW * 1.5, y: tableY + cellH / 2, id: 'b1' },
+                { val: a2, x: tableX + cellW / 2, y: tableY + cellH * 1.5, id: 'a2' },
+                { val: b2 || '?', x: tableX + cellW * 1.5, y: tableY + cellH * 1.5, id: 'b2' }
+            ];
+
+            values.forEach(v => {
+                const isHighlight = highlight === v.id;
+                ctx.fillStyle = isHighlight ? '#ef4444' : (v.id === 'b2' ? '#f59e0b' : '#1e293b');
+                ctx.font = `bold ${isHighlight ? 54 : 48}px 'Comic Sans MS'`;
+                ctx.fillText(v.val, v.x, v.y + 15);
+            });
+
+            // Instructions
+            ctx.font = "24px 'Outfit'";
+            ctx.fillStyle = "#475569";
+            const help = b2 ? "¡Problema resuelto!" : "¿Cuál es el valor desconocido?";
+            ctx.fillText(help, cX, cH - 70);
         },
 
         drawSolutionSteps: (steps: string[], currentStepIndex = -1) => {

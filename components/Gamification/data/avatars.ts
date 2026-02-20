@@ -443,7 +443,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Estratega',
         colors: ['#FFFFFF', '#2563EB'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g6_boy_diego.png',
+        baseImage: '/avatars/g5_boy_4.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -453,7 +453,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Carismática',
         colors: ['#FFFFFF', '#DB2777'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g6_girl_valentina.png',
+        baseImage: '/avatars/g5_girl_1_1769540901853.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -463,7 +463,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Ingenioso',
         colors: ['#FFFFFF', '#059669'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g6_boy_tomas.png',
+        baseImage: '/avatars/g5_boy_2.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -473,7 +473,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Visionaria',
         colors: ['#FFFFFF', '#9333EA'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g6_girl_camila.png',
+        baseImage: '/avatars/g5_girl_2_1769540916141.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -487,7 +487,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Visionario',
         colors: ['#FFFFFF', '#1D4ED8'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g7_boy_sebastian.png',
+        baseImage: '/avatars/g5_boy_1.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -497,7 +497,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Emprendedora',
         colors: ['#FFFFFF', '#BE185D'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g7_girl_mariana.png',
+        baseImage: '/avatars/g5_girl_3_1769540930925.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -507,7 +507,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Protector',
         colors: ['#FFFFFF', '#047857'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g7_boy_samuel.png',
+        baseImage: '/avatars/g5_boy_3.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -517,7 +517,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Metódica',
         colors: ['#FFFFFF', '#7E22CE'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g7_girl_gabriela.png',
+        baseImage: '/avatars/g5_girl_1_1769540901853.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];

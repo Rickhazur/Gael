@@ -9,8 +9,8 @@ interface GradeSelectorProps {
 }
 
 const gradeLabels = {
-  es: ['1º', '2º', '3º', '4º', '5º', '6º'],
-  en: ['1st', '2nd', '3rd', '4th', '5th', '6th'],
+  es: ['1º', '2º', '3º', '4º', '5º', '6º', '7º'],
+  en: ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th'],
 };
 
 const gradeColors = [
@@ -20,6 +20,7 @@ const gradeColors = [
   'bg-grade-4 hover:bg-grade-4/90',
   'bg-grade-5 hover:bg-grade-5/90',
   'bg-grade-6 hover:bg-grade-6/90',
+  'bg-grade-7 hover:bg-teal-500',
 ];
 
 export function GradeSelector({ grade, onChange, language }: GradeSelectorProps) {
@@ -31,7 +32,7 @@ export function GradeSelector({ grade, onChange, language }: GradeSelectorProps)
         {language === 'es' ? 'Grado:' : 'Grade:'}
       </span>
       <div className="flex gap-1.5">
-        {([1, 2, 3, 4, 5, 6] as Grade[]).map((g, i) => (
+        {([1, 2, 3, 4, 5, 6, 7] as Grade[]).map((g, i) => (
           <button
             key={g}
             onClick={() => onChange(g)}
