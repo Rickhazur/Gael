@@ -1,4 +1,4 @@
 NOVA SCHOLA - DEPLOYMENT TRIGGER
-Timestamp: 2026-01-08T16:21:07-05:00
+Timestamp: 2026-02-20T11:20:00-05:00
 Force Deploy: TRUE
-Reason: Fix Vercel not picking up CleanWhiteboard changes.
+Reason: Proportion Tutor implementation and Research Center 6th/7th grade adaptation.

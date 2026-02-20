@@ -1,2 +1,2 @@
-Deployment Trigger: 2026-02-02-PWA-SYNC-FORCED-V2
-Bilingual PWA and Luna Identity synchronization.
+Deployment Trigger: 2026-02-20-PROPORTION-TUTOR-UPDATE
+Bilingual Proportion Tutor and 6th/7th Grade Research Center Adaptation.
