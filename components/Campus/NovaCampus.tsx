@@ -188,7 +188,7 @@ export const NovaCampus: React.FC<NovaCityProps> = ({ onNavigate, language, user
                     <div className="flex items-center gap-3">
                         <div className="w-16 h-16 rounded-full border-2 border-cyan-400/50 shadow-[0_0_20px_rgba(34,211,238,0.3)] bg-black/40 overflow-hidden relative">
                             <div className="absolute inset-0 bg-gradient-to-b from-transparent to-cyan-900/50 mix-blend-overlay" />
-                            <AvatarDisplay size="md" showBackground={false} className="scale-125 translate-y-2" showName={true} />
+                            <AvatarDisplay size="md" showBackground={false} className="scale-125 translate-y-2" showName={true} isCurrentUser={true} />
                         </div>
                         <div className="flex flex-col">
                             <span className="text-xs font-bold text-cyan-300 uppercase tracking-wider">Cadete</span>

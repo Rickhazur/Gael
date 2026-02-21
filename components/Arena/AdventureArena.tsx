@@ -81,6 +81,44 @@ const DynamicBackground = ({ grade }: { grade: number }) => {
         );
     }
 
+    if (grade === 6) { // CRYSTAL / BINARY
+        return (
+            <div className="absolute inset-0 bg-gradient-to-b from-blue-600 via-indigo-900 to-slate-900 overflow-hidden">
+                <div className="absolute inset-0 bg-[url('/grid.svg')] opacity-20" />
+                {[...Array(20)].map((_, i) => (
+                    <motion.div
+                        key={`crystal-${i}`}
+                        className="absolute text-4xl opacity-20 blur-[2px]"
+                        style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+                        animate={{ scale: [1, 1.2, 1], opacity: [0.1, 0.3, 0.1] }}
+                        transition={{ duration: 4 + Math.random() * 4, repeat: Infinity }}
+                    >
+                        💎
+                    </motion.div>
+                ))}
+            </div>
+        );
+    }
+
+    if (grade === 7) { // GALAXY / ROYAL
+        return (
+            <div className="absolute inset-0 bg-gradient-to-b from-pink-600 via-rose-900 to-indigo-950 overflow-hidden">
+                <div className="absolute inset-0 bg-gradient-to-tr from-purple-500/10 via-transparent to-rose-500/10" />
+                {[...Array(15)].map((_, i) => (
+                    <motion.div
+                        key={`sparkle-${i}`}
+                        className="absolute w-1 h-1 bg-white rounded-full blur-[1px]"
+                        style={{ top: `${Math.random() * 100}%`, left: `${Math.random() * 100}%` }}
+                        animate={{ scale: [0, 2, 0], opacity: [0, 0.8, 0] }}
+                        transition={{ duration: 2 + Math.random() * 3, repeat: Infinity, delay: Math.random() * 5 }}
+                    >
+                        ✨
+                    </motion.div>
+                ))}
+            </div>
+        );
+    }
+
     if (grade === 2) { // DESERT
         return (
             <div className="absolute inset-0 bg-gradient-to-b from-orange-200 to-amber-500 overflow-hidden">
@@ -255,6 +293,18 @@ export function AdventureArena({ grade, language, userId, completedMissionIds, o
                 emojis: ['✨', '⚙️', '⏳'],
                 bottomZoneOnly: false,
                 facing: false // Gears spin, don't face
+            };
+            case 6: return {
+                type: 'CRYSTAL',
+                emojis: ['💎', '💠', '⚔️'],
+                bottomZoneOnly: false,
+                facing: true
+            };
+            case 7: return {
+                type: 'GALAXY',
+                emojis: ['🌟', '🏵️', '🔱'],
+                bottomZoneOnly: false,
+                facing: true
             };
             default: return { type: 'OCEAN', emojis: ['🐠', '🐟', '🐡'], bottomZoneOnly: true, facing: true };
         }
@@ -616,12 +666,12 @@ export function AdventureArena({ grade, language, userId, completedMissionIds, o
 
                                     <motion.div
                                         className="transform"
-                                        style={{ filter: whiteKillerFilter }}
+                                        style={{}}
                                         // User requested "no girl moving", so we keep it static or extremely subtle breathing
                                         animate={{ y: [0, -2, 0] }}
                                         transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
                                     >
-                                        <AvatarDisplay size="lg" showBackground={false} />
+                                        <AvatarDisplay size="lg" showBackground={false} isCurrentUser={true} />
                                     </motion.div>
 
                                     {/* VISUAL PET FOLLOWER - Simplified */}

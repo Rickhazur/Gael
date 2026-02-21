@@ -342,8 +342,8 @@ export const FittingRoom: React.FC<FittingRoomProps> = ({
                                             </label>
                                             <input
                                                 type="range"
-                                                min="0"
-                                                max="50"
+                                                min="-40"
+                                                max="60"
                                                 step={isProMode ? "0.5" : "1"}
                                                 value={offsets.sleeves}
                                                 onChange={(e) => updateOffset('sleeves', Number(e.target.value))}

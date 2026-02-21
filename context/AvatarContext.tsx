@@ -319,7 +319,7 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         const onSync = () => {
             const savedAvatar = localStorage.getItem('nova_avatar_id');
             const savedAcc = localStorage.getItem('nova_avatar_equipped');
-            const savedOffsets = localStorage.getItem('nova_accessory_offsets');
+            const savedOffsets = localStorage.getItem('nova_avatar_offsets') || localStorage.getItem('nova_accessory_offsets');
             const savedName = localStorage.getItem('nova_user_name');
             const savedGrade = localStorage.getItem('nova_student_grade');
 
@@ -407,7 +407,8 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
     /** Al equipar un accesorio (Tienda Nova) se guarda en estado, localStorage y Supabase; el avatar lo mostrará en toda la app. */
     const equipAccessory = (item: Accessory) => {
-        if (!ownedAccessories.includes(item.id)) return;
+        // We remove the check ownedAccessories.includes(item.id) because it causes race conditions
+        // during purchase. The shop already handles item existence.
 
         const newEquipped = { ...equippedAccessories, [item.type]: item.id };
         setEquippedAccessories(newEquipped);

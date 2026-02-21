@@ -534,21 +534,7 @@ export const AVATARS: Avatar[] = [
 ];
 
 export const ACCESSORIES: Accessory[] = [
-    // --- HEAD (CABEZA) ---
-    { id: 'acc_crown_paper', name: 'Corona de Papel', type: 'head', rarity: 'common', cost: 75, conditionType: 'none', icon: '👑' },
-    { id: 'acc_flower_crown', name: 'Corona de Flores', type: 'head', rarity: 'rare', cost: 200, conditionType: 'level', conditionValue: 2, icon: '🌸' },
-    { id: 'acc_cap_lightning', name: 'Gorra de Rayo', type: 'head', rarity: 'rare', cost: 250, conditionType: 'none', icon: '🧢' },
-    { id: 'acc_propeller_hat', name: 'Gorra Helice', type: 'head', rarity: 'rare', cost: 300, conditionType: 'none', icon: '🚁' },
-    { id: 'acc_pirate_hat', name: 'Sombrero Pirata', type: 'head', rarity: 'epic', cost: 550, conditionType: 'none', icon: '🏴‍☠️' },
-    { id: 'acc_party_hat', name: 'Gorro de Fiesta', type: 'head', rarity: 'common', cost: 100, conditionType: 'none', icon: '🥳' },
-    { id: 'acc_halo', name: 'Chispas Mágicas', type: 'head', rarity: 'epic', cost: 500, conditionType: 'none', icon: '✨' },
-    { id: 'acc_bow_fairy', name: 'Lazo de Hada', type: 'head', rarity: 'common', cost: 150, conditionType: 'none', icon: '🎀' },
-    { id: 'acc_nova_cap', name: 'Birrete Nova', type: 'head', rarity: 'epic', cost: 600, conditionType: 'level', conditionValue: 4, icon: '🎓' },
-    { id: 'acc_tophat', name: 'Sombrero de Copa', type: 'head', rarity: 'rare', cost: 300, conditionType: 'none', icon: '🎩' },
-    { id: 'acc_viking', name: 'Casco Valiente', type: 'head', rarity: 'epic', cost: 550, conditionType: 'none', icon: '🪖' },
-    { id: 'acc_tiara_princess', name: 'Tiara Real (💎)', type: 'head', rarity: 'legendary', cost: 2000, conditionType: 'mission', conditionValue: 'm_all_done', icon: '👑' },
-    { id: 'acc_headphones_gamer', name: 'Audífonos Gamer RGB', type: 'head', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '🎧' },
-    { id: 'acc_bunny_ears', name: 'Orejas de Conejito', type: 'head', rarity: 'common', cost: 200, conditionType: 'none', icon: '🐰' },
+    // --- HEAD (CABEZA) REMOVED ---
 
     // --- GLASSES (GAFAS) - ELITE & PREMIUM COLLECTION ---
     {
@@ -570,12 +556,6 @@ export const ACCESSORIES: Accessory[] = [
         icon: '/accessories/glass_astro_visor.png'
     },
     {
-        id: 'acc_glasses_cyber_neon',
-        name: 'Visor Neón Cyberpunk',
-        type: 'glasses', rarity: 'legendary', cost: 4000, conditionType: 'none',
-        icon: '👓'
-    },
-    {
         id: 'acc_glasses_phoenix_wings',
         name: 'Alas de Fénix Tropical (Sin Patas)',
         type: 'glasses', rarity: 'legendary', cost: 1500, conditionType: 'none',
@@ -587,22 +567,13 @@ export const ACCESSORIES: Accessory[] = [
         type: 'glasses', rarity: 'legendary', cost: 2500, conditionType: 'none',
         icon: '/accessories/glass_wings.png'
     },
-    {
-        id: 'acc_glasses_cyber_dragon',
-        name: 'Visor Dragón Cibernético (Elite)',
-        type: 'glasses', rarity: 'legendary', cost: 4500, conditionType: 'none',
-        icon: '🐉'
-    },
     { id: 'acc_glasses_cat_cosmic', name: 'Gato Cósmico (Premium)', type: 'glasses', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '/accessories/glass_cat.png' },
     { id: 'acc_glasses_puppy_play', name: 'Puppy Play (Premium)', type: 'glasses', rarity: 'epic', cost: 850, conditionType: 'none', icon: '/accessories/glass_puppy.png' },
     { id: 'acc_glasses_owl_bronze', name: 'Búho de Bronce Antiguo', type: 'glasses', rarity: 'epic', cost: 900, conditionType: 'none', icon: '/accessories/glass_simple.png' },
 
 
 
-    // --- TORSO / BELT (CUERPO Y CINTURÓN) ---
-    { id: 'acc_sticker_nova', name: 'Insignia Nova', type: 'sticker', rarity: 'epic', cost: 300, conditionType: 'none', icon: '🎓' },
-    { id: 'acc_sticker_star', name: 'Estrella Camisa', type: 'sticker', rarity: 'common', cost: 60, conditionType: 'level', conditionValue: 2, icon: '⭐' },
-    { id: 'acc_medal', name: 'Medalla Honor', type: 'sticker', rarity: 'rare', cost: 300, conditionType: 'mission', conditionValue: 'm_math_10', icon: '🥇' },
+    // --- TORSO / BELT REMOVED ITEMS WITHOUT IMAGES ---
 
     // --- STICKERS ESTADIOS MUNDIAL 2026 (USA) ---
     { id: 'acc_sticker_stadium_atlanta', name: 'Mercedes-Benz Stadium (Atlanta)', type: 'sticker', rarity: 'epic', cost: 500, conditionType: 'none', icon: '/avatars/stickers/stadium_atlanta.png' },
@@ -616,79 +587,23 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_sticker_stadium_philly', name: 'Lincoln Financial Field (Philly)', type: 'sticker', rarity: 'epic', cost: 500, conditionType: 'none', icon: '/avatars/stickers/stadium_philly.png' },
     { id: 'acc_sticker_stadium_sf', name: 'Levi\'s Stadium (San Francisco)', type: 'sticker', rarity: 'epic', cost: 500, conditionType: 'none', icon: '/avatars/stickers/stadium_sf.png' },
     { id: 'acc_sticker_stadium_seattle', name: 'Lumen Field (Seattle)', type: 'sticker', rarity: 'epic', cost: 500, conditionType: 'none', icon: '/avatars/stickers/stadium_seattle.png' },
-    { id: 'acc_belt_phone', name: 'Celular Cinturón', type: 'torso', rarity: 'rare', cost: 400, conditionType: 'none', icon: '📱' },
-    { id: 'acc_belt_walkie', name: 'Walkie Cinturón', type: 'torso', rarity: 'rare', cost: 350, conditionType: 'level', conditionValue: 3, icon: '📻' },
-    { id: 'acc_belt_bag', name: 'Riñonera Pro', type: 'torso', rarity: 'common', cost: 150, conditionType: 'none', icon: '👝' },
-    { id: 'acc_compass', name: 'Brújula Cinturón', type: 'torso', rarity: 'common', cost: 100, conditionType: 'none', icon: '🧭' },
-    { id: 'acc_watch', name: 'Reloj Pulsera', type: 'watch', rarity: 'rare', cost: 400, conditionType: 'none', icon: '⌚' },
 
     // --- RELOJES PREMIUM (WATCHES) ---
-    { id: 'acc_watch_cyber', name: 'Smartwatch Cyber-Blue', type: 'watch', rarity: 'epic', cost: 850, conditionType: 'none', icon: '⌚' },
-    { id: 'acc_watch_gold', name: 'Rolex de Oro', type: 'watch', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '👑' },
-    { id: 'acc_watch_sport', name: 'FitBand Pro', type: 'watch', rarity: 'rare', cost: 600, conditionType: 'none', icon: '🏃' },
     { id: 'acc_watch_elite_gmpt', name: 'Smartwatch Elite Pro', type: 'watch', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_6y3whi6y3whi6y3w.png' },
 
-    // --- ÚTILES DE CLASE (ESCOLAR) ---
-    { id: 'acc_backpack_nova', name: 'Mochila Nova Pro', type: 'back', rarity: 'rare', cost: 450, conditionType: 'level', conditionValue: 2, icon: '🎒' },
+    // --- ÚTILES DE CLASE REMOVED ITEMS WITHOUT IMAGES ---
 
     // --- COLECCIÓN DE MALETAS MEGA PREMIUM 3D ---
     { id: 'acc_backpack_cyber_x', name: 'Maleta Cyber X-Treme', type: 'back', rarity: 'legendary', cost: 1800, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_yhqyhxyhqyhxyhqy.png' },
     { id: 'acc_backpack_galaxy_star', name: 'Maleta Galaxy Star', type: 'back', rarity: 'legendary', cost: 1800, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_vdc3nivdc3nivdc3.png' },
     { id: 'acc_backpack_mecha_core', name: 'Maleta Mecha Core V2', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_obsjp3obsjp3obsj.png' },
     { id: 'acc_backpack_fairy_dust', name: 'Maleta Hada Mágica', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_m0cmsqm0cmsqm0cm.png' },
-    { id: 'acc_backpack_dino_rex', name: 'Maleta Dino Rex 3D', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_k01nsqk01nsqk01n.png' },
     { id: 'acc_backpack_neon_pulse', name: 'Maleta Neon Pulse', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_jbahlqjbahlqjbah.png' },
     { id: 'acc_backpack_crystal_gem', name: 'Maleta Crystal Gem', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_bmclq6bmclq6bmcl.png' },
     { id: 'acc_backpack_astronaut', name: 'Maleta Astronauta Pro', type: 'back', rarity: 'legendary', cost: 2000, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_an27ppan27ppan27.png' },
-    { id: 'acc_notebook_pro', name: 'Cuaderno de Oro', type: 'hand', rarity: 'epic', cost: 700, conditionType: 'none', icon: '📒' },
-    { id: 'acc_pencil_case', name: 'Cartuchera Neón', type: 'torso', rarity: 'common', cost: 120, conditionType: 'none', icon: '👝' },
-    { id: 'acc_calculator_holo', name: 'Holo-Calculadora', type: 'hand', rarity: 'rare', cost: 300, conditionType: 'level', conditionValue: 3, icon: '📟' },
-    { id: 'acc_lunchbox_dino', name: 'Lonchera Dino', type: 'hand', rarity: 'common', cost: 200, conditionType: 'none', icon: '🍱' },
-    { id: 'acc_fountain_pen', name: 'Pluma de Cristal', type: 'hand', rarity: 'rare', cost: 250, conditionType: 'none', icon: '✒️' },
-    { id: 'acc_tablet_nova', name: 'Nova Pad Air', type: 'hand', rarity: 'epic', cost: 1200, conditionType: 'level', conditionValue: 5, icon: '📱' },
+    // --- ÚTILES DE CLASE REMOVED ITEMS WITHOUT IMAGES ---
 
-    // --- NOVA SOCCER PRO 2026 (GRADO 5) ---
-    // LEGENDARY (2500)
-    { id: 'acc_jersey_colombia_pro', name: '¡NUEVA! Colombia Edition Pro #10', type: 'torso', rarity: 'legendary', cost: 3000, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_6204zf6204zf6204.png' },
-    { id: 'acc_jersey_colombia_james', name: 'Colombia - James Rodriguez #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_73ndea73ndea73nd.png' },
-    { id: 'acc_jersey_bayern_lucho', name: 'Bayern - Luis Díaz #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/bayern_lucho.jpg' },
-    { id: 'acc_shorts_bayern', name: 'Shorts Bayern Red', type: 'legs', rarity: 'rare', cost: 1200, conditionType: 'none', icon: '/avatars/jerseys/shorts_bayern.jpg' },
-    { id: 'acc_jersey_argentina_messi', name: 'Argentina - Messi #10 (New)', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_azhtclazhtclazht.png' },
-    { id: 'acc_jersey_argentina_messi_v1', name: 'Argentina - Messi #10 (Classic)', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_72cwvn72cwvn72cw.png' },
-    { id: 'acc_jersey_madrid', name: 'Real Madrid - Mbappé #10', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_madrid.jpg' },
-    { id: 'acc_jersey_city', name: 'Man City - Haaland #9', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_city.jpg' },
-    { id: 'acc_jersey_alnassr', name: 'Al-Nassr - Ronaldo #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_alnassr.jpg' },
-    { id: 'acc_jersey_barca', name: 'FC Barcelona - Lamine #10', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_barca.jpg' },
-    { id: 'acc_jersey_liverpool', name: 'Liverpool - Salah #11', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_liverpool.jpg' },
-    { id: 'acc_jersey_portugal_ronaldo', name: 'Portugal - Ronaldo #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_portugal_ronaldo.png' },
-
-    { id: 'acc_jersey_colombia_7', name: 'Colombia - Luis Díaz #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_6204zf6204zf6204.png' },
-
-    // SELECCIONES - JUGADORES FAMOSOS (misma imagen plana: poner archivo en public/avatars/jerseys/)
-    { id: 'acc_jersey_monster_blue', name: 'Camiseta Monstruo Azul', type: 'torso', rarity: 'epic', cost: 1800, conditionType: 'none', icon: '/avatars/jerseys/jersey_monster_blue.png' },
-    { id: 'acc_jersey_brasil_vinicius', name: 'Brasil - Vinicius Jr #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_brasil_vinicius.jpg' },
-    { id: 'acc_jersey_flash_green', name: 'Camiseta Flash Verde', type: 'torso', rarity: 'epic', cost: 1800, conditionType: 'none', icon: '/avatars/jerseys/jersey_flash_green.png' },
-    { id: 'acc_jersey_espana_morata', name: 'España - Morata #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_espana_morata.jpg' },
-    { id: 'acc_jersey_espana_pedri', name: 'España - Pedri #8', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_espana_pedri.jpg' },
-    { id: 'acc_jersey_alemania_musiala', name: 'Alemania - Musiala #10', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_alemania_musiala.jpg' },
-    { id: 'acc_jersey_inglaterra_kane', name: 'Inglaterra - Kane #9', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_inglaterra_kane.jpg' },
-    { id: 'acc_jersey_inglaterra_bellingham', name: 'Inglaterra - Bellingham #10', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_inglaterra_bellingham.jpg' },
-    { id: 'acc_jersey_uruguay_valverde', name: 'Uruguay - Valverde #15', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_uruguay_valverde.jpg' },
-    { id: 'acc_jersey_uruguay_nunez', name: 'Uruguay - Núñez #9', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_uruguay_nunez.jpg' },
-    { id: 'acc_jersey_mexico_lozano', name: 'México - Lozano #22', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_mexico_lozano.jpg' },
-    { id: 'acc_jersey_chile_sanchez', name: 'Chile - Sánchez #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_chile_sanchez.jpg' },
-    { id: 'acc_jersey_ecuador_valencia', name: 'Ecuador - Valencia #13', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_ecuador_valencia.jpg' },
-    { id: 'acc_jersey_peru_guerrero', name: 'Perú - Guerrero #9', type: 'torso', rarity: 'epic', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/jersey_peru_guerrero.jpg' },
-    { id: 'acc_jersey_venezuela_rondon', name: 'Venezuela - Rondón #23', type: 'torso', rarity: 'epic', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/jersey_venezuela_rondon.jpg' },
-    { id: 'acc_jersey_usa_pulisic', name: 'USA - Pulisic #10', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_usa_pulisic.jpg' },
-    { id: 'acc_jersey_costa_rica_navas', name: 'Costa Rica - Keylor Navas #1', type: 'torso', rarity: 'epic', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/jersey_costa_rica_navas.jpg' },
-    { id: 'acc_jersey_holanda_gakpo', name: 'Holanda - Gakpo #11', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_holanda_gakpo.jpg' },
-    { id: 'acc_jersey_belgica_debruyne', name: 'Bélgica - De Bruyne #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_belgica_debruyne.jpg' },
-    { id: 'acc_jersey_italia_chiellini', name: 'Italia - Selección #3', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/jersey_italia.jpg' },
-
-    // EPIC (1500)
-    { id: 'acc_jersey_bayern_kane', name: 'Bayern - Harry Kane #9', type: 'torso', rarity: 'epic', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/jersey_bayern.jpg' },
-    { id: 'acc_jersey_bayern_lucho', name: 'Bayern - Luis Díaz #7', type: 'torso', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/jerseys/bayern_lucho.jpg' },
+    // --- NOVA SOCCER PRO 2026 REMOVED ---
 
     { id: 'acc_jersey_pro_retro', name: 'Camiseta Pro Retro Edition', type: 'torso', rarity: 'epic', cost: 450, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_dx3jofdx3jofdx3j.png' },
     { id: 'acc_jersey_pro_diamond', name: 'Camiseta Pro Diamond Edition', type: 'torso', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_es3k4bes3k4bes3k.png' },
@@ -712,8 +627,6 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_jersey_axolotl', name: 'Camiseta Ajolote Mágico', type: 'torso', rarity: 'epic', cost: 650, conditionType: 'none', icon: '/avatars/jerseys/jersey_axolotl.png' },
     { id: 'acc_jersey_capybara', name: 'Camiseta Capybara Chill', type: 'torso', rarity: 'epic', cost: 600, conditionType: 'none', icon: '/avatars/jerseys/jersey_capybara.png' },
     { id: 'acc_jersey_frog', name: 'Camiseta Ranita Kawaii', type: 'torso', rarity: 'rare', cost: 450, conditionType: 'none', icon: '/avatars/jerseys/jersey_frog.png' },
-    { id: 'acc_jersey_space', name: 'Camiseta Astronauta Cosmos', type: 'torso', rarity: 'epic', cost: 750, conditionType: 'none', icon: '/avatars/jerseys/jersey_space.png' },
-    { id: 'acc_jersey_dino', name: 'Camiseta Dino Rex', type: 'torso', rarity: 'epic', cost: 700, conditionType: 'none', icon: '/avatars/jerseys/jersey_dino.png' },
     { id: 'acc_jersey_rainbow', name: 'Camiseta Arcoíris Tie-Dye', type: 'torso', rarity: 'rare', cost: 500, conditionType: 'none', icon: '/avatars/jerseys/jersey_rainbow.png' },
     { id: 'acc_jersey_unicorn', name: 'Camiseta Unicornio Galáctico', type: 'torso', rarity: 'legendary', cost: 950, conditionType: 'none', icon: '/avatars/jerseys/jersey_unicorn.png' },
     { id: 'acc_jersey_dragon', name: 'Camiseta Dragón de Fuego', type: 'torso', rarity: 'legendary', cost: 1000, conditionType: 'none', icon: '/avatars/jerseys/jersey_dragon.png' },
@@ -725,14 +638,7 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_jersey_eco', name: 'Camiseta Eco Superhéroe', type: 'torso', rarity: 'rare', cost: 480, conditionType: 'none', icon: '/avatars/jerseys/jersey_eco.png' },
     { id: 'acc_jersey_butterfly', name: 'Camiseta Mariposa Y2K', type: 'torso', rarity: 'epic', cost: 650, conditionType: 'none', icon: '/avatars/jerseys/jersey_butterfly.png' },
 
-    // --- POP-UP 3D CHARACTERS (Personajes Favoritos) ---
-    { id: 'acc_popup_spidey', name: 'Héroe Arácnido 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '🕷️' },
-    { id: 'acc_popup_elsa', name: 'Reina de Hielo 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '❄️' },
-    { id: 'acc_popup_mario', name: 'Super Fontanero 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '🍄' },
-    { id: 'acc_popup_pikachu', name: 'Ratón Eléctrico 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '⚡' },
-    { id: 'acc_popup_paw', name: 'Patrulla Canina 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '🐾' },
-    { id: 'acc_popup_sonic', name: 'Erizó Veloz 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '👟' },
-    { id: 'acc_popup_bat', name: 'Caballero Noche 3D', type: 'torso', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '🦇' },
+    // --- POP-UP 3D CHARACTERS REMOVED ---
 
 
     { id: 'acc_jersey_coquette', name: 'Camiseta Coquette Bows', type: 'torso', rarity: 'epic', cost: 680, conditionType: 'none', icon: '/avatars/jerseys/jersey_coquette.png' },
@@ -743,68 +649,25 @@ export const ACCESSORIES: Accessory[] = [
 
     // --- REMOVED LEGS AND SOCKS ---
 
-    // --- TORSO / STICKERS PARA NIÑAS (TRENDING) ---
-    { id: 'acc_sticker_barbie', name: 'Sticker Barbie Style (🎀)', type: 'sticker', rarity: 'legendary', cost: 1000, conditionType: 'none', icon: '/stickers/barbie_3d.png' },
-    { id: 'acc_sticker_peppa', name: 'Sticker Peppa (🐷)', type: 'sticker', rarity: 'rare', cost: 400, conditionType: 'none', icon: '🐷' },
-    { id: 'acc_sticker_bluey', name: 'Sticker Bluey (🐾)', type: 'sticker', rarity: 'rare', cost: 450, conditionType: 'none', icon: '🐾' },
-    { id: 'acc_sticker_unicorn', name: 'Sticker Unicornio Mágico (🦄)', type: 'sticker', rarity: 'epic', cost: 700, conditionType: 'none', icon: '/stickers/unicorn_3d.png' },
-    { id: 'acc_sticker_elsa', name: 'Sticker Elsa (❄️)', type: 'sticker', rarity: 'epic', cost: 850, conditionType: 'none', icon: '❄️' },
-    { id: 'acc_sticker_ariel', name: 'Sticker Ariel (🧜‍♀️)', type: 'sticker', rarity: 'epic', cost: 800, conditionType: 'none', icon: '🧜‍♀️' },
-    { id: 'acc_sticker_moana', name: 'Sticker Moana (🌀)', type: 'sticker', rarity: 'epic', cost: 800, conditionType: 'none', icon: '🌀' },
-    { id: 'acc_sticker_mirabel', name: 'Sticker Mirabel (🦋)', type: 'sticker', rarity: 'legendary', cost: 1000, conditionType: 'none', icon: '🦋' },
-    { id: 'acc_sticker_hellokitty', name: 'Sticker Hello Kitty (🐱)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '/stickers/hellokitty_3d.png' },
-    { id: 'acc_sticker_tinkerbell', name: 'Sticker Tinker Bell (🧚‍♀️)', type: 'sticker', rarity: 'rare', cost: 550, conditionType: 'none', icon: '🧚‍♀️' },
-    { id: 'acc_sticker_bunny_cute', name: 'Sticker Conejito (🐰)', type: 'sticker', rarity: 'common', cost: 150, conditionType: 'none', icon: '🐰' },
-    { id: 'acc_sticker_kitty_cute', name: 'Sticker Gatito (🐱)', type: 'sticker', rarity: 'common', cost: 150, conditionType: 'none', icon: '🐈' },
-    { id: 'acc_sticker_panda_cute', name: 'Sticker Panda (🐼)', type: 'sticker', rarity: 'common', cost: 200, conditionType: 'none', icon: '🐼' },
-    { id: 'acc_sticker_fox_cute', name: 'Sticker Zorrito (🦊)', type: 'sticker', rarity: 'common', cost: 180, conditionType: 'none', icon: '🦊' },
-    { id: 'acc_sticker_lol', name: 'Sticker L.O.L. Surprise (🍭)', type: 'sticker', rarity: 'epic', cost: 850, conditionType: 'none', icon: '🍭' },
-    { id: 'acc_sticker_wonderwoman', name: 'Sticker Wonder Woman (⚖️)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '⚖️' },
-    { id: 'acc_sticker_captainmarvel', name: 'Sticker Captain Marvel (⭐)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '🌟' },
-    { id: 'acc_sticker_supergirl', name: 'Sticker Supergirl (🦸‍♀️)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '🦸‍♀️' },
+    // --- TORSO / STICKERS REMOVED ITEMS WITHOUT IMAGES ---
 
     // --- STICKERS DE JUGADORES (COLECCIONABLES ELITE) ---
     { id: 'acc_sticker_messi', name: 'Sticker Lionel Messi (🇦🇷)', type: 'sticker', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '/stickers/messi.png' },
     { id: 'acc_sticker_ronaldo', name: 'Sticker Cristiano Ronaldo (🇵🇹)', type: 'sticker', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '/stickers/ronaldo.png' },
-    { id: 'acc_sticker_james', name: 'Sticker James Rodríguez #10 (🇨🇴)', type: 'sticker', rarity: 'legendary', cost: 1300, conditionType: 'none', icon: '🔟' },
     { id: 'acc_sticker_lucho_col', name: 'Sticker Lucho Díaz (🇨🇴 - Selección)', type: 'sticker', rarity: 'legendary', cost: 1300, conditionType: 'none', icon: '/stickers/lucho.png' },
-    { id: 'acc_sticker_neymar', name: 'Sticker Neymar Jr (🇧🇷)', type: 'sticker', rarity: 'legendary', cost: 1150, conditionType: 'none', icon: '🇧🇷' },
-    { id: 'acc_sticker_vini', name: 'Sticker Vini Jr (🇧🇷)', type: 'sticker', rarity: 'legendary', cost: 1200, conditionType: 'none', icon: '🕺' },
-    { id: 'acc_sticker_rodrygo', name: 'Sticker Rodrygo (🇧🇷)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '⚽' },
-    { id: 'acc_sticker_julian', name: 'Sticker Julián Álvarez (🇦🇷)', type: 'sticker', rarity: 'epic', cost: 950, conditionType: 'none', icon: '🕷️' },
-    { id: 'acc_sticker_dybala', name: 'Sticker Paulo Dybala (🇦🇷)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '💎' },
-    { id: 'acc_sticker_dibu', name: 'Sticker Dibu Martínez (🇦🇷)', type: 'sticker', rarity: 'legendary', cost: 1100, conditionType: 'none', icon: '🧤' },
-    { id: 'acc_sticker_bellingham', name: 'Sticker Jude Bellingham (🏴󠁧󠁢󠁥󠁮󠁧󠁿)', type: 'sticker', rarity: 'legendary', cost: 1250, conditionType: 'none', icon: '⭐' },
-    { id: 'acc_sticker_foden', name: 'Sticker Phil Foden (🏴󠁧󠁢󠁥󠁮󠁧󠁿)', type: 'sticker', rarity: 'epic', cost: 950, conditionType: 'none', icon: '🦁' },
-    { id: 'acc_sticker_saka', name: 'Sticker Bukayo Saka (🏴󠁧󠁢󠁥󠁮󠁧󠁿)', type: 'sticker', rarity: 'epic', cost: 950, conditionType: 'none', icon: '🌶️' },
+    // --- STICKERS REMOVED ITEMS WITHOUT IMAGES ---
     { id: 'acc_sticker_mbappe', name: 'Sticker Kylian Mbappé (🇫🇷)', type: 'sticker', rarity: 'legendary', cost: 1100, conditionType: 'none', icon: '/stickers/mbappe.png' },
-    { id: 'acc_sticker_griezmann', name: 'Sticker Antoine Griezmann (🇫🇷)', type: 'sticker', rarity: 'epic', cost: 950, conditionType: 'none', icon: '🇫🇷' },
     { id: 'acc_sticker_haaland', name: 'Sticker Erling Haaland (🇳🇴)', type: 'sticker', rarity: 'legendary', cost: 1100, conditionType: 'none', icon: '/stickers/haaland.png' },
     { id: 'acc_sticker_lamine', name: 'Sticker Lamine Yamal (🇪🇸)', type: 'sticker', rarity: 'epic', cost: 1000, conditionType: 'none', icon: '/stickers/lamine.png' },
-    { id: 'acc_sticker_pedri', name: 'Sticker Pedri (🇪🇸)', type: 'sticker', rarity: 'epic', cost: 900, conditionType: 'none', icon: '🇪🇸' },
     { id: 'acc_sticker_musiala', name: 'Sticker Jamal Musiala (🇩🇪)', type: 'sticker', rarity: 'epic', cost: 950, conditionType: 'none', icon: '/stickers/musiala.png' },
     { id: 'acc_sticker_wirtz', name: 'Sticker Florian Wirtz (🇩🇪)', type: 'sticker', rarity: 'epic', cost: 800, conditionType: 'none', icon: '/stickers/wirtz.png' },
-    { id: 'acc_sticker_valverde', name: 'Sticker Fede Valverde (🇺🇾)', type: 'sticker', rarity: 'legendary', cost: 1050, conditionType: 'none', icon: '🦅' },
-    { id: 'acc_sticker_suarez', name: 'Sticker Luis Suárez (🇺🇾)', type: 'sticker', rarity: 'legendary', cost: 1100, conditionType: 'none', icon: '🔫' },
-    { id: 'acc_sticker_darwin', name: 'Sticker Darwin Núñez (🇺🇾)', type: 'sticker', rarity: 'epic', cost: 850, conditionType: 'none', icon: '💨' },
     { id: 'acc_sticker_kane', name: 'Sticker Harry Kane (🏴󠁧󠁢󠁥󠁮󠁧󠁿)', type: 'sticker', rarity: 'epic', cost: 850, conditionType: 'none', icon: '/stickers/kane.png' },
-    { id: 'acc_sticker_salah', name: 'Sticker Mohamed Salah (🇪🇬)', type: 'sticker', rarity: 'legendary', cost: 1100, conditionType: 'none', icon: '🐫' },
-    { id: 'acc_sticker_debruyne', name: 'Sticker Kevin De Bruyne (🇧🇪)', type: 'sticker', rarity: 'legendary', cost: 1150, conditionType: 'none', icon: '🇧🇪' },
-    { id: 'acc_sticker_son', name: 'Sticker Son Heung-min (🇰🇷)', type: 'sticker', rarity: 'epic', cost: 950, conditionType: 'none', icon: '📸' },
-    { id: 'acc_sticker_chicharito', name: 'Sticker Chicharito (🇲🇽)', type: 'sticker', rarity: 'rare', cost: 700, conditionType: 'none', icon: '🇲🇽' },
-    { id: 'acc_sticker_keylor', name: 'Sticker Keylor Navas (🇨🇷)', type: 'sticker', rarity: 'epic', cost: 800, conditionType: 'none', icon: '🇨🇷' },
-    { id: 'acc_sticker_alexis', name: 'Sticker Alexis Sánchez (🇨🇱)', type: 'sticker', rarity: 'rare', cost: 750, conditionType: 'none', icon: '🇨🇱' },
-    { id: 'acc_sticker_champion', name: 'Sticker Campeón del Mundo (🌟)', type: 'sticker', rarity: 'legendary', cost: 5000, conditionType: 'mission', conditionValue: 'm_all_done', icon: '⭐' },
     { id: 'acc_sticker_ballon_dor', name: 'Sticker Balón de Oro (🏆)', type: 'sticker', rarity: 'legendary', cost: 3000, conditionType: 'mission', conditionValue: 'm_all_done', icon: '/stickers/ballon_dor.png' },
 
 
+    // --- ACCESORIOS DE LUJO REMOVED ---
     // --- ACCESORIOS DE LUJO (RELOJES Y MÁS) ---
-    { id: 'acc_scarf_silk', name: 'Bufanda de Seda', type: 'torso', rarity: 'rare', cost: 400, conditionType: 'none', icon: '🧣' },
-    // --- ACCESORIOS DE LUJO (RELOJES Y MÁS) ---
-    { id: 'acc_watch_common', name: 'Reloj Casual', type: 'watch', rarity: 'common', cost: 150, conditionType: 'none', icon: '⌚' },
-    { id: 'acc_watch_digital', name: 'Reloj Neo-Digital Blue', type: 'watch', rarity: 'rare', cost: 600, conditionType: 'none', icon: '⏱️' },
-    { id: 'acc_watch_gold', name: 'Reloj de Oro Royal', type: 'watch', rarity: 'epic', cost: 1500, conditionType: 'coins_earned', conditionValue: 3000, icon: '⌚' },
-    { id: 'acc_watch_smart', name: 'SmartWatch Nova Z', type: 'watch', rarity: 'legendary', cost: 2000, conditionType: 'level', conditionValue: 5, icon: '⌚' },
+    // --- RELOJES PREMIUM REMOVED ---
     { id: 'acc_watch_quantum_phantom', name: 'Quantum Phantom Watch', type: 'watch', rarity: 'legendary', cost: 3500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_9eoppp9eoppp9eop.png' },
     { id: 'acc_watch_galactic_nova', name: 'Galactic Nova Pro', type: 'watch', rarity: 'legendary', cost: 4000, conditionType: 'none', icon: '/avatars/jerseys/image (1).png' },
     { id: 'acc_watch_elite_front', name: 'Elite Chrono (Front View)', type: 'watch', rarity: 'legendary', cost: 5000, conditionType: 'none', icon: '/accessories/watch_elite_front.png' },
@@ -820,7 +683,7 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_watch_nova_chroma_cyan', name: 'Smartwatch Chroma Cyan', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
     { id: 'acc_watch_nova_chroma_silver', name: 'Smartwatch Chroma Silver', type: 'watch', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
     { id: 'acc_watch_nova_chroma_gold', name: 'Smartwatch Chroma Gold', type: 'watch', rarity: 'legendary', cost: 2000, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_necklace_pearl', name: 'Collar de Perlas', type: 'torso', rarity: 'epic', cost: 900, conditionType: 'none', icon: '📿' },
+    // --- ACCESORIOS DE LUJO REMOVED ---
 
     // --- ACCESORIOS AVANZADOS G6/G7 (SÓLO PRENDAS TRIDIMENSIONALES) ---
     { id: 'acc_glasses_tech_noir', name: 'Gafas Tech Noir', type: 'glasses', rarity: 'epic', cost: 1800, conditionType: 'level', conditionValue: 6, icon: '/accessories/glasses_tech_noir.png' },
@@ -926,39 +789,12 @@ export const ACCESSORIES: Accessory[] = [
         backIcon: '/accessories/pants_tech_urban_back.png' // Cintura tridimensional
     },
 
-    // --- JUGUETES Y FIDGETS ---
-    { id: 'acc_popit', name: 'Pop-it Galaxia', type: 'hand', rarity: 'common', cost: 100, conditionType: 'none', icon: '🫧' },
-    { id: 'acc_rubik', name: 'Cubo Mágico', type: 'hand', rarity: 'rare', cost: 250, conditionType: 'none', icon: '🧱' },
-    { id: 'acc_yoyo', name: 'Yoyo Neón', type: 'hand', rarity: 'common', cost: 80, conditionType: 'none', icon: '🪀' },
-    { id: 'acc_spinner', name: 'Fidget Spinner', type: 'hand', rarity: 'common', cost: 120, conditionType: 'none', icon: '🎡' },
-    { id: 'acc_trophy', name: 'Trofeo Nova', type: 'hand', rarity: 'epic', cost: 1000, conditionType: 'mission', conditionValue: 'win_10', icon: '🏆' },
-
-    // --- SNACKS FAVORITOS ---
-    { id: 'acc_pizza', name: 'Súper Pizza', type: 'hand', rarity: 'common', cost: 150, conditionType: 'none', icon: '🍕' },
-    { id: 'acc_icecream', name: 'Helado Triple', type: 'hand', rarity: 'common', cost: 120, conditionType: 'none', icon: '🍦' },
-    { id: 'acc_donut', name: 'Dona Galáctica', type: 'hand', rarity: 'common', cost: 100, conditionType: 'none', icon: '🍩' },
-    { id: 'acc_juice_magic', name: 'Jugo de Genio', type: 'hand', rarity: 'common', cost: 100, conditionType: 'none', icon: '🧃' },
-    { id: 'acc_burger', name: 'Mega Burger', type: 'hand', rarity: 'rare', cost: 250, conditionType: 'none', icon: '🍔' },
-
-    // --- DEPORTES Y DIVERSIÓN ---
-    { id: 'acc_soccer_ball', name: 'Balón Pro', type: 'hand', rarity: 'rare', cost: 300, conditionType: 'none', icon: '⚽' },
-    { id: 'acc_basketball', name: 'Balón Basket', type: 'hand', rarity: 'rare', cost: 300, conditionType: 'none', icon: '🏀' },
-    { id: 'acc_skate_galaxy', name: 'Skate Galáctico', type: 'back', rarity: 'epic', cost: 1300, conditionType: 'coins_earned', conditionValue: 2000, icon: '🛹' },
-    { id: 'acc_camera_retro', name: 'Cámara Mini', type: 'hand', rarity: 'rare', cost: 500, conditionType: 'none', icon: '📷' },
-    { id: 'acc_controller_pro', name: 'Mando Pro', type: 'hand', rarity: 'rare', cost: 800, conditionType: 'none', icon: '🎮' },
-    { id: 'acc_wand_star', name: 'Varita Cósmica', type: 'hand', rarity: 'epic', cost: 1100, conditionType: 'level', conditionValue: 4, icon: '🪄' },
+    // --- JUGUETES, SNACKS Y DEPORTES REMOVED ITEMS WITHOUT IMAGES ---
 
     // --- MASCOTAS MÁGICAS ---
     { id: 'acc_pet_dragon', name: 'Bebé Dragón', type: 'pet', rarity: 'legendary', cost: 2500, conditionType: 'level', conditionValue: 5, icon: '/pets/dragon_baby.png' },
     { id: 'acc_pet_robot', name: 'Bebé Bot', type: 'pet', rarity: 'legendary', cost: 2500, conditionType: 'level', conditionValue: 5, icon: '/pets/robot_baby.png' },
-    { id: 'acc_pet_unicorn', name: 'Unicornito', type: 'pet', rarity: 'legendary', cost: 2800, conditionType: 'none', icon: '🦄' },
-    { id: 'acc_pet_ghost', name: 'Fantasmita', type: 'pet', rarity: 'rare', cost: 700, conditionType: 'none', icon: '👻' },
-    { id: 'acc_pet_alien', name: 'Amigo Alien', type: 'pet', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '👽' },
-    { id: 'acc_dog', name: 'Perrito', type: 'pet', rarity: 'rare', cost: 800, conditionType: 'none', icon: '🐕' },
-    { id: 'acc_cat', name: 'Gatito', type: 'pet', rarity: 'rare', cost: 800, conditionType: 'none', icon: '🐈' },
 
     // --- EFFECTS ---
-    { id: 'acc_aura', name: 'Aura Digital', type: 'effect', rarity: 'epic', cost: 2000, conditionType: 'mission', conditionValue: 'm_all_done', icon: '✨' },
-    { id: 'acc_fire', name: 'Efecto Fuego', type: 'effect', rarity: 'epic', cost: 2000, conditionType: 'none', icon: '🔥' },
-    { id: 'acc_stars', name: 'Constelación', type: 'effect', rarity: 'rare', cost: 1200, conditionType: 'none', icon: '⭐' }
+    // --- EFFECTS REMOVED ITEMS WITHOUT IMAGES ---
 ];

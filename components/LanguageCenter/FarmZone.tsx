@@ -79,13 +79,13 @@ const getRandomFood = (animalId: string) => {
 };
 
 const TOOLS = [
-    { id: 'plow', name: 'ARADO', icon: '🚜', action: 'Plow', color: 'bg-orange-600' },
-    { id: 'seed', name: 'PLANT', icon: '🌱', action: 'Plant', color: 'bg-green-600' },
-    { id: 'water', name: 'WATER', icon: '🚿', action: 'Water', color: 'bg-blue-500' },
-    { id: 'harvest', name: 'HARVEST', icon: '🧺', action: 'Pick', color: 'bg-amber-600' },
-    { id: 'bucket', name: 'BUCKET', icon: '🪣', action: 'Milk', color: 'bg-sky-400' },
-    { id: 'animal_add', name: 'ANIMALS', icon: '🐾', action: 'Place', color: 'bg-red-500' },
-    { id: 'feed', name: 'FEED', icon: '🌾', action: 'Feed', color: 'bg-yellow-600' }
+    { id: 'plow', name: 'Arado', icon: '🚜', action: 'Plow', color: 'bg-orange-600' },
+    { id: 'seed', name: 'Plantar', icon: '🌱', action: 'Plant', color: 'bg-green-600' },
+    { id: 'water', name: 'Regar', icon: '🚿', action: 'Water', color: 'bg-blue-500' },
+    { id: 'harvest', name: 'Cosechar', icon: '🧺', action: 'Pick', color: 'bg-amber-600' },
+    { id: 'bucket', name: 'Balde', icon: '🪣', action: 'Milk', color: 'bg-sky-400' },
+    { id: 'animal_add', name: 'Animales', icon: '🐾', action: 'Place', color: 'bg-red-500' },
+    { id: 'feed', name: 'Alimentar', icon: '🌾', action: 'Feed', color: 'bg-yellow-600' }
 ];
 
 interface FarmItem {
@@ -131,7 +131,7 @@ const BasketIcon = () => (
 
 const FarmZone: React.FC<FarmZoneProps> = ({ onBack }) => {
     const { learnWord } = useLearningProgress();
-    const { addRewards: globalAddRewards, spendCoins } = useGamification();
+    const { earnCoins: globalAddRewards, spendCoins } = useGamification();
 
     const [sessionEarnings, setSessionEarnings] = useState(0);
     const [showEarningsModal, setShowEarningsModal] = useState(false);
@@ -390,7 +390,7 @@ const FarmZone: React.FC<FarmZoneProps> = ({ onBack }) => {
             return next;
         });
         if (clientX && clientY) addFloater(`+ ${amount} XP`, clientX, clientY, 'text-yellow-400');
-        globalAddRewards(amount, amount);
+        globalAddRewards(amount, "Farm work");
         setSessionEarnings(prev => prev + amount);
     };
 
@@ -414,7 +414,7 @@ const FarmZone: React.FC<FarmZoneProps> = ({ onBack }) => {
     }, []);
 
     // --- BULK ACTIONS ---
-    const handlePlantAll = () => {
+    const handlePlowAll = () => {
         if (isPlowing) return;
         setIsPlowing(true);
         playStickerApply();
@@ -539,7 +539,7 @@ const FarmZone: React.FC<FarmZoneProps> = ({ onBack }) => {
             // We'll let handlePlantAll handle the big animation but maybe allow individual plowing too?
             // Actually user said "When narrator tells him to use plow... and child clicks tractor... animation of truck moving".
             // So plowing is bulk, but planting is one-by-one.
-            handlePlantAll();
+            handlePlowAll();
             return;
         }
 
@@ -787,11 +787,9 @@ const FarmZone: React.FC<FarmZoneProps> = ({ onBack }) => {
                         </button>
 
                         <div className="relative w-16 h-16 md:w-20 md:h-20 bg-amber-200/90 rounded-full border-4 border-white shadow-xl overflow-hidden flex items-center justify-center ring-4 ring-amber-500/20">
-                            <AvatarProvider>
-                                <div className="scale-[1.8] translate-y-[5%]">
-                                    <AvatarDisplay size="md" showBackground={false} />
-                                </div>
-                            </AvatarProvider>
+                            <div className="scale-[1.8] translate-y-[5%]">
+                                <AvatarDisplay size="md" showBackground={false} isCurrentUser={true} />
+                            </div>
                         </div>
                     </div>
 

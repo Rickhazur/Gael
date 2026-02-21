@@ -174,7 +174,7 @@ export function MissionsLog({ language, gradeLevel, onNavigate }: MissionsLogPro
                     </div>
                 </div>
                 <div className="hidden sm:block">
-                    <AvatarDisplay size="md" className="border-4 border-indigo-100" />
+                    <AvatarDisplay size="md" className="border-4 border-indigo-100" isCurrentUser={true} />
                 </div>
             </header>
 

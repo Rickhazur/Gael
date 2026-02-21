@@ -740,7 +740,7 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                 className="flex items-center gap-2 sm:gap-3 bg-gradient-to-r from-purple-500/10 to-pink-500/10 backdrop-blur border-2 border-purple-300 px-3 py-2 sm:px-4 rounded-xl sm:rounded-2xl shadow-lg shrink-0 min-w-0"
                             >
                                 <div className="shrink-0 w-14 h-14 sm:w-16 sm:h-16 flex items-center justify-center">
-                                    <AvatarDisplay size="md" showBackground showName={false} />
+                                    <AvatarDisplay size="md" showBackground showName={false} isCurrentUser={true} />
                                 </div>
                                 <div className="flex flex-col">
                                     <span className="text-xs sm:text-sm font-black text-purple-700">¡Tu avatar con gafas!</span>

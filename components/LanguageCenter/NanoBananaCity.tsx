@@ -540,7 +540,7 @@ const NanoBananaCity: React.FC<NanoBananaCityProps> = ({ onBack }) => {
               <ArrowLeft size={20} />
             </button>
             <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg transform hover:rotate-6 transition-transform overflow-hidden ${isNight ? 'bg-indigo-600' : 'bg-gradient-to-br from-blue-500 to-indigo-600'}`}>
-              <AvatarDisplay size="md" showBackground={false} />
+              <AvatarDisplay size="md" showBackground={false} isCurrentUser={true} />
             </div>
             <div className="flex-1">
               <h1 className={`text-2xl font-black italic tracking-tighter leading-none mb-1 ${isNight ? 'text-indigo-300' : 'text-slate-800'}`}>
@@ -999,7 +999,7 @@ const NanoBananaCity: React.FC<NanoBananaCityProps> = ({ onBack }) => {
                   transform: 'translate(-50%, -100%)' // Anchor at feet
                 }}
               >
-                <AvatarDisplay size="md" showBackground={false} />
+                <AvatarDisplay size="md" showBackground={false} isCurrentUser={true} />
                 <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-8 h-2 bg-black/30 rounded-[50%]" /> {/* Shadow */}
               </motion.div>
             )}
