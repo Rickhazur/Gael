@@ -10,7 +10,8 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
-    "moodle:migrate": "node scripts/run_moodle_migration.mjs"
+    "moodle:migrate": "node scripts/run_moodle_migration.mjs",
+    "lint": "tsc --noEmit"
   },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",

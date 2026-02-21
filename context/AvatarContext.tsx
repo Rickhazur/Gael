@@ -358,7 +358,17 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const buyAccessory = async (item: Accessory) => {
         if (ownedAccessories.includes(item.id)) return;
 
-        // Use Secure RPC Transaction
+        // Helper: add to local inventory
+        const addToLocalInventory = () => {
+            setOwnedAccessories(prev => {
+                if (prev.includes(item.id)) return prev; // Prevent duplicates
+                const newer = [...prev, item.id];
+                localStorage.setItem('nova_avatar_inventory', JSON.stringify(newer));
+                return newer;
+            });
+        };
+
+        // Case 1: Authenticated user with Supabase
         if (supabase) {
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
@@ -366,12 +376,9 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
                 if (result && result.success) {
                     spendCoins(item.cost, item.name, false);
-                    setOwnedAccessories(prev => {
-                        const newer = [...prev, item.id];
-                        localStorage.setItem('nova_avatar_inventory', JSON.stringify(newer));
-                        return newer;
-                    });
+                    addToLocalInventory();
                     toast({ title: "¡Compra Exitosa!", description: `Has comprado ${item.name}`, duration: 3000 });
+                    return; // ← Done! Don't fall through to offline
                 } else {
                     console.warn("RPC Failed, trying Direct Update Fallback...", result?.message);
                     try {
@@ -381,27 +388,22 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                             return;
                         }
                         spendCoins(item.cost, item.name, false);
-                        setOwnedAccessories(prev => {
-                            const newer = [...prev, item.id];
-                            localStorage.setItem('nova_avatar_inventory', JSON.stringify(newer));
-                            return newer;
-                        });
+                        addToLocalInventory();
                         toast({ title: "¡Compra Exitosa!", description: `Has comprado ${item.name} (Modo Directo)`, duration: 3000 });
+                        return; // ← Done!
                     } catch (fallbackError: any) {
                         console.error("Critical Buy Error:", fallbackError);
                         toast({ title: "Error en la compra", description: "No se pudo procesar la compra. Intenta recargar.", variant: "destructive" });
+                        return;
                     }
                 }
             }
-            // Offline Fallback
-            if (spendCoins(item.cost, item.name, false)) { // Local only
-                setOwnedAccessories(prev => {
-                    const newer = [...prev, item.id];
-                    localStorage.setItem('nova_avatar_inventory', JSON.stringify(newer));
-                    return newer;
-                });
-                toast({ title: "Modo Offline", description: "Compra guardada localmente.", duration: 3000 });
-            }
+        }
+
+        // Case 2: No authenticated user (Demo mode) or no Supabase — local-only purchase
+        if (spendCoins(item.cost, item.name, false)) {
+            addToLocalInventory();
+            toast({ title: "¡Compra Exitosa!", description: `Has comprado ${item.name}`, duration: 3000 });
         }
     };
 

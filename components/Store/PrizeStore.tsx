@@ -462,7 +462,7 @@ interface PrizeStoreProps {
 
 export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
     const { coins, savingsBalance, spendCoins, xp, withdrawCoinsFromBank } = useGamification();
-    const { buyAccessory, equipAccessory, ownedAccessories, deleteAccessory, userId, deletedCatalogItems, hideFromCatalog, userRole } = useAvatar();
+    const { buyAccessory, equipAccessory, unequipAccessory, ownedAccessories, equippedAccessories, deleteAccessory, userId, deletedCatalogItems, hideFromCatalog, userRole } = useAvatar();
     const [activeTab, setActiveTab] = useState<'avatar_shop' | 'general_shop' | 'trophies' | 'inventory' | 'family'>(() =>
         demoData?.openStore ? 'avatar_shop' : 'avatar_shop'
     );
@@ -950,30 +950,76 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                                         </div>
                                                     </div>
 
-                                                    <Button
-                                                        onClick={() => {
-                                                            const accessory = ACCESSORIES.find(a => a.id === item.id);
-                                                            if (accessory) {
-                                                                buyAccessory(accessory);
-                                                                equipAccessory(accessory);
-                                                                toast.success(language === 'es' ? `¡Equipado: ${item.name}!` : `Equipped: ${item.nameEn}!`);
-                                                            } else {
-                                                                spendCoins(item.price, item.name);
-                                                            }
-                                                        }}
-                                                        disabled={coins < item.price}
-                                                        className={cn(
-                                                            "w-full rounded-2xl h-14 font-black transition-all border-2",
-                                                            coins >= item.price
-                                                                ? "bg-[#06b6d4] hover:bg-white hover:text-[#06b6d4] hover:border-[#06b6d4] text-white shadow-lg shadow-cyan-100"
-                                                                : "bg-slate-50 text-slate-300 border-slate-100 shadow-none cursor-not-allowed"
-                                                        )}
-                                                    >
-                                                        {coins >= item.price
-                                                            ? (language === 'es' ? `Cómpralo por ${item.price} 🪙` : `Buy for ${item.price} 🪙`)
-                                                            : (language === 'es' ? `Faltan ${item.price - coins} 🪙` : `Need ${item.price - coins} 🪙`)
+                                                    {(() => {
+                                                        const accessory = ACCESSORIES.find(a => a.id === item.id);
+                                                        const owned = accessory ? ownedAccessories.includes(item.id) : false;
+                                                        const equipped = accessory ? Object.values(equippedAccessories).includes(item.id) : false;
+
+                                                        if (owned && equipped) {
+                                                            return (
+                                                                <div className="flex gap-2 w-full">
+                                                                    <div className="flex-1 rounded-2xl h-14 font-black flex items-center justify-center bg-emerald-100 border-2 border-emerald-300 text-emerald-700 text-sm">
+                                                                        ✅ PUESTO
+                                                                    </div>
+                                                                    <Button
+                                                                        onClick={() => {
+                                                                            if (accessory) {
+                                                                                unequipAccessory(accessory.type);
+                                                                                toast.success(language === 'es' ? `Quitaste ${item.name}` : `Removed ${item.nameEn}`);
+                                                                            }
+                                                                        }}
+                                                                        className="rounded-2xl h-14 px-6 font-black bg-slate-200 hover:bg-slate-300 text-slate-600 border-2 border-slate-300"
+                                                                    >
+                                                                        Quitar
+                                                                    </Button>
+                                                                </div>
+                                                            );
                                                         }
-                                                    </Button>
+
+                                                        if (owned && !equipped) {
+                                                            return (
+                                                                <div className="flex gap-2 w-full">
+                                                                    <Button
+                                                                        onClick={() => {
+                                                                            if (accessory) {
+                                                                                equipAccessory(accessory);
+                                                                                toast.success(language === 'es' ? `¡Equipado: ${item.name}!` : `Equipped: ${item.nameEn}!`);
+                                                                            }
+                                                                        }}
+                                                                        className="flex-1 rounded-2xl h-14 font-black bg-emerald-500 hover:bg-emerald-600 text-white border-2 border-emerald-400 shadow-lg"
+                                                                    >
+                                                                        Ponerse
+                                                                    </Button>
+                                                                </div>
+                                                            );
+                                                        }
+
+                                                        return (
+                                                            <Button
+                                                                onClick={async () => {
+                                                                    if (accessory) {
+                                                                        await buyAccessory(accessory);
+                                                                        equipAccessory(accessory);
+                                                                        toast.success(language === 'es' ? `¡Equipado: ${item.name}!` : `Equipped: ${item.nameEn}!`);
+                                                                    } else {
+                                                                        spendCoins(item.price, item.name);
+                                                                    }
+                                                                }}
+                                                                disabled={coins < item.price}
+                                                                className={cn(
+                                                                    "w-full rounded-2xl h-14 font-black transition-all border-2",
+                                                                    coins >= item.price
+                                                                        ? "bg-[#06b6d4] hover:bg-white hover:text-[#06b6d4] hover:border-[#06b6d4] text-white shadow-lg shadow-cyan-100"
+                                                                        : "bg-slate-50 text-slate-300 border-slate-100 shadow-none cursor-not-allowed"
+                                                                )}
+                                                            >
+                                                                {coins >= item.price
+                                                                    ? (language === 'es' ? `Cómpralo por ${item.price} 🪙` : `Buy for ${item.price} 🪙`)
+                                                                    : (language === 'es' ? `Faltan ${item.price - coins} 🪙` : `Need ${item.price - coins} 🪙`)
+                                                                }
+                                                            </Button>
+                                                        );
+                                                    })()}
                                                 </motion.div>
                                             ))}
                                         </div>

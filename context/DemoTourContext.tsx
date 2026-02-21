@@ -77,6 +77,7 @@ const DEMO_STEPS_BILINGUAL: DemoStep[] = [
         narratorText: '¡¡Hola!! ¡Qué alegría tenerte aquí! Soy Nova, tu asistente de aprendizaje inteligente. ¡Prepárate para una aventura inolvidable con la app del siglo 21! ¿Listo para despegar?',
         audioPath: '/audio/tour/nova_s1_welcome.mp3',
         view: ViewState.DASHBOARD,
+        autoData: { showFullCampus: true },
         waitAfterAudio: 1000
     },
     {
@@ -237,7 +238,7 @@ const DEMO_STEPS_BILINGUAL: DemoStep[] = [
         narratorText: '¡Nova Skola ya es tu hogar! Bienvenidos al futuro de la educación. ¡Es hora de descubrir todo tu potencial infinito! ¡Nos vemos en clase!',
         audioPath: '/audio/tour/nova_s11_final.mp3',
         view: ViewState.DASHBOARD,
-        autoData: { demoMode: true }
+        autoData: { demoMode: true, showFullCampus: true }
     }
 ];
 
@@ -720,7 +721,7 @@ export function DemoTourProvider({ children }: { children: React.ReactNode; user
                             handleStepEnd();
                         }
                     });
-                }, initialDelay);
+                }, 200); // Standardize delay
                 timers.push(startTimer);
             }
             else if (tourState.currentStep === 8) {
@@ -822,9 +823,9 @@ export function DemoTourProvider({ children }: { children: React.ReactNode; user
                     // Móvil: más delay al inicio para que la presentadora no se trabe; delay corto en cada paso para que pinte la vista
                     // Paso 1 (Bienvenida): delay extra largo en móvil (1500ms) para asegurar que la UI esté lista
                     // Paso 2 (Centro de Mando): delay medio en móvil (600ms) para transición suave
-                    const delayBeforeFirstAudio = isFirstAudioStep ? (isMobile ? 1500 : 400) : 0;
-                    const delayBeforeSecondStep = isSecondStep ? (isMobile ? 600 : 200) : 0;
-                    const delayBeforeOtherOnMobile = isMobile && !isFirstAudioStep && !isSecondStep ? 400 : 0;
+                    const delayBeforeFirstAudio = isFirstAudioStep ? 400 : 0;
+                    const delayBeforeSecondStep = isSecondStep ? 200 : 0;
+                    const delayBeforeOtherOnMobile = 0;
                     const delayMs = delayBeforeFirstAudio || delayBeforeSecondStep || delayBeforeOtherOnMobile;
                     const playOpts = (isFirstAudioStep || isSecondStep) && isMobile ? { ...opts, useRafForPlay: true } : opts;
                     if (delayMs > 0) {

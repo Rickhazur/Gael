@@ -75,7 +75,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
         xl: 'w-64 h-64',
     };
     // Font-size proporcional al tamaño del avatar para que los accesorios (em) escalen correctamente en perfil/sidebar
-    const containerFontSize = size === 'sm' ? '3px' : size === 'md' ? '6px' : size === 'lg' ? '12px' : '16px';
+    const containerFontSize = size === 'sm' ? '4px' : size === 'md' ? '6px' : size === 'lg' ? '12px' : '16px';
 
     const getBiotopoStyle = () => {
         switch (grade) {
@@ -108,6 +108,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
     const renderAccessoryItem = (item: Accessory, isBackLayer: boolean) => {
         if (!item) return null;
 
+        const isTiny = size === 'sm';
         const isSmall = size === 'sm' || size === 'md';
         const isPopUp = item.id.includes('popup') || item.id.includes('spider_pop');
         const isSticker = item.type === 'sticker' || (item.type === 'torso' && (item.id.includes('sticker') || item.id.includes('medal') || isPopUp));
@@ -142,7 +143,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                 break;
             case 'torso':
                 if (isJersey) {
-                    yPos = '42%';
+                    yPos = isTiny ? '44%' : '42%';
                     if (!isBackLayer) z = 25;
                 } else {
                     yPos = '52%';
@@ -177,10 +178,11 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                 if (!isBackLayer) z = 45;
                 break;
             case 'back':
-                yPos = '52%'; // Lowered slightly to fit on the back naturally
-                left = '50%'; // Centered on the back
-                sizeClass = isSmall ? 'text-[1.2em]' : 'text-[3.2em]'; // Increased size substantially
-                if (!isBackLayer) z = 5;
+                yPos = '88%'; // Adelante en el piso
+                left = isBackLayer ? '50%' : '78%'; // Front layer: en el piso al lado derecho
+                sizeClass = isSmall ? 'text-[0.6em]' : 'text-[1.5em]';
+                if (isBackLayer) z = 5;
+                else z = 50; // En frente de todo (avatar, ropa, etc.)
                 break;
             case 'pet':
                 yPos = '76%';
@@ -202,14 +204,14 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
         const preset = avatarData.offsets?.[item.type] || { x: 0, y: 0, scale: 1, rotate: 0 };
         const custom = (accessoryOffsetsOverride?.[item.id] ?? accessoryOffsets[item.id]) || { x: 0, y: 0, scale: 1, rotate: 0, neck: 22, shoulders: 0, sleeves: 0 };
 
-        const baseWidth = isJersey ? (isSmall ? '13em' : '22em') :
+        const baseWidth = isJersey ? (isTiny ? '10em' : isSmall ? '13em' : '22em') :
             isShorts ? (isSmall ? '8em' : '15em') :
                 isSocks ? (isSmall ? '1.3em' : '2.6em') :
                     isCleats ? (isSmall ? '1.3em' : '2.6em') :
                         (isFace || isGlasses) ? (isSmall ? '1.2em' : '2.5em') :
                             isHead ? (isSmall ? '1.5em' : '3.5em') :
                                 isHand ? (isSmall ? '1.0em' : '2.5em') :
-                                    isBack ? (isSmall ? '10em' : '18em') :
+                                    isBack ? (isSmall ? '3.5em' : '6em') :
                                         isPet ? (isSmall ? '1.5em' : '3.5em') :
                                             isWatch ? (isSmall ? '0.8em' : '1.6em') :
                                                 isSticker ? (isSmall ? '1.2em' : '2.4em') : 'auto';
@@ -217,10 +219,20 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
         const customRot = (custom as AccessoryOffsetValues).rotate ?? 0;
 
         // --- 🚀 AUTO-BACK COLLAR LOGIC ---
-        // If it's a jersey and we're on the back layer but there's no specific backIcon, 
-        // we reuse the front icon but darken it and mask it to only show the collar area.
         const isAutoBackCollar = isBackLayer && isJersey && !item.backIcon;
-        const iconToUse = isAutoBackCollar ? item.icon : (isBackLayer ? item.backIcon : item.icon);
+
+        // Determine which icon to use and if we should render in this layer
+        let iconToUse: string | null = null;
+
+        if (isBackLayer) {
+            // Back layer: collars, back of jerseys, etc.
+            if (isAutoBackCollar) iconToUse = item.icon;
+            else if (item.backIcon) iconToUse = item.backIcon;
+            // Backpacks now render in FRONT layer only (peeking out from sides)
+        } else {
+            // Front layer: everything, including backpacks peeking out from the side
+            iconToUse = item.icon;
+        }
 
         if (!iconToUse) return null;
 
@@ -240,8 +252,8 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                 exit={{ scale: 0, opacity: 0 }}
                 className={cn(
                     "absolute pointer-events-none select-none flex items-center justify-center",
-                    !isBackLayer && isSticker && "bg-white rounded-full overflow-hidden shadow-[0_4px_10px_rgba(0,0,0,0.15)] border-2 border-white/50 ring-1 ring-black/5",
-                    !isBackLayer && isPopUp && "rounded-2xl border-b-[6px] border-r-[6px] border-slate-200/80 shadow-[0_15px_30px_rgba(0,0,0,0.25)] bg-gradient-to-br from-white to-slate-50 scale-110 z-50 animate-bounce-subtle",
+                    !isBackLayer && isSticker && !isBack && "bg-white rounded-full overflow-hidden shadow-[0_4px_10px_rgba(0,0,0,0.15)] border-2 border-white/50 ring-1 ring-black/5",
+                    !isBackLayer && isPopUp && !isBack && "rounded-2xl border-b-[6px] border-r-[6px] border-slate-200/80 shadow-[0_15px_30px_rgba(0,0,0,0.25)] bg-gradient-to-br from-white to-slate-50 scale-110 z-50 animate-bounce-subtle",
                     !isBackLayer && isWatch && item.icon.includes('/') && "drop-shadow-[0_6px_12px_rgba(0,0,0,0.6)]"
                 )}
                 style={{
@@ -250,7 +262,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                     zIndex: z,
                     fontSize: '1em',
                     width: baseWidth,
-                    height: baseWidth === 'auto' ? 'auto' : (isJersey ? (isSmall ? '15em' : '26em') : baseWidth),
+                    height: baseWidth === 'auto' ? 'auto' : (isJersey ? (isTiny ? '12em' : isSmall ? '15em' : '26em') : baseWidth),
                 }}
             >
                 <span className={cn(
@@ -264,8 +276,9 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                             className={cn(
                                 isJersey ? "w-full h-full object-cover" : "w-full h-full object-contain",
                                 isSticker && "scale-110",
-                                isJersey && (isSmall ? "scale-[1.18] translate-y-[-1%]" :
-                                    "scale-[1.28] translate-y-[-4.5%] brightness-[1.1] contrast-[1.05]"
+                                isJersey && (isTiny ? "scale-[1.3] translate-y-[-2%]" :
+                                    isSmall ? "scale-[1.18] translate-y-[-1%]" :
+                                        "scale-[1.28] translate-y-[-4.5%] brightness-[1.1] contrast-[1.05]"
                                 ),
                                 isShorts && "scale-90 translate-y-1 object-contain",
                                 isSocks && "scale-90 translate-y-2 object-contain",
@@ -285,44 +298,74 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                                                         ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
                                                         : `url(#${extraCleanJerseyId})`)))
                                     ) : undefined,
-                                    clipPath: isJersey
-                                        ? `polygon(
-                                            37% 5%, 
-                                            15% 10%,
-                                            ${5 - (custom.shoulders || 0)}% 18%, 
-                                            ${-2 - (custom.shoulders || 0)}% ${58 + (custom.sleeves || 0)}%, 
-                                            18% ${70 + (custom.sleeves || 0)}%, 
-                                            25% 50%, 
-                                            28% 88%, 
-                                            50% 92%, 
-                                            72% 88%, 
-                                            75% 50%, 
-                                            82% ${70 + (custom.sleeves || 0)}%, 
-                                            ${102 + (custom.shoulders || 0)}% ${58 + (custom.sleeves || 0)}%, 
-                                            ${95 + (custom.shoulders || 0)}% 18%, 
-                                            85% 10%,
-                                            63% 5%, 
-                                            58% ${isBackLayer ? '2%' : Math.max(6, (custom.neck || 22) - 8)}%, 
-                                            50% ${isBackLayer ? (custom.neck || 22) - 2 : (custom.neck || 22)}%, 
-                                            42% ${isBackLayer ? '2%' : Math.max(6, (custom.neck || 22) - 8)}%
-                                        )`
-                                        : (isWatch && (item.id.includes('elite') || item.id.includes('phantom') || item.id.includes('quantum') || item.id.includes('chroma')))
-                                            ? 'inset(20% 25% 20% 25% round 50%)'
-                                            : (item.id.includes('messi') ? 'inset(2% 12% 0 12%)' : (item.id.includes('velocidad') ? 'polygon(10% 0%, 90% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%)' : 'inset(14% 2% 0 2%)')),
+                                    mixBlendMode: isBack ? 'multiply' : undefined,
+                                    clipPath: isBack ? 'none'
+                                        : isJersey
+                                            ? (isTiny
+                                                ? `polygon(
+                                                35% 8%, 
+                                                10% 15%,
+                                                0% 22%, 
+                                                -5% 60%, 
+                                                15% 72%, 
+                                                22% 52%, 
+                                                25% 90%, 
+                                                50% 95%, 
+                                                75% 90%, 
+                                                78% 52%, 
+                                                85% 72%, 
+                                                105% 60%, 
+                                                100% 22%, 
+                                                90% 15%,
+                                                65% 8%, 
+                                                58% ${isBackLayer ? '4%' : '12%'}, 
+                                                50% ${isBackLayer ? '8%' : '18%'}, 
+                                                42% ${isBackLayer ? '4%' : '12%'}
+                                            )`
+                                                : `polygon(
+                                                37% 5%, 
+                                                15% 10%,
+                                                ${5 - (custom.shoulders || 0)}% 18%, 
+                                                ${-2 - (custom.shoulders || 0)}% ${58 + (custom.sleeves || 0)}%, 
+                                                18% ${70 + (custom.sleeves || 0)}%, 
+                                                25% 50%, 
+                                                28% 88%, 
+                                                50% 92%, 
+                                                72% 88%, 
+                                                75% 50%, 
+                                                82% ${70 + (custom.sleeves || 0)}%, 
+                                                ${102 + (custom.shoulders || 0)}% ${58 + (custom.sleeves || 0)}%, 
+                                                ${95 + (custom.shoulders || 0)}% 18%, 
+                                                85% 10%,
+                                                63% 5%, 
+                                                58% ${isBackLayer ? '2%' : Math.max(6, (custom.neck || 22) - 8)}%, 
+                                                50% ${isBackLayer ? (custom.neck || 22) - 2 : (custom.neck || 22)}%, 
+                                                42% ${isBackLayer ? '2%' : Math.max(6, (custom.neck || 22) - 8)}%
+                                            )`
+                                            )
+                                            : (isWatch && (item.id.includes('elite') || item.id.includes('phantom') || item.id.includes('quantum') || item.id.includes('chroma')))
+                                                ? 'inset(20% 25% 20% 25% round 50%)'
+                                                : (item.id.includes('messi') ? 'inset(2% 12% 0 12%)' : (item.id.includes('velocidad') ? 'polygon(10% 0%, 90% 0%, 100% 25%, 100% 100%, 0% 100%, 0% 25%)' : 'inset(14% 2% 0 2%)')),
                                     maskImage: isAutoBackCollar
                                         ? `linear-gradient(to bottom, black 0%, black ${custom.neck || 15}%, transparent ${(custom.neck || 15) + 4}%)`
-                                        : ((isJersey && !isBackLayer)
-                                            ? `radial-gradient(ellipse at 50% 0%, transparent ${(custom.neck || 15) - 3}%, black ${custom.neck || 15}%, black 95%, transparent 100%)`
-                                            : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none'),
+                                        : isBack ? 'none'
+                                            : ((isJersey && !isBackLayer)
+                                                ? (isTiny
+                                                    ? `radial-gradient(ellipse at 50% 0%, transparent 8%, black 14%, black 95%, transparent 100%)`
+                                                    : `radial-gradient(ellipse at 50% 0%, transparent ${(custom.neck || 15) - 3}%, black ${custom.neck || 15}%, black 95%, transparent 100%)`)
+                                                : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none'),
                                     WebkitMaskImage: isAutoBackCollar
                                         ? `linear-gradient(to bottom, black 0%, black ${custom.neck || 15}%, transparent ${(custom.neck || 15) + 4}%)`
-                                        : ((isJersey && !isBackLayer)
-                                            ? `radial-gradient(ellipse at 50% 0%, transparent ${(custom.neck || 15) - 3}%, black ${custom.neck || 15}%, black 95%, transparent 100%)`
-                                            : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none'),
-                                    objectFit: 'cover',
+                                        : isBack ? 'none'
+                                            : ((isJersey && !isBackLayer)
+                                                ? (isTiny
+                                                    ? `radial-gradient(ellipse at 50% 0%, transparent 8%, black 14%, black 95%, transparent 100%)`
+                                                    : `radial-gradient(ellipse at 50% 0%, transparent ${(custom.neck || 15) - 3}%, black ${custom.neck || 15}%, black 95%, transparent 100%)`)
+                                                : (isWatch || item.id.includes('nova')) ? 'radial-gradient(circle at center, black 65%, transparent 100%)' : 'none'),
+                                    objectFit: (isJersey || isWatch) ? 'cover' : 'contain',
                                     objectPosition: 'top center',
                                 } : (isShorts || isSocks || isCleats ? {
-                                    filter: (iconToUse.toLowerCase().endsWith('.jpg') || item.id.includes('shorts')) ? `url(#${blackToAlphaId})` : `url(#${whiteToAlphaJerseyId})`
+                                    filter: (iconToUse.toLowerCase().endsWith('.jpg') || item.id.includes('shorts')) ? `url(#${whiteToAlphaId})` : `url(#${whiteToAlphaJerseyId})`
                                 } : {}))
                             }}
                         />

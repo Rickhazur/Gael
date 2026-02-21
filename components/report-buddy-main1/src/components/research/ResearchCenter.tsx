@@ -704,14 +704,16 @@ export function ResearchCenter({ initialGrade = 3 }: { initialGrade?: number }) 
         </p>
       </footer>
 
-      {/* MOBILE EXIT BUTTON (Floating) */}
-      <button
-        onClick={() => window.location.reload()}
-        className="lg:hidden fixed bottom-6 right-6 z-[60] w-12 h-12 bg-red-500 rounded-full shadow-lg border-2 border-white flex items-center justify-center active:scale-95 transition-transform"
-        aria-label="Salir"
-      >
-        <span className="text-2xl">❌</span>
-      </button>
+      {/* MOBILE EXIT BUTTON (Floating) - Hidden in Demo mode */}
+      {!isDemoMode && (
+        <button
+          onClick={() => window.location.reload()}
+          className="lg:hidden fixed bottom-6 right-6 z-[60] w-12 h-12 bg-red-500 rounded-full shadow-lg border-2 border-white flex items-center justify-center active:scale-95 transition-transform"
+          aria-label="Salir"
+        >
+          <span className="text-2xl">❌</span>
+        </button>
+      )}
 
     </div >
   );

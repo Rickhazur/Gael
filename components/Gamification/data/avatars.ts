@@ -42,7 +42,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Enérgico',
         colors: ['#FFC0CB', '#FFFFFF'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_4.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -52,7 +52,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Valiente',
         colors: ['#32CD32', '#FFFF00'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -62,7 +62,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Noble',
         colors: ['#C0C0C0', '#4169E1'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_2.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -72,7 +72,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Astuto',
         colors: ['#FFA500', '#FFFFFF'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_3_1769540930925.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -82,7 +82,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Inteligente',
         colors: ['#00BFFF', '#CCCCCC'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_3.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -92,7 +92,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Fuerte',
         colors: ['#FF4500', '#FFD700'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -102,7 +102,7 @@ export const AVATARS_GRADE_1: Avatar[] = [
         personality: 'Veloz',
         colors: ['#FFFF00', '#FF0000'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -116,7 +116,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Curiosa',
         colors: ['#228B22', '#F4A460'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -126,7 +126,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Aventurero',
         colors: ['#DAA520', '#A52A2A'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_2.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -136,7 +136,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Protectora',
         colors: ['#00CED1', '#FF1493'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_2_1769540916141.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -146,7 +146,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Temerario',
         colors: ['#000000', '#FF0000'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_4.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -156,7 +156,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Dulce',
         colors: ['#32CD32', '#FFC0CB'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_2_1769540916141.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -166,7 +166,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Certero',
         colors: ['#006400', '#8B4513'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_3.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -176,7 +176,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Cuidadosa',
         colors: ['#FFFFFF', '#FF69B4'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -186,7 +186,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
         personality: 'Creativo',
         colors: ['#FFA500', '#0000FF'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -200,7 +200,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Amable',
         colors: ['#FF69B4', '#DA70D6'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_2_1769540916141.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -210,7 +210,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Sabio',
         colors: ['#4B0082', '#DAA520'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -220,7 +220,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Misteriosa',
         colors: ['#9932CC', '#000000'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -230,7 +230,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Radical',
         colors: ['#FF00FF', '#00FFFF'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_3_1769540930925.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -240,7 +240,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Veloz',
         colors: ['#0000FF', '#FFFF00'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_4.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -250,7 +250,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Analítico',
         colors: ['#8B4513', '#F5DEB3'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_2.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -260,7 +260,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Sigiloso',
         colors: ['#000000', '#FF0000'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_3.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -270,7 +270,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Expresiva',
         colors: ['#FF1493', '#00CED1'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -280,7 +280,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Ruidoso',
         colors: ['#000000', '#FFD700'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_2.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -294,7 +294,7 @@ export const AVATARS_GRADE_4: Avatar[] = [
         personality: 'Curioso y Valiente',
         colors: ['#00BFFF', '#CCCCCC'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -359,7 +359,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Equilibrado',
         colors: ['#FFFFFF', '#3B82F6'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -369,7 +369,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Alegre',
         colors: ['#FFFFFF', '#10B981'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_2.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -379,7 +379,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Curioso',
         colors: ['#FFFFFF', '#F59E0B'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_3.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -389,7 +389,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Enfocado',
         colors: ['#FFFFFF', '#EF4444'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_4.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -399,7 +399,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Líder',
         colors: ['#FFFFFF', '#EC4899'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -409,7 +409,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Dinámica',
         colors: ['#FFFFFF', '#8B5CF6'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_2_1769540916141.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -419,7 +419,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Creativa',
         colors: ['#FFFFFF', '#F97316'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_3_1769540930925.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -429,7 +429,7 @@ export const AVATARS_GRADE_5: Avatar[] = [
         personality: 'Inteligente',
         colors: ['#FFFFFF', '#06B6D4'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -443,7 +443,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Estratega',
         colors: ['#FFFFFF', '#2563EB'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_4.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -453,7 +453,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Carismática',
         colors: ['#FFFFFF', '#DB2777'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -463,7 +463,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Ingenioso',
         colors: ['#FFFFFF', '#059669'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_2.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -473,7 +473,7 @@ export const AVATARS_GRADE_6: Avatar[] = [
         personality: 'Visionaria',
         colors: ['#FFFFFF', '#9333EA'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_2_1769540916141.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -487,7 +487,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Visionario',
         colors: ['#FFFFFF', '#1D4ED8'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_1.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -497,7 +497,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Emprendedora',
         colors: ['#FFFFFF', '#BE185D'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_3_1769540930925.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -507,7 +507,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Protector',
         colors: ['#FFFFFF', '#047857'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_3.png',
+        baseImage: '/avatars/g5_boy_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -517,7 +517,7 @@ export const AVATARS_GRADE_7: Avatar[] = [
         personality: 'Metódica',
         colors: ['#FFFFFF', '#7E22CE'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_1_1769540901853.png',
+        baseImage: '/avatars/g5_girl_relaxed.png',
         offsets: SIMPLE_3D_OFFSETS
     }
 ];
@@ -600,6 +600,7 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_backpack_fairy_dust', name: 'Maleta Hada Mágica', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_m0cmsqm0cmsqm0cm.png' },
     { id: 'acc_backpack_neon_pulse', name: 'Maleta Neon Pulse', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_jbahlqjbahlqjbah.png' },
     { id: 'acc_backpack_crystal_gem', name: 'Maleta Crystal Gem', type: 'back', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_bmclq6bmclq6bmcl.png' },
+    { id: 'acc_backpack_neon_nova', name: 'Maleta Neo-Nova (Premium)', type: 'back', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_4s7p.png' },
     { id: 'acc_backpack_astronaut', name: 'Maleta Astronauta Pro', type: 'back', rarity: 'legendary', cost: 2000, conditionType: 'none', icon: '/avatars/backpacks/bag_Gemini_Generated_Image_an27ppan27ppan27.png' },
     // --- ÚTILES DE CLASE REMOVED ITEMS WITHOUT IMAGES ---
 
@@ -787,6 +788,98 @@ export const ACCESSORIES: Accessory[] = [
         conditionType: 'none',
         icon: '/accessories/pants_tech_urban_front.png',
         backIcon: '/accessories/pants_tech_urban_back.png' // Cintura tridimensional
+    },
+
+    // --- MOCHILAS (MORRALES MÁGICOS) ---
+    {
+        id: 'acc_back_superheroe',
+        name: 'Morral Súper Héroe',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_superheroe_1771699019291.png'
+    },
+    {
+        id: 'acc_back_princesa',
+        name: 'Morral de Princesa',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_princesa_1771699034547.png'
+    },
+    {
+        id: 'acc_back_astronauta',
+        name: 'Morral Astronauta',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_astronauta_1771699048742.png'
+    },
+    {
+        id: 'acc_back_dino',
+        name: 'Morral Dino',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_dinosaurio_1771699064369.png'
+    },
+    {
+        id: 'acc_back_unicornio',
+        name: 'Morral Unicornio',
+        type: 'back',
+        rarity: 'legendary',
+        cost: 1500,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_unicornio_1771699078898.png'
+    },
+    {
+        id: 'acc_back_pirata',
+        name: 'Morral Pirata',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_pirata_1771699093106.png'
+    },
+    {
+        id: 'acc_back_ninja',
+        name: 'Morral Ninja',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_ninja_1771699108889.png'
+    },
+    {
+        id: 'acc_back_monstruo',
+        name: 'Morral Monstruo',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_monstruo_1771699122116.png'
+    },
+    {
+        id: 'acc_back_robot',
+        name: 'Morral Robo-Bot',
+        type: 'back',
+        rarity: 'legendary',
+        cost: 1500,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_robot_1771699136488.png'
+    },
+    {
+        id: 'acc_back_sirenita',
+        name: 'Morral Sirenita',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1200,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_sirenita_1771699148397.png'
     },
 
     // --- JUGUETES, SNACKS Y DEPORTES REMOVED ITEMS WITHOUT IMAGES ---

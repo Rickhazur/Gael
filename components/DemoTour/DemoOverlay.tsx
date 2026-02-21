@@ -161,7 +161,7 @@ export function DemoOverlay() {
             )}
 
             {/* Mensaje flotante indicando que es solo demostración - compacto en móvil cuando es Research Center para no tapar el avatar */}
-            <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[10000] px-4 md:px-6 py-2 md:py-3 rounded-full shadow-2xl font-bold text-xs md:text-sm flex items-center gap-2 md:gap-4 pointer-events-auto select-none transition-all duration-500 ${currentStep?.id === 7 ? 'max-md:top-2 max-md:px-3 max-md:py-1.5' : ''} ${isDeepVoice ? 'bg-cyan-600 text-white ring-4 ring-cyan-300 animate-pulse border-2 border-white/20' : 'bg-amber-500 text-white border-2 border-white/20'}`}>
+            <div className={`fixed top-4 left-1/2 transform -translate-x-1/2 z-[10000] px-4 md:px-6 py-2 md:py-3 rounded-full shadow-2xl font-bold text-xs md:text-sm flex items-center gap-2 md:gap-4 pointer-events-auto select-none transition-all duration-500 ${isDeepVoice ? 'bg-cyan-600 text-white ring-4 ring-cyan-300 animate-pulse border-2 border-white/20' : 'bg-amber-500 text-white border-2 border-white/20'}`}>
                 <div className="flex items-center gap-2">
                     <span className="text-xl">{isDeepVoice ? '🛰️' : '🎬'}</span>
                     <span className="tracking-wide">
@@ -185,7 +185,7 @@ export function DemoOverlay() {
             {tourState.isActive && currentStep?.hotspots?.map((hotspot: any, idx: number) => (
                 <div
                     key={idx}
-                    className={`fixed z-[10001] flex items-center justify-center pointer-events-none ${currentStep?.id === 7 ? 'max-md:hidden' : ''}`}
+                    className={`fixed z-[10001] flex items-center justify-center pointer-events-none`}
                     style={{
                         top: `${hotspot.y}%`,
                         left: `${hotspot.x}%`,

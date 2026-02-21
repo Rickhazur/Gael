@@ -54,23 +54,25 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                         ¡Elige tu Héroe!
                     </h1>
 
-                    {/* Grade Selector */}
+                    {/* Grade Selector - Filtrado para mostrar solo el grado del estudiante */}
                     <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-800/50 p-2 rounded-xl backdrop-blur-sm border border-slate-700">
-                        {[1, 2, 3, 4, 5, 6, 7].map((g) => (
-                            <Button
-                                key={g}
-                                variant={selectedGrade === g ? "default" : "ghost"}
-                                onClick={() => { setSelectedGrade(g as any); setSelectedId(null); }}
-                                className={cn(
-                                    "h-10 rounded-lg font-bold transition-all",
-                                    selectedGrade === g
-                                        ? "bg-kid-orange hover:bg-kid-orange/90 text-white"
-                                        : "text-slate-400 hover:text-white"
-                                )}
-                            >
-                                {g}° Grado
-                            </Button>
-                        ))}
+                        {[1, 2, 3, 4, 5, 6, 7]
+                            .filter((g) => g === initialGrade)
+                            .map((g) => (
+                                <Button
+                                    key={g}
+                                    variant={selectedGrade === g ? "default" : "ghost"}
+                                    onClick={() => { setSelectedGrade(g as any); setSelectedId(null); }}
+                                    className={cn(
+                                        "h-10 rounded-lg font-bold transition-all",
+                                        selectedGrade === g
+                                            ? "bg-kid-orange hover:bg-kid-orange/90 text-white"
+                                            : "text-slate-400 hover:text-white"
+                                    )}
+                                >
+                                    {g}° Grado
+                                </Button>
+                            ))}
                     </div>
                 </div>
 

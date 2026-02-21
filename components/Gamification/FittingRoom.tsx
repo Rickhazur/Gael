@@ -231,7 +231,7 @@ export const FittingRoom: React.FC<FittingRoomProps> = ({
                                     </label>
                                     <input
                                         type="range"
-                                        min="0.25"
+                                        min="0.05"
                                         max="3.5"
                                         step={isProMode ? "0.01" : "0.05"}
                                         value={offsets.scale}
