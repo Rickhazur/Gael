@@ -14,6 +14,7 @@ interface SocraticQuestion {
   hints: string[]; // Progressive hints
   followUp: string;
   type: 'extraction' | 'reasoning' | 'verification';
+  imagePrompt?: string; // Optional prompt for an AI generated image
 }
 
 interface WordProblemData {
@@ -54,6 +55,11 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
 
       // 1. Direct or Partial Match
       if (user === expected || user.includes(expected) || (user.length >= 4 && expected.includes(user))) return true;
+
+      // 1.5 Match all digits ignoring text/separators (e.g., handles "356" matching "3, 5 y 6")
+      const uDigits = user.match(/\d/g)?.join("");
+      const eDigits = expected.match(/\d/g)?.join("");
+      if (uDigits && eDigits && uDigits === eDigits) return true;
 
       // 2. Numeric Equality
       const uNum = user.match(/\d+/)?.[0];
@@ -109,6 +115,9 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
   // 🧠 PROFESSOR: Track consecutive errors per question for adaptive scaffolding
   const [consecutiveErrors, setConsecutiveErrors] = useState<Record<string, number>>({});
 
+  const [questionImages, setQuestionImages] = useState<Record<string, string>>({});
+  const [isGeneratingImage, setIsGeneratingImage] = useState<Record<string, boolean>>({});
+
   const showNextHint = (questionId: string) => {
     setHintLevel(prev => {
       const currentLevel = prev[questionId] || 0;
@@ -148,6 +157,7 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
           5. No des la respuesta directamente en la pregunta, guíalo.
           6. 'problemData' debe contener info del problema: character, initialAmount, action, actionAmount, y una lista de questions a resolver.
           6. Cada misión debe tener entre 2 y 4 preguntas.
+          7. Opcional: Si una ayuda visual (ej. grupos de manzanas, fracciones visuales) facilitaría entender el paso, puedes agregar un "imagePrompt" en la pregunta. El prompt DEBE estar en INGLÉS detallando lo que se verá en la imagen para el generador AI (ej. "A cute 3d cartoon of 5 red apples").
 
           Responde ÚNICAMENTE con un JSON con la siguiente estructura exacta:
           {
@@ -159,7 +169,7 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
               "questions": ["..."]
             },
             "m1": [
-              { "id": "m1q1", "question": "...", "expectedAnswer": ["respuesta1"], "hints": ["Pista 1: ...", "Pista 2: ..."], "followUp": "..." }
+              { "id": "m1q1", "question": "...", "expectedAnswer": ["respuesta1"], "hints": ["Pista 1: ...", "Pista 2: ..."], "followUp": "...", "imagePrompt": "optional english prompt" }
             ],
             "m2": [
               { "id": "m2q1", "question": "...", "expectedAnswer": ["respuesta1"], "hints": ["Pista 1...", "Pista 2..."], "followUp": "..." }
@@ -240,6 +250,22 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
       edgeTTS.speak(q.question, 'lina');
       setCurrentInput(''); // Reset input for new question
       setFeedback(null);
+
+      if (q.imagePrompt && !questionImages[q.id] && !isGeneratingImage[q.id]) {
+        setIsGeneratingImage(prev => ({ ...prev, [q.id]: true }));
+        import('@/services/ai_service').then(({ generateImage }) => {
+          generateImage(q.imagePrompt + ", educational, simple layout, white background, cute 3d vector style", 'vivid').then(url => {
+            if (url) {
+              setQuestionImages(prev => ({ ...prev, [q.id]: url }));
+            }
+          }).finally(() => {
+            setIsGeneratingImage(prev => ({ ...prev, [q.id]: false }));
+          });
+        }).catch(err => {
+          console.error("Failed to generate hint image", err);
+          setIsGeneratingImage(prev => ({ ...prev, [q.id]: false }));
+        });
+      }
     }
   }, [currentMission, currentStep, dynamicMissions]);
 
@@ -701,6 +727,17 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
             <div className="question-card bg-white rounded-2xl p-6 shadow-lg">
               <h3 className="text-lg font-bold text-purple-600 mb-4">🤔 Pregunta Socrática:</h3>
               <p className="text-xl text-gray-800 mb-6">{getCurrentQuestions()[currentStep]?.question}</p>
+
+              {isGeneratingImage[getCurrentQuestions()[currentStep]?.id] && (
+                <div className="flex items-center gap-3 p-4 mb-4 bg-purple-50 rounded-xl border border-purple-100 italic text-purple-600 font-medium">
+                  <Loader2 className="animate-spin w-5 h-5" /> Generando una imagen para ayudarte...
+                </div>
+              )}
+              {questionImages[getCurrentQuestions()[currentStep]?.id] && (
+                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-2xl overflow-hidden border-2 border-purple-100 shadow-sm max-w-sm mx-auto">
+                  <img src={questionImages[getCurrentQuestions()[currentStep]?.id]} alt="Ayuda visual" className="w-full h-auto object-cover" />
+                </motion.div>
+              )}
 
               {/* Feedback Banner */}
               {feedback && (

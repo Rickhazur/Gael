@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SocraticWordProblemSolver } from './SocraticWordProblemSolver';
 import { BookOpen, Brain, Target, Trophy, PenTool, ArrowRight } from 'lucide-react';
+import { normalizePastedFractions } from '@/utils/normalizePastedFractions';
 
 interface WordProblem {
   id: string;
@@ -168,7 +169,12 @@ export const WordProblemHub: React.FC = () => {
         <div className="relative group">
           <textarea
             value={customProblemText}
-            onChange={(e) => setCustomProblemText(e.target.value)}
+            onChange={(e) => {
+              const rawText = e.target.value;
+              // Normalizar instantáneamente las fracciones raras al pegarlas
+              const normalized = normalizePastedFractions(rawText);
+              setCustomProblemText(normalized);
+            }}
             placeholder="Ej: Juan tenía 10 manzanas, le dio 3 a María y luego compró 5 más..."
             className="w-full h-32 p-6 bg-slate-50 rounded-3xl border-2 border-slate-100 text-lg font-medium text-slate-900 focus:border-purple-500 focus:bg-white transition-all outline-none resize-none"
           />
@@ -177,6 +183,8 @@ export const WordProblemHub: React.FC = () => {
             whileTap={{ scale: 0.98 }}
             disabled={customProblemText.trim().length < 10}
             onClick={() => {
+              const normalized = normalizePastedFractions(customProblemText);
+              setCustomProblemText(normalized);
               setIsCustomMode(true);
               setShowSolver(true);
             }}

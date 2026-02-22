@@ -34,11 +34,31 @@ export async function callGeminiSocratic(
         contents.unshift({ role: 'user', parts: [{ text: "Hola!" }] });
     }
 
-    const currentText = typeof userMessage === 'string' ? userMessage : JSON.stringify(userMessage);
-    if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
-        contents[contents.length - 1].parts[0].text += "\n\n" + currentText;
+    const finalParts: any[] = [];
+    if (typeof userMessage === 'string') {
+        finalParts.push({ text: userMessage });
+    } else if (Array.isArray(userMessage)) {
+        for (const item of userMessage) {
+            if (item.type === 'text') {
+                finalParts.push({ text: item.text });
+            } else if (item.type === 'image_url') {
+                const url = item.image_url.url;
+                const mimeMatch = url.match(/^data:(image\/[a-zA-Z]+);base64,/);
+                const mimeType = mimeMatch ? mimeMatch[1] : "image/png";
+                const b64 = url.replace(/^data:[^;]+;base64,/, '');
+                finalParts.push({
+                    inline_data: { mime_type: mimeType, data: b64 }
+                });
+            }
+        }
     } else {
-        contents.push({ role: 'user', parts: [{ text: currentText }] });
+        finalParts.push({ text: JSON.stringify(userMessage) });
+    }
+
+    if (contents.length > 0 && contents[contents.length - 1].role === 'user') {
+        contents[contents.length - 1].parts.push(...finalParts);
+    } else {
+        contents.push({ role: 'user', parts: finalParts });
     }
 
     // LISTA DE MODELOS A INTENTAR (v1beta endpoint)

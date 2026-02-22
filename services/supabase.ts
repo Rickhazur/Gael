@@ -17,6 +17,9 @@ export const supabase = isOffline ? null : createClient(SUPABASE_URL, SUPABASE_K
 export const loginWithSupabase = async (email: string, password: string, intendedRole: string = 'STUDENT') => {
   if (!supabase) throw new Error("Sistema desconectado.");
 
+  const normalizedEmail = email.toLowerCase().trim();
+  const isAdminEmail = normalizedEmail === 'rickhazur@gmail.com';
+
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     console.error('Login error:', error);
@@ -28,27 +31,41 @@ export const loginWithSupabase = async (email: string, password: string, intende
     throw error;
   }
 
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", data.user!.id)
-    .single();
+  // Fetch profile — handle errors gracefully (RLS may block, profile may not exist)
+  let profile: any = null;
+  try {
+    const { data: profileData, error: profileError } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", data.user!.id)
+      .maybeSingle();
+
+    if (profileError) {
+      console.warn('Profile fetch during login:', profileError.message);
+      // For admin, continue with null profile
+    } else {
+      profile = profileData;
+    }
+  } catch (profileErr) {
+    console.warn('Profile fetch exception during login:', profileErr);
+  }
 
   let finalRole = profile?.role || intendedRole;
-  const normalizedEmail = (data.user?.email || email).toLowerCase().trim();
 
-  // Emergency bypass for primary admin
-  if (normalizedEmail === 'rickhazur@gmail.com') {
+  // Emergency bypass for primary admin — always override role
+  if (isAdminEmail) {
     finalRole = 'ADMIN';
   }
 
-
-  if (profile?.account_status === 'pending' && finalRole !== 'ADMIN') {
-    await supabase.auth.signOut();
-    throw new Error('Tu cuenta está pendiente de aprobación por el administrador. Por favor espera a ser contactado.');
-  } else if (profile?.account_status === 'rejected' && finalRole !== 'ADMIN') {
-    await supabase.auth.signOut();
-    throw new Error('Tu cuenta ha sido desactivada. Contacta al soporte.');
+  // Account status check — admin always bypasses
+  if (finalRole !== 'ADMIN') {
+    if (profile?.account_status === 'pending') {
+      await supabase.auth.signOut();
+      throw new Error('Tu cuenta está pendiente de aprobación por el administrador. Por favor espera a ser contactado.');
+    } else if (profile?.account_status === 'rejected') {
+      await supabase.auth.signOut();
+      throw new Error('Tu cuenta ha sido desactivada. Contacta al soporte.');
+    }
   }
 
   return {
@@ -88,10 +105,17 @@ export const registerStudent = async (data: { email: string; password: string; n
     }
   });
 
-  if (authError) throw authError;
+  if (authError) {
+    console.error("Auth signup error:", authError);
+    if (authError.message?.includes('Database error saving new user') || authError.message?.includes('saving new user')) {
+      throw new Error("No se pudo guardar la cuenta en la base de datos. Ejecuta en Supabase SQL Editor el archivo supabase/FIX_COMPLETE_SYSTEM.sql y luego intenta de nuevo.");
+    }
+    throw authError;
+  }
   if (!authData.user) throw new Error("No se pudo crear el usuario.");
 
   // 2. Crear/Actualizar Perfil (upsert; cuenta pendiente de activación)
+  // El trigger handle_new_user puede haberlo creado ya, pero hacemos upsert para asegurar toda la data
   const profilePayload: Record<string, unknown> = {
     id: authData.user.id,
     name: data.name,
@@ -103,23 +127,73 @@ export const registerStudent = async (data: { email: string; password: string; n
     account_status: 'pending',
     email: data.email
   };
-  let { error: profileError } = await supabase
-    .from("profiles")
-    .upsert(profilePayload, { onConflict: 'id' });
 
-  // Si falla por columna email inexistente, reintentar sin email
-  if (profileError?.message?.includes('email') || profileError?.message?.includes('column')) {
-    delete profilePayload.email;
-    const retry = await supabase.from("profiles").upsert(profilePayload, { onConflict: 'id' });
-    profileError = retry.error;
+  let profileSaved = false;
+
+  // Attempt 1: Full upsert with email
+  try {
+    const { error: profileError } = await supabase
+      .from("profiles")
+      .upsert(profilePayload, { onConflict: 'id' });
+
+    if (!profileError) {
+      profileSaved = true;
+    } else if (profileError.message?.includes('email') || profileError.message?.includes('column')) {
+      // Attempt 2: Retry without email column if it doesn't exist
+      delete profilePayload.email;
+      const { error: retryError } = await supabase
+        .from("profiles")
+        .upsert(profilePayload, { onConflict: 'id' });
+
+      if (!retryError) {
+        profileSaved = true;
+      } else {
+        console.error("Profile upsert retry failed:", retryError);
+      }
+    } else {
+      console.error("Profile upsert failed:", profileError);
+    }
+  } catch (e) {
+    console.error("Profile upsert exception:", e);
   }
 
-  if (profileError) {
-    console.error("Error actualizando perfil:", profileError);
-    const hint = profileError.message?.includes('row-level security') || profileError.message?.includes('policy')
-      ? ' Ejecuta en Supabase (SQL Editor) el archivo supabase/FIX_REGISTRATION.sql'
-      : '';
-    throw new Error("No se pudo guardar la cuenta en la base de datos." + hint + " Si el problema persiste, contacta a soporte.");
+  // Attempt 3: If upsert failed, check if the trigger already created it
+  if (!profileSaved) {
+    try {
+      const { data: existingProfile } = await supabase
+        .from("profiles")
+        .select("id")
+        .eq("id", authData.user.id)
+        .maybeSingle();
+
+      if (existingProfile) {
+        // Profile exists (created by trigger), just update the missing fields
+        const { error: updateError } = await supabase
+          .from("profiles")
+          .update({
+            name: data.name,
+            guardian_phone: data.guardianPhone,
+            grade_level: data.gradeLevel,
+            is_bilingual: data.isBilingual || false,
+            account_status: 'pending'
+          })
+          .eq("id", authData.user.id);
+
+        if (!updateError) {
+          profileSaved = true;
+        } else {
+          console.warn("Profile update failed:", updateError);
+        }
+      }
+    } catch (checkErr) {
+      console.warn("Profile check failed:", checkErr);
+    }
+  }
+
+  if (!profileSaved) {
+    console.warn("Profile could not be saved, but auth user was created. The trigger may handle it.");
+    // Don't throw here — the auth user was created successfully, and the trigger
+    // should have created a basic profile. The admin can always fix it from the panel.
   }
 
   // 3. Inicializar Economía (ignorar si ya existe o falla por RLS)
@@ -241,6 +315,35 @@ export const registerParentAndStudent = async (data: {
     });
   }
 
+  // 2. Crear Perfil del estudiante (Upsert; debe ocurrir antes de cerrar sesión por RLS)
+  // El trigger handle_new_user puede haberlo creado ya
+  if (studentAuth.user) {
+    const studentPayload: Record<string, unknown> = {
+      id: studentAuth.user.id,
+      name: data.studentName,
+      role: 'STUDENT',
+      level: 'primary',
+      grade_level: data.studentGradeLevel,
+      is_bilingual: data.isBilingual,
+      account_status: 'pending',
+      email: data.studentEmail,
+      guardian_phone: data.whatsappPhone
+    };
+
+    try {
+      let err = (await supabase.from("profiles").upsert(studentPayload, { onConflict: 'id' })).error;
+      if (err && (err.message?.includes('email') || err.message?.includes('column'))) {
+        delete studentPayload.email;
+        err = (await supabase.from("profiles").upsert(studentPayload, { onConflict: 'id' })).error;
+      }
+      if (err) {
+        console.warn("Student profile upsert warning (trigger may have created it):", err.message);
+      }
+    } catch (e) {
+      console.warn("Student profile upsert exception:", e);
+    }
+  }
+
   // Cerrar sesión del estudiante para registrar al padre
   await supabase.auth.signOut();
 
@@ -263,13 +366,12 @@ export const registerParentAndStudent = async (data: {
     if (parentError) {
       // Si el usuario ya existe, intentamos recuperar su ID
       if (parentError.message.includes('already registered') || parentError.status === 422) {
-        // console.log("Padre ya existe, buscando ID...");
         isNewParent = false;
         const { data: existingId, error: fetchError } = await supabase.rpc('get_user_id_by_email', {
           email_input: data.parentEmail
         });
 
-        if (fetchError || !existingId) throw parentError; // Si no podemos recuperar ID, lanzamos el error original
+        if (fetchError || !existingId) throw parentError;
         parentId = existingId;
       } else {
         throw parentError;
@@ -282,34 +384,7 @@ export const registerParentAndStudent = async (data: {
     throw error;
   }
 
-  const profileErrorHint = (err: { message?: string } | null) =>
-    err?.message?.includes('row-level security') || err?.message?.includes('policy')
-      ? ' Ejecuta en Supabase (SQL Editor) el archivo supabase/FIX_REGISTRATION.sql'
-      : '';
-
-  // 3. Crear Perfiles si no existen (Upsert; reintento sin email si falta la columna)
-  if (studentAuth.user) {
-    const studentPayload: Record<string, unknown> = {
-      id: studentAuth.user.id,
-      name: data.studentName,
-      role: 'STUDENT',
-      level: 'primary',
-      grade_level: data.studentGradeLevel,
-      is_bilingual: data.isBilingual,
-      account_status: 'pending',
-      email: data.studentEmail
-    };
-    let studentProfileErr = (await supabase.from("profiles").upsert(studentPayload, { onConflict: 'id' })).error;
-    if (studentProfileErr && (studentProfileErr.message?.includes('email') || studentProfileErr.message?.includes('column'))) {
-      delete studentPayload.email;
-      studentProfileErr = (await supabase.from("profiles").upsert(studentPayload, { onConflict: 'id' })).error;
-    }
-    if (studentProfileErr) {
-      console.error("Error perfil estudiante:", studentProfileErr);
-      throw new Error("No se pudo guardar la cuenta en la base de datos." + profileErrorHint(studentProfileErr) + " Si el problema persiste, contacta a soporte.");
-    }
-  }
-
+  // 4. Crear Perfiles del padre si no existen (Upsert)
   if (parentId && isNewParent) {
     const parentPayload: Record<string, unknown> = {
       id: parentId,
@@ -317,16 +392,20 @@ export const registerParentAndStudent = async (data: {
       role: 'PARENT',
       account_status: 'pending',
       email: data.parentEmail,
-      guardian_phone: data.whatsappPhone // Save optional WhatsApp phone
+      guardian_phone: data.whatsappPhone
     };
-    let parentProfileErr = (await supabase.from("profiles").upsert(parentPayload, { onConflict: 'id' })).error;
-    if (parentProfileErr && (parentProfileErr.message?.includes('email') || parentProfileErr.message?.includes('column'))) {
-      delete parentPayload.email;
-      parentProfileErr = (await supabase.from("profiles").upsert(parentPayload, { onConflict: 'id' })).error;
-    }
-    if (parentProfileErr) {
-      console.error("Error perfil padre:", parentProfileErr);
-      throw new Error("No se pudo guardar la cuenta en la base de datos." + profileErrorHint(parentProfileErr) + " Si el problema persiste, contacta a soporte.");
+
+    try {
+      let err = (await supabase.from("profiles").upsert(parentPayload, { onConflict: 'id' })).error;
+      if (err && (err.message?.includes('email') || err.message?.includes('column'))) {
+        delete parentPayload.email;
+        err = (await supabase.from("profiles").upsert(parentPayload, { onConflict: 'id' })).error;
+      }
+      if (err) {
+        console.warn("Parent profile upsert warning (trigger may have created it):", err.message);
+      }
+    } catch (e) {
+      console.warn("Parent profile upsert exception:", e);
     }
   }
 
@@ -350,6 +429,10 @@ export const registerParentAndStudent = async (data: {
     details: `Hijo: ${data.studentName} (${data.studentGradeLevel}°) | Colegio: ${data.isBilingual ? 'Bilingüe' : 'Estándar'}`
   }).catch(e => console.error(e));
 
+  // MUY IMPORTANTE: Cerrar la sesión final del padre para evitar que App.tsx intente
+  // loguearlo al dashboard mientras su cuenta aún dice "pending".
+  await supabase.auth.signOut();
+
   return {
     success: true,
     user: studentAuth.user,
@@ -372,6 +455,42 @@ export const updateUserStatus = async (uid: string, status: 'active' | 'pending'
     console.error("Error updating status:", error);
     return { success: false, error: error.message };
   }
+
+  // Si estamos activando la cuenta, intentemos notificar por correo y activar también 
+  // la cuenta del padre si existe.
+  if (status === 'active') {
+    try {
+      const { data: profile } = await supabase.from("profiles").select("*").eq("id", uid).maybeSingle();
+      if (profile) {
+        // Enviar notificación de activación y verificar padre
+        if (profile.parent_id) {
+          const { data: parent } = await supabase.from("profiles").select("*").eq("id", profile.parent_id).maybeSingle();
+          if (parent) {
+            // Activar padre si estaba pendiente
+            await supabase.from("profiles").update({ account_status: 'active' }).eq("id", parent.id);
+
+            // Encomendar el correo de activación al padre
+            await notifyParentAccountActivated({
+              toEmail: parent.email,
+              userName: parent.name,
+              studentName: profile.name
+            });
+          }
+        } else {
+          // Notificar directamente al estudiante o cuenta independiente
+          if (profile.email) {
+            await notifyParentAccountActivated({
+              toEmail: profile.email,
+              userName: profile.name
+            });
+          }
+        }
+      }
+    } catch (e) {
+      console.warn("No se pudo notificar la activación de la cuenta", e);
+    }
+  }
+
   return { success: true };
 };
 

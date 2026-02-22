@@ -48,6 +48,9 @@ export const GRADE_CURRICULUM: Record<GradeLevel, CurriculumMap> = {
     3: {
         grade: 3,
         topics: [
+            // Comprensión del número y sistema decimal:
+            'number_identification', // Identificar, leer y escribir números naturales
+            'place_value_comparison', // Comparar cantidades, usar valor posicional
             // Grade 3: Multiplication, Division, Fractions intro
             'addition',           // Multi-digit addition with carrying
             'subtraction',        // Multi-digit subtraction with borrowing

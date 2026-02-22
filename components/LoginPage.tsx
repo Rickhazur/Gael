@@ -125,6 +125,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                 }
 
                 const { registerParentAndStudent } = await import('../services/supabase');
+                (window as any).isRegisteringInProgress = true;
                 const result = await registerParentAndStudent({
                     parentEmail: formData.email,
                     parentPassword: formData.password,
@@ -136,6 +137,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                     isBilingual: formData.isBilingual,
                     whatsappPhone: formData.whatsappPhone
                 });
+                (window as any).isRegisteringInProgress = false;
 
                 if (result.success) {
                     setRegStep(1); // Reset step on success
@@ -232,6 +234,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                     ? "Si el problema persiste, contacta a soporte."
                     : "If the problem persists, contact support."
             });
+            (window as any).isRegisteringInProgress = false;
         } finally {
             setLoading(false);
         }

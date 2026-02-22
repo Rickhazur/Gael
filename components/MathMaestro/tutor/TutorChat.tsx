@@ -4,7 +4,7 @@ import { LinaAvatar } from './LinaAvatar';
 import { RachelleAvatar } from './RachelleAvatar';
 import { Button } from '@/components/ui/button';
 import { generateSpeech, LINA_GREETING_AUDIO_TEXTS } from '../../../services/edgeTTS';
-import { Cloud, ChevronDown, ChevronUp, Sparkles, Zap, Upload } from 'lucide-react';
+import { Cloud, ChevronDown, ChevronUp, Sparkles, Zap, Upload, Send, Image as ImageIcon } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { CelebrationOverlay } from './CelebrationOverlay';
 import { ShopModal } from './ShopModal';
@@ -293,6 +293,23 @@ const TutorChatComponent = (
                 await addMessage('nova', response.message);
                 return;
             }
+
+            // Normalization: If AI forgot to wrap in "steps" array
+            if (Array.isArray(response)) {
+                response = { steps: response };
+            } else if (response && typeof response === 'object' && !response.steps) {
+                // Look for any array in the object that might be the steps
+                const possibleArrayKey = Object.keys(response).find(k => Array.isArray(response[k]));
+                if (possibleArrayKey) {
+                    response.steps = response[possibleArrayKey];
+                } else if (response.visualType || response.text || response.visualData || response.speech) {
+                    // It's a flat object representing a single step
+                    response = { steps: [response] };
+                } else if (response.message) {
+                    // It has a message but no steps
+                    response.steps = [{ text: response.message, visualType: 'none' }];
+                }
+            }
         } catch (e) {
             console.error("Critical AI Response Error:", e);
             await addMessage('nova', language === 'es' ? "¡Ups! Mis notas se desordenaron. ¿Me repites eso?" : "Oops! My notes got messy. Can you say that again?");
@@ -528,6 +545,24 @@ const TutorChatComponent = (
         const normalizedText = normalizePastedFractions(text.trim());
         text = normalizedText;
 
+        // 🧩 REDIRECT WORD PROBLEMS: Si el texto parece problema verbal (o tiene palabras largas),
+        // redirigir al usuario inmediatamente a la sección especial de Problemas Matemáticos con Historia,
+        // sin intentar resolverlo o analizarlo aquí.
+        const looksLikeWordProblem = text.length > 20 && /[a-zA-ZáéíóúñÁÉÍÓÚÑ]{4,}/.test(text) && !text.includes('=');
+        if (looksLikeWordProblem && !isSystemHidden && !isGuidedMode.current) {
+            console.log("🧩 Word problem or text detected – Redirecting to special section");
+            setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
+            const redirectMsg = language === 'es'
+                ? '¡Hola! Parece que me estás escribiendo un problema matemático con historia (o un ejercicio con texto). 📝\n\nEste lugar es la pizarra para **operaciones matemáticas directas** (como 25+14). Para leer y entender problemas con texto paso a paso, por favor usa nuestra sección especial de **"Problemas Matemáticos"** en el mapa 🗺️. ¡Allí te contaré una historia y lo descubriremos juntos!'
+                : 'Hi! It looks like you are writing a word problem or text-based exercise. 📝\n\nThis board is for **direct mathematical operations** (like 25+14). To read and understand story problems step by step, please use our special **"Word Problems"** section on the map 🗺️. I\'ll tell you a story and we will figure it out together over there!';
+
+            await processAIResponse({
+                message: redirectMsg,
+                visualType: 'text_only'
+            });
+            return;
+        }
+
         // 🛡️ PRIORITY CHECK: If we're in guided mode, let AlgorithmicTutor handle it FIRST
         if (isGuidedMode.current) {
             console.log("📍 Guided Mode Active - Checking if this is an answer...");
@@ -616,30 +651,6 @@ const TutorChatComponent = (
             }
             await processAIResponse(algoRef);
             return;
-        }
-
-        // 🧩 FALLBACK: Si el tutor algorítmico no reconoció pero el texto parece problema verbal,
-        // intentar parser de problemas verbales y que Lina diga palabras clave + "mira el tablero" + primera pregunta
-        const looksLikeWordProblem = text.length > 25 && /[a-zA-ZáéíóúñÁÉÍÓÚÑ]/.test(text) && !text.includes('=');
-        if (looksLikeWordProblem) {
-            const generic = parseGenericWordProblem(text);
-            const wp = !generic ? parseWordProblem(text) : null;
-            const parsed = generic || wp;
-            if (parsed && (parsed as any).highlights && Array.isArray((parsed as any).highlights)) {
-                const prob = { type: 'wordProblem' as const, ...parsed, isNew: true };
-                const wpResponse = WordProblemTutor.handleWordProblem(text, prob, language, messages, studentName);
-                if (wpResponse && wpResponse.steps?.length > 0) {
-                    console.log("🧩 Word problem fallback – Lina guía con palabras clave y preguntas");
-                    isGuidedMode.current = true;
-                    currentProblemSteps.current = wpResponse.steps as any;
-                    currentStepIndex.current = 0;
-                    if (!isSystemHidden) {
-                        setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
-                    }
-                    await processAIResponse(wpResponse);
-                    return;
-                }
-            }
         }
 
         // 🛡️ BYPASS LEGACY GENERATOR FOR 1ST GRADE TOO:
@@ -779,11 +790,17 @@ const TutorChatComponent = (
             await processAIResponse(response);
 
             // 🛡️ FALLBACK: Si la IA no devolvió pasos ni mensaje (ej. problema de fracciones mal parseado), la profe no se queda muda
-            const hasContent = response?.message || (response?.steps && response.steps.length > 0);
-            if (!hasContent && text.length > 30 && /[a-zA-Záéíóúñ]/.test(text)) {
-                addMessage('nova', language === 'es'
-                    ? '🧩 **Problema en la pizarra**\n\nVamos a leerlo juntos. ¿Qué datos te dan? ¿Qué te piden que calcules?'
-                    : '🧩 **Problem on the board**\n\nLet\'s read it together. What information do they give you? What do they ask you to find?');
+            const hasContent = response?.message || (response?.steps && response.steps.length > 0) || (response?.visualType);
+            if (!hasContent) {
+                if (text.length > 30 && /[a-zA-Záéíóúñ]/.test(text)) {
+                    addMessage('nova', language === 'es'
+                        ? '🧩 **Problema en la pizarra**\n\nVamos a leerlo juntos. ¿Qué datos te dan? ¿Qué te piden que calcules?'
+                        : '🧩 **Problem on the board**\n\nLet\'s read it together. What information do they give you? What do they ask you to find?');
+                } else {
+                    addMessage('nova', language === 'es'
+                        ? 'Hmmm... la pizarra está un poco confusa. 🤔 ¿Puedes darme más detalles o escribir un ejercicio para resolver juntos?'
+                        : 'Hmmm... the board is a bit confusing. 🤔 Can you give me more details or write an exercise to solve together?');
+                }
             }
 
             // --- REWARD LOGIC ---
@@ -1273,7 +1290,7 @@ const TutorChatComponent = (
                                 className="touch-manipulation select-none min-h-[72px] min-w-[72px] h-[72px] w-[72px] rounded-2xl bg-gradient-to-br from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white shadow-lg shadow-cyan-500/25 transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none flex items-center justify-center"
                                 aria-label={language === 'es' ? 'Enviar' : 'Send'}
                             >
-                                <Upload className="w-6 h-6" />
+                                <Send className="w-6 h-6" />
                             </button>
                         </div>
                     </div>

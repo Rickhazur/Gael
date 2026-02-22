@@ -16,9 +16,11 @@ const generateWrongAnswers = (correctAnswer: number): number[] => {
     const offsets = [-2, -1, 1, 2, 3, -3, 4, -4, 5, -5];
 
     while (wrongAnswers.length < 2) {
+        // Obtenemos un offset aleatorio
         const offset = offsets[Math.floor(Math.random() * offsets.length)];
         const wrongAnswer = correctAnswer + offset;
 
+        // Validamos que sea lógica (mayor que 0), diferente a la correcta y que NO se repita en nuestro array de respuestas falsas
         if (wrongAnswer > 0 && wrongAnswer !== correctAnswer && !wrongAnswers.includes(wrongAnswer)) {
             wrongAnswers.push(wrongAnswer);
         }
@@ -147,7 +149,7 @@ export const useGameLogic = (dimensions: GameDimensions) => {
             y: dimensions.phoenixY + 60,
             value: answer.value,
             isCorrect: answer.isCorrect,
-            speed: 0.8 + gameState.level * 0.15, // Velocidad lenta para niños de segundo grado
+            speed: 0.4 + gameState.level * 0.08, // Velocidad reducida para dar más tiempo al niño
             rotation: 0,
         }));
 

@@ -13,10 +13,17 @@ export async function callDeepSeek(
 ) {
     if (!API_KEY) throw new Error("Falta VITE_DEEPSEEK_API_KEY");
 
+    let finalContent = userMessage;
+    if (Array.isArray(userMessage)) {
+        finalContent = userMessage.filter(item => item.type === 'text')
+            .map(item => item.text)
+            .join('\n\n');
+    }
+
     const messages = [
         { role: "system", content: systemPrompt },
         ...history.map(h => ({ role: h.role, content: h.content })),
-        { role: "user", content: userMessage }
+        { role: "user", content: finalContent }
     ];
 
     return withTimeoutAndRetry(

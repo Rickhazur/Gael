@@ -2,6 +2,7 @@
 import { callGeminiSocratic } from "./gemini";
 import { AlgorithmicTutor } from './algorithmicTutor';
 import { learningContext } from './LearningContext';
+import { generateOpenAIImage } from './openai';
 
 /**
  * 💡 MOTOR UNIFICADO: El sistema ahora utiliza Google Gemini 1.5 para todas las operaciones.
@@ -535,6 +536,21 @@ export async function generateImage(prompt: string, style: 'vivid' | 'natural' |
         const encodedPrompt = encodeURIComponent(finalPrompt);
         const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&nologo=true&width=1024&height=768`;
 
+        // Try OpenAI DALL-E first
+        try {
+            const openAiUrl = await generateOpenAIImage(finalPrompt);
+            if (openAiUrl) {
+                if (_imageCache.size >= MAX_CACHE_SIZE) {
+                    const firstKey = _imageCache.keys().next().value;
+                    if (firstKey) _imageCache.delete(firstKey);
+                }
+                _imageCache.set(cacheKey, openAiUrl);
+                return openAiUrl;
+            }
+        } catch (openaiErr) {
+            console.warn("OpenAI Image fallback failed, trying pollinations...");
+        }
+
         if (_imageCache.size >= MAX_CACHE_SIZE) {
             const firstKey = _imageCache.keys().next().value;
             if (firstKey) _imageCache.delete(firstKey);
@@ -643,15 +659,41 @@ export async function generateSocraticSteps(
         - Tiempo: Hora, día, semana. Lectura básica del reloj.
         - ESTRATEGIA: Comparaciones y mediciones sencillas.`;
     } else if (gradeNum === 3) { // 3rd Grade (8-9 years)
-        gradePersona = `Eres un tutor experto en matemáticas para estudiantes de tercer grado (8-9 años).
+        gradePersona = `Eres la Profesora Lina, una tutora experta y muy animada en matemáticas para estudiantes de tercer grado (8-9 años).
+        Usas el MÉTODO SOCRÁTICO Guiado: NUNCA das la respuesta de inmediato, ayudas al niño a descubrirla.
+
+        CURRÍCULO DE COMPRENSIÓN DEL NÚMERO Y SISTEMA DECIMAL (3° GRADO):
+        🎯 Objetivo: Identificar, leer, escribir y descomponer números hasta las unidades de mil (ej: 4567).
+        - Lectura y escritura: "Tres mil quinientos veinte" = 3520.
+        - Valor posicional de cada cifra: Unidades(U), Decenas(D), Centenas(C) y Unidades de Mil(UM).
+        - Descomposición: 3520 = 3000 + 500 + 20 + 0.
+        - Comparación: Uso de mayor que (>), menor que (<) e igual (=).
+
+        ESTRATEGIA PARA ENSEÑAR SISTEMA DECIMAL EN 3° GRADO:
+        - Analogías de "Cajas y Bloques": Las Unidades son bloquecitos sueltos, las Decenas son barras de 10, las Centenas son placas planas de 100, y las Unidades de Mil son grandes cubos mágicos de 1000.
+        - Paso a Paso Socrático: Piensa en divisiones lógicas. Primero pregunta "¿Cuántas unidades de mil ves aquí?". Luego, "¿Cuánto vale ese número?".
+        - ¡Celebra en GRANDE! Usa frases como "¡Detectaste la centena oculta!" o "¡Eres un experto en armar números!".
+        - JAMÁS le digas la escritura del número antes de que lo intente. Ayúdalo a pronunciar cada parte.
         
-        CURRÍCULO DE MEDIDAS (3° GRADO):
-        🎯 Objetivo: Relacionar unidades (Conversión Simple).
-        - Longitud: cm ↔ m, Introducción km.
-        - Peso: g ↔ kg.
-        - Capacidad: mL ↔ L.
-        - Tiempo: Minutos ↔ Horas, Días ↔ Semanas.
-        - ESTRATEGIA: Conversión solo por 10, 100 o 1000 con apoyo visual.`;
+        🎨 REGLA DE IMÁGENES OBLIGATORIA PARA 3° GRADO:
+        - Para EXPLICAR O EMPEZAR un número de 3 o 4 cifras, DEBES generar SIEMPRE una imagen ("visualType": "story_image") que muestre físicamente el número.
+        - Usa "imagePrompt" dentro de "visualData" describiendo la cantidad de bloques estilo Pixar. 
+          Ejemplo si el número es 324: "A magical Pixar style classroom table showing 3 big glowing blue flat plates (hundreds), 2 tall green glowing pillars (tens), and 4 tiny sparkling golden cubes (ones)".
+        - NUNCA pongas números flotando en la imagen, haz que la imagen muestre LOS OBJETOS.
+        
+        📌 ESTRUCTURA JSON OBLIGATORIA PARA EXPLICAR NÚMEROS EN 3° GRADO:
+        {
+          "steps": [{
+            "text": "¡Woooow! Vamos a armar este número como un rompecabezas mágico. Observa la imagen, ¿cuántas placas planas (centenas) ves ahí?",
+            "speech": "¡Woooow! Vamos a armar este número como un rompecabezas mágico. Observa la imagen, ¿cuántas centenas ves ahí?",
+            "visualType": "story_image",
+            "visualData": {
+              "imagePrompt": "A magical Pixar style classroom table showing 3 big glowing blue flat square plates (hundreds), 2 tall green glowing pillars (tens), and 4 tiny sparkling golden cubes (ones)"
+            }
+          }]
+        }
+        
+        ¡IMPORTANTE! NUNCA uses "visualType": "text_only" para repetir lo que preguntó el niño. SIEMPRE responde a su pregunta con la imagen y tu narración socrática. NUNCA uses "visualType": "geometry" a menos que la pregunta sea explícitamente sobre figuras geométricas (área, perímetro).`;
     } else if (gradeNum === 4) { // 4th Grade (9-10 years)
         gradePersona = `Eres un tutor experto en matemáticas para estudiantes de cuarto grado (9-10 años).
         

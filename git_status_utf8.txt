@@ -1,47 +1,43 @@
 ﻿On branch main
-Your branch is up to date with 'origin/main'.
-
 Changes not staged for commit:
   (use "git add <file>..." to update what will be committed)
   (use "git restore <file>..." to discard changes in working directory)
-	modified:   App.tsx
-	modified:   components/Curriculum.tsx
-	modified:   components/Gamification/AvatarDisplay.tsx
-	modified:   components/Gamification/AvatarShop.tsx
-	modified:   components/Gamification/FittingRoom.tsx
 	modified:   components/Gamification/data/avatars.ts
-	modified:   components/LanguageCenter/AdventureRadio.tsx
-	modified:   components/LanguageCenter/LanguageCenterHub.tsx
-	modified:   components/LanguageCenter/StoryLegend.tsx
-	modified:   components/MathMaestro/tutor/CleanWhiteboard.tsx
-	modified:   components/MathMaestro/tutor/Header.tsx
-	modified:   components/MathMaestro/tutor/MathTutorBoard.tsx
+	modified:   components/MathMaestro/games/MathPhoenix/useGameLogic.ts
 	modified:   components/MathMaestro/tutor/TutorChat.tsx
-	modified:   components/MathMaestro/tutor/TutorChat.types.ts
-	modified:   context/AvatarContext.tsx
-	modified:   data/morePedagogicalQuests.ts
-	modified:   pages/EnglishTutor_mod.tsx
-	modified:   pages/SpanishTutor_mod.tsx
+	modified:   components/WordProblems/SocraticWordProblemSolver.tsx
+	modified:   components/WordProblems/WordProblemHub.tsx
+	modified:   git_status_utf8.txt
 	modified:   services/ai_service.ts
-	modified:   services/algorithmicTutor.ts
-	modified:   services/mathValidator.ts
-	modified:   services/tutors/AdditionTutor.ts
-	modified:   services/tutors/DecimalTutor.ts
-	modified:   services/tutors/DivisionTutor.ts
-	modified:   services/tutors/MultiplicationTutor.ts
-	modified:   services/tutors/SubtractionTutor.ts
-	modified:   types/index.ts
+	modified:   services/deepseek.ts
+	modified:   services/gemini.ts
+	modified:   services/gradeCurriculum.ts
+	modified:   services/openai.ts
+	modified:   supabase/CREATE_PILOTO_TERCERO_USER.sql
+	modified:   utils/normalizePastedFractions.ts
 
 Untracked files:
   (use "git add <file>..." to include in what will be committed)
-	count_tags.cjs
-	git_status.txt
-	public/avatars/jerseys/Gemini_Generated_Image_45wtsz45wtsz45wt.png
-	public/avatars/jerseys/Gemini_Generated_Image_6y3whi6y3whi6y3w.png
-	public/avatars/jerseys/Gemini_Generated_Image_9eoppp9eoppp9eop.png
-	public/avatars/jerseys/Gemini_Generated_Image_qcfk8jqcfk8jqcfk.png
-	public/avatars/jerseys/image (1).png
-	public/avatars/jerseys/image (2).png
-	tsc_output.txt
+	git_status_now.txt
+	public/accessories/back/morral_cr7.png
+	public/accessories/back/morral_maradona.png
+	public/accessories/back/morral_mbappe.png
+	public/accessories/back/morral_messi.png
+	public/accessories/back/morral_neymar.png
+	public/assets/store/watches/reloj_amarillo.png
+	public/assets/store/watches/reloj_azul.png
+	public/assets/store/watches/reloj_blanco.png
+	public/assets/store/watches/reloj_cian.png
+	public/assets/store/watches/reloj_cyan.png
+	public/assets/store/watches/reloj_dorado.png
+	public/assets/store/watches/reloj_naranja.png
+	public/assets/store/watches/reloj_negro.png
+	public/assets/store/watches/reloj_neon.png
+	public/assets/store/watches/reloj_oro.png
+	public/assets/store/watches/reloj_plata.png
+	public/assets/store/watches/reloj_rojo.png
+	public/assets/store/watches/reloj_rosa.png
+	public/assets/store/watches/reloj_verde.png
+	public/assets/store/watches/reloj_violeta.png
 
 no changes added to commit (use "git add" and/or "git commit -a")

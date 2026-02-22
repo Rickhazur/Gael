@@ -191,7 +191,7 @@ export const AVATARS_GRADE_2: Avatar[] = [
     }
 ];
 
-// 3rd Grade Avatars (Fantasy Classes & Cool Kids - Standardized Pose)
+// 3rd Grade Avatars (Fantasy Classes & Cool Kids - Unique Characters, Ages 8-9)
 export const AVATARS_GRADE_3: Avatar[] = [
     {
         id: 'g3_princess',
@@ -200,7 +200,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Amable',
         colors: ['#FF69B4', '#DA70D6'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_relaxed.png',
+        baseImage: '/avatars/g3_girl_princess.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -210,7 +210,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Sabio',
         colors: ['#4B0082', '#DAA520'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_relaxed.png',
+        baseImage: '/avatars/g3_boy_wizard.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -220,7 +220,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Misteriosa',
         colors: ['#9932CC', '#000000'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_relaxed.png',
+        baseImage: '/avatars/g3_girl_witch.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -230,7 +230,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Radical',
         colors: ['#FF00FF', '#00FFFF'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_girl_relaxed.png',
+        baseImage: '/avatars/g3_girl_skater.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -240,7 +240,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Veloz',
         colors: ['#0000FF', '#FFFF00'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_relaxed.png',
+        baseImage: '/avatars/g3_boy_skater.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -250,7 +250,7 @@ export const AVATARS_GRADE_3: Avatar[] = [
         personality: 'Analítico',
         colors: ['#8B4513', '#F5DEB3'],
         style: 'Simple 3D',
-        baseImage: '/avatars/g5_boy_relaxed.png',
+        baseImage: '/avatars/g3_boy_detective.png',
         offsets: SIMPLE_3D_OFFSETS
     },
     {
@@ -674,16 +674,16 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_watch_elite_front', name: 'Elite Chrono (Front View)', type: 'watch', rarity: 'legendary', cost: 5000, conditionType: 'none', icon: '/accessories/watch_elite_front.png' },
 
     // --- MEGA-COLECCIÓN DE RELOJES CHROMA (HUE-ROTATE DINÁMICOS) ---
-    { id: 'acc_watch_nova_chroma_orange', name: 'Smartwatch Chroma Orange', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_blue', name: 'Smartwatch Chroma Blue', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_red', name: 'Smartwatch Chroma Red', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_green', name: 'Smartwatch Chroma Green', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_yellow', name: 'Smartwatch Chroma Yellow', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_purple', name: 'Smartwatch Chroma Purple', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_pink', name: 'Smartwatch Chroma Pink', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_cyan', name: 'Smartwatch Chroma Cyan', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_silver', name: 'Smartwatch Chroma Silver', type: 'watch', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
-    { id: 'acc_watch_nova_chroma_gold', name: 'Smartwatch Chroma Gold', type: 'watch', rarity: 'legendary', cost: 2000, conditionType: 'none', icon: '/avatars/watches/watch_base_neon.png' },
+    { id: 'acc_watch_nova_chroma_orange', name: 'Smartwatch Chroma Orange', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_naranja.png' },
+    { id: 'acc_watch_nova_chroma_blue', name: 'Smartwatch Chroma Blue', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_azul.png' },
+    { id: 'acc_watch_nova_chroma_red', name: 'Smartwatch Chroma Red', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_rojo.png' },
+    { id: 'acc_watch_nova_chroma_green', name: 'Smartwatch Chroma Green', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_verde.png' },
+    { id: 'acc_watch_nova_chroma_yellow', name: 'Smartwatch Chroma Yellow', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_amarillo.png' },
+    { id: 'acc_watch_nova_chroma_purple', name: 'Smartwatch Chroma Purple', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_violeta.png' },
+    { id: 'acc_watch_nova_chroma_pink', name: 'Smartwatch Chroma Pink', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_rosa.png' },
+    { id: 'acc_watch_nova_chroma_cyan', name: 'Smartwatch Chroma Cyan', type: 'watch', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '/assets/store/watches/reloj_cian.png' },
+    { id: 'acc_watch_nova_chroma_silver', name: 'Smartwatch Chroma Silver', type: 'watch', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/assets/store/watches/reloj_plata.png' },
+    { id: 'acc_watch_nova_chroma_gold', name: 'Smartwatch Chroma Gold', type: 'watch', rarity: 'legendary', cost: 2000, conditionType: 'none', icon: '/assets/store/watches/reloj_oro.png' },
     // --- ACCESORIOS DE LUJO REMOVED ---
 
     // --- ACCESORIOS AVANZADOS G6/G7 (SÓLO PRENDAS TRIDIMENSIONALES) ---
@@ -880,6 +880,53 @@ export const ACCESSORIES: Accessory[] = [
         cost: 1200,
         conditionType: 'none',
         icon: '/accessories/back/morral_sirenita_1771699148397.png'
+    },
+
+    // --- MOCHILAS LEYENDAS DEL FÚTBOL ⚽ ---
+    {
+        id: 'acc_back_messi',
+        name: 'Morral Messi ⭐',
+        type: 'back',
+        rarity: 'legendary',
+        cost: 2000,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_messi.png'
+    },
+    {
+        id: 'acc_back_cr7',
+        name: 'Morral CR7 🔥',
+        type: 'back',
+        rarity: 'legendary',
+        cost: 2000,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_cr7.png'
+    },
+    {
+        id: 'acc_back_neymar',
+        name: 'Morral Neymar Jr ⚡',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1800,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_neymar.png'
+    },
+    {
+        id: 'acc_back_mbappe',
+        name: 'Morral Mbappé 💨',
+        type: 'back',
+        rarity: 'epic',
+        cost: 1800,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_mbappe.png'
+    },
+    {
+        id: 'acc_back_maradona',
+        name: 'Morral Maradona 👑',
+        type: 'back',
+        rarity: 'legendary',
+        cost: 2500,
+        conditionType: 'none',
+        icon: '/accessories/back/morral_maradona.png'
     },
 
     // --- JUGUETES, SNACKS Y DEPORTES REMOVED ITEMS WITHOUT IMAGES ---

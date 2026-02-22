@@ -106,37 +106,71 @@ const App: React.FC = () => {  // Authentication State
       let role: string = user.user_metadata?.role || 'STUDENT';
       const userEmail = user.email?.toLowerCase().trim();
 
-      if (userEmail === 'rickhazur@gmail.com') {
-        // Redundant check removed, moved after profile fetch
+      // 🔑 ADMIN BYPASS: Identify admin by email BEFORE any DB queries
+      const isAdminUser = userEmail === 'rickhazur@gmail.com';
+      if (isAdminUser) {
+        role = 'ADMIN';
       }
 
       try {
         if (!supabase) {
+          // Offline mode: still allow admin by email
+          if (isAdminUser) {
+            setIsAuthenticated(true);
+            setUserId(user.id);
+            setUserName(user.user_metadata?.name || 'Admin');
+            setUserRole('ADMIN');
+            setCurrentView(ViewState.DASHBOARD);
+          }
           setIsLoading(false);
           return;
         }
 
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('role, name, grade_level, avatar, account_status')
-          .eq('id', user.id)
-          .maybeSingle();
+        // Fetch profile - handle errors gracefully
+        let profile: any = null;
+        try {
+          const { data, error } = await supabase
+            .from('profiles')
+            .select('role, name, grade_level, avatar, account_status')
+            .eq('id', user.id)
+            .maybeSingle();
+
+          if (error) {
+            console.warn('Profile fetch warning:', error.message);
+            // For admin, continue even if profile fetch fails (RLS might block)
+          } else {
+            profile = data;
+          }
+        } catch (profileErr) {
+          console.warn('Profile fetch exception:', profileErr);
+          // Continue for admin even if profile fetch completely fails
+        }
 
         if (profile?.role) {
           role = profile.role;
           if (profile.name) setUserName(profile.name);
         }
 
-        if (userEmail === 'rickhazur@gmail.com') {
+        // Re-assert admin role after profile fetch (in case profile had different role)
+        if (isAdminUser) {
           role = 'ADMIN';
         }
 
-        // 🛡️ SECURITY CHECK: Si la cuenta está pendiente o rechazada, cerrar sesión.
-        if ((profile?.account_status === 'pending' || profile?.account_status === 'rejected') && role !== 'ADMIN') {
-          console.warn(`Access denied for user ${user.id}: status is ${profile.account_status}`);
-          await supabase.auth.signOut();
-          setIsAuthenticated(false);
-          setIsLoading(false);
+        if (!(window as any).isRegisteringInProgress) {
+          // 🛡️ SECURITY CHECK: Si la cuenta está pendiente o rechazada, cerrar sesión.
+          // Admin ALWAYS bypasses this check.
+          if (role !== 'ADMIN') {
+            const effectiveStatus = profile?.account_status || 'pending';
+            if (effectiveStatus === 'pending' || effectiveStatus === 'rejected') {
+              console.warn(`Access denied for user ${user.id}: status is ${effectiveStatus}`);
+              await supabase.auth.signOut();
+              setIsAuthenticated(false);
+              setIsLoading(false);
+              return;
+            }
+          }
+        } else {
+          // Estamos registrando, no auto-loguear al usuario para evitar raza de condiciones.
           return;
         }
 
@@ -149,7 +183,7 @@ const App: React.FC = () => {  // Authentication State
         const displayName = profile?.name || user.user_metadata?.name || user.email?.split('@')[0] || '';
         if (displayName) localStorage.setItem('nova_user_name', displayName);
 
-        // Si llegamos aquí, la cuenta es válida (o no tiene perfil aún, ej: durante el registro)
+        // Si llegamos aquí, la cuenta es válida
         setIsAuthenticated(true);
         setUserId(user.id);
         setUserName(displayName);
@@ -163,10 +197,13 @@ const App: React.FC = () => {  // Authentication State
         setUserRole(role as 'STUDENT' | 'ADMIN' | 'PARENT');
       } catch (error) {
         console.error("Error in handleSession:", error);
-        // En caso de error crítico, somos conservadores y no autenticamos
-        // pero permitimos el acceso si es un error de red y el usuario ya estaba
-        // (esto es debatible, pero por ahora seguimos el flujo)
-        // setIsAuthenticated(false);
+        // 🔑 Si es admin y hay error, aún permitir acceso
+        if (isAdminUser) {
+          setIsAuthenticated(true);
+          setUserId(user.id);
+          setUserName(user.user_metadata?.name || user.email?.split('@')[0] || 'Admin');
+          setUserRole('ADMIN');
+        }
       } finally {
         setIsLoading(false);
       }

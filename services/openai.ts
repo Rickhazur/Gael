@@ -66,3 +66,55 @@ export async function callOpenAI(
         throw error;
     }
 }
+
+export async function generateOpenAIImage(prompt: string): Promise<string | null> {
+    if (!API_KEY) {
+        console.warn("Falta la clave de OpenAI para generar imágenes.");
+        return null;
+    }
+
+    try {
+        const response = await withTimeoutAndRetry(
+            async () => {
+                const origin = typeof window !== 'undefined' ? window.location.origin : '';
+                const url = `${origin}/api-openai/v1/images/generations`;
+
+                const res = await fetch(url, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Accept": "application/json",
+                        "Authorization": `Bearer ${API_KEY}`
+                    },
+                    body: JSON.stringify({
+                        model: "dall-e-3",
+                        prompt: prompt,
+                        n: 1,
+                        size: "1024x1024",
+                        response_format: "b64_json"
+                    })
+                });
+
+                if (!res.ok) {
+                    const errorText = await res.text();
+                    let errorData: any = {};
+                    try { errorData = JSON.parse(errorText); } catch (e) { }
+                    throw new Error(errorData.error?.message || `Error de OpenAI DALL-E: ${res.status}`);
+                }
+
+                const data = await res.json();
+                return data.data[0].b64_json || data.data[0].url || null;
+            },
+            { timeoutMs: 40_000, maxRetries: 1, label: "DALL-E 3" }
+        );
+
+        if (response && !response.startsWith('http')) {
+            return `data:image/png;base64,${response}`;
+        }
+
+        return response;
+    } catch (error) {
+        console.error("OpenAI DALL-E Image Error:", error);
+        return null;
+    }
+}
