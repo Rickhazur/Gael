@@ -362,6 +362,18 @@ export class AnswerValidator {
         return null;
     }
 
+    /**
+     * Checks if the input is a request for a hint or to continue
+     */
+    static isHintRequest(input: string): boolean {
+        const clean = input.trim().toLowerCase();
+        const hintKeywords = [
+            'pista', 'ayuda', 'ayúdame', 'ayudame', 'no sé', 'no se', 'siga', 'sigue', 'continuar', 'continua', 'no entiendo',
+            'hint', 'help', 'don\'t know', 'dont know', 'continue', 'next', 'siga', 'don\'t understand'
+        ];
+        return hintKeywords.some(k => clean.includes(k));
+    }
+
     static validate(
         input: string,
         expectedAnswer: number,

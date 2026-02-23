@@ -25,7 +25,7 @@ root.render(
 // Register Service Worker for Offline Mode
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js?v=1.2.0')
+    navigator.serviceWorker.register('/sw.js?v=1.2.1')
       .then(reg => {
         console.log('🚀 Nova SW Registered!', reg.scope);
         // Check if there is already a waiting service worker

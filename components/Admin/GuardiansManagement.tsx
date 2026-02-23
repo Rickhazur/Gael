@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Search, UserPlus, Filter, MoreHorizontal, Trash2, Edit2, CheckCircle, XCircle } from 'lucide-react';
-import { getAllStudents, updateStudentLevel, deleteStudentProfile, registerStudent, updateUserStatus } from '../../services/supabase';
+import { getAllStudents, updateStudentLevel, deleteStudentProfile, adminCreateUser, updateUserStatus } from '../../services/supabase';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Student } from '@/types';
@@ -88,23 +88,21 @@ const StudentManagement: React.FC = () => {
             setRegLoading(true);
 
             try {
-                // Warning: This uses client-side auth which signs in the new user
-                const result = await registerStudent({
-                    name: formData.name,
-                    email: formData.email,
-                    password: formData.password,
-                    gradeLevel: formData.gradeLevel,
-                    isBilingual: formData.isBilingual,
-                    guardianPhone: formData.guardianPhone
-                });
+                // Fixed: Now uses adminCreateUser with tempClient, session is preserved
+                const result = await adminCreateUser(
+                    formData.email,
+                    formData.password,
+                    formData.name,
+                    formData.guardianPhone,
+                    formData.gradeLevel
+                );
 
                 if (result.success) {
-                    toast.success('Estudiante registrado exitosamente (Nota: La sesión actual puede haber cambiado)');
+                    toast.success('Estudiante registrado exitosamente (Sesión preservada)');
                     setIsRegistering(false);
                     loadStudents();
-                    // Ideally check if session changed and prompt re-login if needed
-                    // For now, we assume the admin might need to switch back or we just refresh lists if session persists (unlikely)
-                    window.location.reload(); // Force reload to handle session state cleanly
+                } else {
+                    toast.error('Error al registrar: ' + (result.error || 'Error desconocido'));
                 }
             } catch (error: any) {
                 toast.error('Error al registrar: ' + (error.message || 'Error desconocido'));
@@ -189,9 +187,6 @@ const StudentManagement: React.FC = () => {
                                 {regLoading ? 'Registrando...' : 'Inscribir Estudiante'}
                             </Button>
                         </div>
-                        <p className="text-[10px] text-amber-600 bg-amber-50 p-2 rounded border border-amber-100 mt-2">
-                            ⚠️ Nota: Al registrar un nuevo usuario, la sesión de administrador actual se cerrará automáticamente por seguridad de Supabase.
-                        </p>
                     </form>
                 </div>
             </div>

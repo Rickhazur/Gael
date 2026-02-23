@@ -589,13 +589,13 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate 
         // 1. DIVISIÓN (123/4 o 12.5/4.2)
         const divMatch = trimmed.match(/^(\d+(?:\.\d+)?)\s*[÷/]\s*(\d+(?:\.\d+)?)$/);
 
-        // 2. SUMA (123+456 o 2.5+3.5)
+        // 2. SUMA (solo positivos para render vertical, ej 123+456)
         const addMatch = clean.match(/^(\d+(?:\.\d+)?)\+(\d+(?:\.\d+)?)$/);
 
-        // 3. RESTA (123-45 o 5.5-2.1)
+        // 3. RESTA (solo positivos para render vertical, ej 123-45)
         const subMatch = clean.match(/^(\d+(?:\.\d+)?)\-(\d+(?:\.\d+)?)$/);
 
-        // 4. MULTIPLICACIÓN (123x45 o 2.5x1.2)
+        // 4. MULTIPLICACIÓN (solo positivos para render vertical, ej 123x45)
         const mulMatch = clean.match(/^(\d+(?:\.\d+)?)[x×*](\d+(?:\.\d+)?)$/);
 
         if (divMatch) {

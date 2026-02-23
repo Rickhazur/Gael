@@ -9,7 +9,7 @@ interface WordProblem {
   title: string;
   description: string;
   difficulty: 'easy' | 'medium' | 'hard';
-  category: 'fractions' | 'decimals' | 'percentages' | 'ratios';
+  category: 'enteros' | 'racionales' | 'operaciones_racionales' | 'potenciacion' | 'proporcionalidad' | 'geometria' | 'algebra' | 'estadistica';
   problem: string;
 }
 
@@ -21,36 +21,68 @@ export const WordProblemHub: React.FC = () => {
 
   const wordProblems: WordProblem[] = [
     {
-      id: 'ana-juice',
-      title: 'El Misterio del Jugo de Ana',
-      description: 'Ana tenía jugo y bebió parte de él. ¿Cuánto le queda?',
-      difficulty: 'medium',
-      category: 'fractions',
-      problem: 'Ana tenía 3/4 de litro de jugo. Luego bebió 2/5 de litro. ¿Cuántos litros de jugo bebió en total? ¿Cuánto jugo le quedó?'
-    },
-    {
-      id: 'pizza-party',
-      title: 'La Fiesta de Pizza',
-      description: 'Carlos compartió pizza con sus amigos. ¿Cuánto le quedó?',
+      id: 'enteros-1',
+      title: 'El termómetro loco',
+      description: 'Suma y resta de números enteros (temperaturas).',
       difficulty: 'easy',
-      category: 'fractions',
-      problem: 'Carlos tenía 1/2 de pizza y le dio 1/4 a su amigo. ¿Cuánta pizza le quedó?'
+      category: 'enteros',
+      problem: 'Si la temperatura ayer era de −5°C y hoy subió 8°C, ¿cuál es la nueva temperatura?'
     },
     {
-      id: 'chocolate-bar',
-      title: 'La Tableta de Chocolate',
-      description: 'María partió su chocolate. ¿Cuánto comió?',
+      id: 'racionales-1',
+      title: 'El Duelo de Fracciones',
+      description: 'Comparación entre fracciones y decimales.',
       difficulty: 'medium',
-      category: 'fractions',
-      problem: 'María tenía 3/5 de tableta de chocolate. Comió 1/3. ¿Cuánto chocolate le quedó?'
+      category: 'racionales',
+      problem: 'María se comió 3/5 de una pizza y Juan se comió el 0.62 de otra pizza del mismo tamaño. ¿Quién comió más?'
     },
     {
-      id: 'water-tank',
-      title: 'El Tanque de Agua',
-      description: 'Un tanque tenía agua y se usó parte. ¿Cuánto queda?',
+      id: 'operaciones-1',
+      title: 'Construyendo el Puente',
+      description: 'Suma de fracciones con diferente denominador.',
+      difficulty: 'medium',
+      category: 'operaciones_racionales',
+      problem: 'Un obrero instaló 3/4 de metro de tubería en la mañana y 5/8 de metro en la tarde. ¿Cuántos metros de tubería instaló en total?'
+    },
+    {
+      id: 'potenciacion-1',
+      title: 'El Cuadrado Misterioso',
+      description: 'Conceptos de radicación y potenciación.',
       difficulty: 'hard',
-      category: 'fractions',
-      problem: 'Un tanque estaba lleno hasta 7/8 de su capacidad. Se usaron 3/4 del agua. ¿Qué fracción del tanque queda con agua?'
+      category: 'potenciacion',
+      problem: 'El profesor escribió en la pizarra una ecuación misteriosa: x² = 64. ¿Cuáles serían los posibles valores de x que hacen que la ecuación sea correcta?'
+    },
+    {
+      id: 'proporcionalidad-1',
+      title: 'Compras Escolares',
+      description: 'Regla de tres simple y proporcionalidad directa.',
+      difficulty: 'easy',
+      category: 'proporcionalidad',
+      problem: 'En la papelería, 3 cuadernos cuestan $12. Si necesitas comprar 5 cuadernos idénticos, ¿cuánto dinero tendrás que pagar en total?'
+    },
+    {
+      id: 'geometria-1',
+      title: 'El Cerco del Jardín',
+      description: 'Cálculo de perímetro de figuras geométricas.',
+      difficulty: 'medium',
+      category: 'geometria',
+      problem: 'Andrés quiere poner una pequeña cerca alrededor de un jardín en forma de triángulo. Los lados del jardín miden 6 m, 8 m y 10 m. ¿Cuántos metros de cerca necesita en total?'
+    },
+    {
+      id: 'algebra-1',
+      title: 'El Acertijo Algebraico',
+      description: 'Modelado y resolución de ecuaciones de primer grado.',
+      difficulty: 'hard',
+      category: 'algebra',
+      problem: 'El doble de un número misterioso, restándole 5, da como resultado 13. ¿Cuál es ese número misterioso?'
+    },
+    {
+      id: 'estadistica-1',
+      title: 'Las Monedas de la Suerte',
+      description: 'Conceptos de probabilidad simple.',
+      difficulty: 'easy',
+      category: 'estadistica',
+      problem: 'Si echas a rodar un dado normal de 6 caras, ¿cuál es la probabilidad de sacar un número que sea mayor que 4?'
     }
   ];
 
@@ -65,12 +97,30 @@ export const WordProblemHub: React.FC = () => {
 
   const getCategoryIcon = (category: string) => {
     switch (category) {
-      case 'fractions': return '🔢';
-      case 'decimals': return '🔟';
-      case 'percentages': return '📊';
-      case 'ratios': return '⚖️';
+      case 'enteros': return '🌡️';
+      case 'racionales': return '🍰';
+      case 'operaciones_racionales': return '➕';
+      case 'potenciacion': return '🚀';
+      case 'proporcionalidad': return '⚖️';
+      case 'geometria': return '📐';
+      case 'algebra': return '🧮';
+      case 'estadistica': return '📊';
       default: return '📚';
     }
+  };
+
+  const getCategoryName = (cat: string) => {
+    const names: Record<string, string> = {
+      enteros: 'N. Enteros',
+      racionales: 'N. Racionales',
+      operaciones_racionales: 'Operaciones',
+      potenciacion: 'Potenciación',
+      proporcionalidad: 'Proporciones',
+      geometria: 'Geometría',
+      algebra: 'Álgebra',
+      estadistica: 'Estadística'
+    };
+    return names[cat] || cat;
   };
 
   const handleProblemSelect = (problem: WordProblem) => {
@@ -226,10 +276,8 @@ export const WordProblemHub: React.FC = () => {
             </p>
 
             <div className="flex items-center justify-between">
-              <div className="text-xs text-gray-500">
-                Categoría: {problem.category === 'fractions' ? 'Fracciones' :
-                  problem.category === 'decimals' ? 'Decimales' :
-                    problem.category === 'percentages' ? 'Porcentajes' : 'Razones'}
+              <div className="text-xs text-purple-700 bg-purple-100 px-3 py-1 rounded-full font-bold">
+                Categoría: {getCategoryName(problem.category)}
               </div>
 
               <motion.div

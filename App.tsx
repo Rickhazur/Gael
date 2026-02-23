@@ -211,7 +211,13 @@ const App: React.FC = () => {  // Authentication State
 
     supabase.auth.getSession().then(({ data }) => handleSession(data.session));
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
-    return () => subscription.unsubscribe();
+
+    // Safety timeout: si la carga tarda más de 6s, salimos del splash
+    const safetyTimer = setTimeout(() => {
+      setIsLoading(false);
+    }, 6000);
+
+    return () => { subscription.unsubscribe(); clearTimeout(safetyTimer); };
   }, []);
 
   // Login Handler

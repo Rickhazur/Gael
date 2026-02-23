@@ -109,6 +109,7 @@ export class AdditionTutor {
         }
 
         const cleanInput = input.toLowerCase().trim();
+        const isHintReq = AnswerValidator.isHintRequest(input);
 
         // Check if user correctly identified units position
         if (cleanInput.includes('derecha') || cleanInput.includes('right') || cleanInput.includes('aquí') || cleanInput.includes('este lado')) {
@@ -145,7 +146,7 @@ export class AdditionTutor {
             } else {
                 placeValueExample = lang === 'es'
                     ? `👆 De **derecha a izquierda**:\n\n1️⃣ **Unidades**\n2️⃣ **Decenas**\n3️⃣ **Centenas**\n...y así sigue.`
-                    : `👆 From **right to left**:\n\n1️⃣ **Units**\n2️⃣ **Tens**\n3️⃣ **Hundreds**\n...and so on.`;
+                    : `👆 From **right to left**:\n\n1️⃣ **Units** (first digit)\n2️⃣ **Tens** (second)\n3️⃣ **Hundreds** (third)\n...and so on.`;
             }
 
             return {
@@ -164,11 +165,10 @@ export class AdditionTutor {
         }
 
         // If user says "no sé" or similar - teach place value patiently
-        const dontKnowKeywords = /(no\s*se|no\s*sé|no\s*lo\s*se|no\s*lo\s*sé|no\s*entiendo|don'?t\s*know|i\s*don'?t\s*know|not\s*sure|ayuda|help|que\s*es|what\s*is)/i;
         const historyText = history.map(h => h.content.toLowerCase()).join(' ');
         const hasAskedUnits = historyText.includes('unidades') || historyText.includes('units');
 
-        if (dontKnowKeywords.test(cleanInput) || (hasAskedUnits && !cleanInput.match(/\d/) && !cleanInput.includes('derecha') && !cleanInput.includes('izquierda') && !cleanInput.includes('right') && !cleanInput.includes('left'))) {
+        if (isHintReq || (hasAskedUnits && !cleanInput.match(/\d/) && !cleanInput.includes('derecha') && !cleanInput.includes('izquierda') && !cleanInput.includes('right') && !cleanInput.includes('left'))) {
             const firstDigitCol = cols.find(c => !c.isDot);
             let placeValueExample = "";
             const numDigits = prob.n1.length;

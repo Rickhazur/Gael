@@ -1,7 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Brain, Sparkles } from 'lucide-react';
 
 const SplashScreen: React.FC = () => {
+    const [showRepair, setShowRepair] = useState(false);
+
+    useEffect(() => {
+        const timer = setTimeout(() => setShowRepair(true), 4000); // 4s fallback
+        return () => clearTimeout(timer);
+    }, []);
+
+    const handleRepair = () => {
+        if (confirm('Esto limpiará el sistema para arreglar errores de carga. ¿Continuar?')) {
+            // Unregister Service Worker
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(registrations => {
+                    for (let registration of registrations) {
+                        registration.unregister();
+                    }
+                });
+            }
+            // Clear cache and storage
+            localStorage.clear();
+            sessionStorage.clear();
+            // Reload
+            window.location.reload();
+        }
+    };
+
     return (
         <div className="fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center overflow-hidden font-poppins">
             {/* Background Effects */}
@@ -36,10 +61,21 @@ const SplashScreen: React.FC = () => {
                 </div>
 
                 {/* Loading Indicator */}
-                <div className="mt-12 flex gap-2">
-                    <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '-0.3s' }}></div>
-                    <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '-0.15s' }}></div>
-                    <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce"></div>
+                <div className="mt-12 flex flex-col items-center gap-6">
+                    <div className="flex gap-2">
+                        <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '-0.3s' }}></div>
+                        <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '-0.15s' }}></div>
+                        <div className="w-3 h-3 bg-indigo-600 rounded-full animate-bounce"></div>
+                    </div>
+
+                    {showRepair && (
+                        <button
+                            onClick={handleRepair}
+                            className="text-xs text-indigo-400 hover:text-indigo-600 font-medium transition-colors animate-fade-in underline underline-offset-4"
+                        >
+                            ¿Tarda demasiado? Pulsa aquí para limpiar el sistema
+                        </button>
+                    )}
                 </div>
             </div>
         </div>

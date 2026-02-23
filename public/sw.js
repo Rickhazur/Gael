@@ -1,7 +1,7 @@
 // Service Worker para Nova Schola Elementary
 // Proporciona soporte offline básico y caché de assets
 
-const CACHE_NAME = 'nova-schola-v1.2.0';
+const CACHE_NAME = 'nova-schola-v1.2.1';
 const OFFLINE_URL = '/offline.html';
 
 // Assets críticos para cachear
