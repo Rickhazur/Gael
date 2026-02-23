@@ -209,13 +209,23 @@ const App: React.FC = () => {  // Authentication State
       }
     };
 
-    supabase.auth.getSession().then(({ data }) => handleSession(data.session));
+    // Wrap getSession in a 4s timeout to handle stale/expired tokens that hang
+    const sessionTimeout = new Promise<{ data: { session: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { session: null } }), 4000)
+    );
+    Promise.race([supabase.auth.getSession(), sessionTimeout]).then(({ data }) => {
+      if (!data.session) {
+        // Clear any stale auth data so the user doesn't get stuck again
+        supabase.auth.signOut();
+      }
+      handleSession(data.session);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
 
-    // Safety timeout: si la carga tarda más de 6s, salimos del splash
+    // Safety timeout: si la carga tarda más de 3s, salimos del splash
     const safetyTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 6000);
+    }, 3000);
 
     return () => { subscription.unsubscribe(); clearTimeout(safetyTimer); };
   }, []);
