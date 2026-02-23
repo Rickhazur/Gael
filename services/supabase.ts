@@ -86,6 +86,15 @@ export const logoutSupabase = async () => {
   return true;
 };
 
+export const sendPasswordReset = async (email: string) => {
+  if (!supabase) throw new Error("Sistema desconectado.");
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+  });
+  if (error) throw error;
+  return { success: true };
+};
+
 export const registerStudent = async (data: { email: string; password: string; name: string; gradeLevel: number; guardianPhone?: string; isBilingual?: boolean }) => {
   if (!supabase) throw new Error("Sistema desconectado.");
 

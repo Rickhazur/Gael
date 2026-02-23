@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Smartphone, ShieldCheck, Eye, EyeOff, Globe, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { registerStudent } from '../services/supabase';
+import { registerStudent, sendPasswordReset } from '../services/supabase';
 import { toast } from 'sonner';
 import { AvatarDisplay } from './Gamification/AvatarDisplay';
 
@@ -890,7 +890,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
 
                                     {!isRegistering && (
                                         <div className="flex justify-center">
-                                            <button type="button" className="text-sm text-stone-400 hover:text-indigo-600 transition-colors">
+                                            <button
+                                                type="button"
+                                                className="text-sm text-stone-400 hover:text-indigo-600 transition-colors"
+                                                onClick={async () => {
+                                                    if (!formData.email.trim()) {
+                                                        toast.error(language === 'es' ? 'Escribe tu correo primero.' : 'Enter your email first.');
+                                                        return;
+                                                    }
+                                                    try {
+                                                        await sendPasswordReset(formData.email.trim());
+                                                        toast.success(
+                                                            language === 'es' ? 'Correo enviado' : 'Email sent',
+                                                            { description: language === 'es' ? `Revisa tu bandeja de ${formData.email} para restablecer tu contraseña.` : `Check ${formData.email} for a password reset link.`, duration: 8000 }
+                                                        );
+                                                    } catch (err: any) {
+                                                        toast.error(err.message || (language === 'es' ? 'No se pudo enviar el correo.' : 'Could not send email.'));
+                                                    }
+                                                }}
+                                            >
                                                 {text.forgotPass}
                                             </button>
                                         </div>
