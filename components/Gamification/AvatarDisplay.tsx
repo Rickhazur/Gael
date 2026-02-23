@@ -473,7 +473,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                             }}
                         >
                             <img
-                                src={avatarData.baseImage}
+                                src={avatarData.imageUrl}
                                 alt={avatarData.name}
                                 className="w-full h-full object-cover"
                                 style={{

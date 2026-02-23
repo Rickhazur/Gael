@@ -1,7 +1,7 @@
 export interface Accessory {
     id: string;
     name: string;
-    type: 'head' | 'eyes' | 'glasses' | 'neck' | 'back' | 'hand' | 'body' | 'sticker' | 'torso' | 'watch' | 'legs' | 'pet';
+    type: 'head' | 'eyes' | 'glasses' | 'neck' | 'back' | 'hand' | 'body' | 'sticker' | 'torso' | 'watch' | 'legs' | 'pet' | 'face' | 'socks' | 'feet';
     rarity: 'common' | 'rare' | 'epic' | 'legendary';
     cost: number;
     conditionType: 'none' | 'level' | 'mission';

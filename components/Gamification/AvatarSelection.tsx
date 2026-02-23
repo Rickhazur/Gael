@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { AVATARS_GRADE_1, AVATARS_GRADE_2, AVATARS_GRADE_3, AVATARS_GRADE_4, AVATARS_GRADE_5, AVATARS_GRADE_6, AVATARS_GRADE_7, Avatar } from './data/avatars';
+import { AVATARS } from './data/avatars';
+import { AvatarBase as Avatar } from '@/data/avatarData';
 import { useAvatar } from '@/context/AvatarContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,18 +21,7 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
         (initialGrade >= 1 && initialGrade <= 7 ? initialGrade : 4) as 1 | 2 | 3 | 4 | 5 | 6 | 7
     );
 
-    const activeAvatars = (() => {
-        switch (selectedGrade) {
-            case 1: return AVATARS_GRADE_1;
-            case 2: return AVATARS_GRADE_2;
-            case 3: return AVATARS_GRADE_3;
-            case 4: return AVATARS_GRADE_4;
-            case 5: return AVATARS_GRADE_5;
-            case 6: return AVATARS_GRADE_6;
-            case 7: return AVATARS_GRADE_7;
-            default: return AVATARS_GRADE_4;
-        }
-    })();
+    const activeAvatars = AVATARS.filter(a => a.grade === selectedGrade || a.grade === 0);
 
     const handleConfirm = () => {
         if (selectedId) {
@@ -107,10 +97,10 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                                             "w-20 h-20 rounded-2xl flex items-center justify-center overflow-hidden border-2 shadow-inner",
                                             isSelected ? "bg-kid-green/10 border-kid-green" : "bg-slate-100 border-slate-200"
                                         )}
-                                        style={{ backgroundColor: isSelected ? undefined : avatar.colors[0] + '20' }}
+                                        style={{ backgroundColor: isSelected ? undefined : (avatar.color || (avatar.colors && avatar.colors[0]) || '#3b82f6') + '20' }}
                                     >
                                         <img
-                                            src={avatar.baseImage}
+                                            src={avatar.imageUrl}
                                             alt={avatar.name}
                                             className="w-full h-full object-cover"
                                             onError={(e) => {
@@ -149,7 +139,7 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                                 </div>
 
                                 <div className="absolute bottom-0 left-0 right-0 h-2 rounded-b-2xl"
-                                    style={{ background: `linear-gradient(to right, ${avatar.colors[0]}, ${avatar.colors[1]})` }} />
+                                    style={{ background: avatar.color || (avatar.colors && avatar.colors[0]) || '#3b82f6' }} />
                             </motion.div>
                         );
                     })}

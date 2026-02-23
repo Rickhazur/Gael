@@ -6,10 +6,13 @@ export interface AvatarBase {
     id: AvatarId;
     name: string;
     description: string;
-    grade: number; // 1-5 for elementary, 0 for universal
+    grade: number; // 1-7 for elementary/middle, 0 for universal
     imageUrl: string;
     color: string;
     personality: string;
+    style?: string;
+    offsets?: Record<string, { x: number; y: number; scale: number; rotate?: number }>;
+    colors?: string[]; // Para compatibilidad con versiones antiguas
 }
 
 export interface Accessory {
