@@ -1714,56 +1714,28 @@ export const adminGetPendingUsers = async () => {
 };
 
 export const adminActivateSubscription = async (userId: string) => {
-  if (!supabase) return false;
-
-  // 1. Activate user
-  const { error } = await supabase
-    .from('profiles')
-    .update({
-      account_status: 'active',
-      subscription_status: 'active',
-      is_active: true
-    })
-    .eq('id', userId);
-
-  if (error) return false;
-
-  // 2. Get profile to send activation email (email, name, role, parent_id)
-  const { data: profile } = await supabase
-    .from('profiles')
-    .select('email, name, role, parent_id')
-    .eq('id', userId)
-    .single();
-
-  // 3. If user has parent, activate parent too and send email to parent
-  const { data: student } = await supabase.from('profiles').select('parent_id, name').eq('id', userId).single();
-  if (student?.parent_id) {
-    await supabase.from('profiles')
-      .update({ account_status: 'active', is_active: true })
-      .eq('id', student.parent_id)
-      .eq('account_status', 'pending');
-    // Email to parent (parent profile has parent email)
-    const { data: parentProfile } = await supabase
-      .from('profiles')
-      .select('email, name')
-      .eq('id', student.parent_id)
-      .single();
-    if (parentProfile?.email) {
-      await notifyParentAccountActivated({
-        toEmail: parentProfile.email,
-        userName: parentProfile.name || 'Padre/Madre',
-        studentName: student.name
-      });
-    }
-  } else if (profile?.email) {
-    // No parent linked: send activation email to the user (student or parent)
-    await notifyParentAccountActivated({
-      toEmail: profile.email,
-      userName: profile.name || 'Usuario'
+  // Delegates to server-side endpoint that uses SUPABASE_SERVICE_ROLE_KEY,
+  // which bypasses RLS and can actually update other users' profiles.
+  try {
+    const res = await fetch('/api/admin/activate-user', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ userId }),
     });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      console.error('[adminActivateSubscription] server error:', body);
+      return false;
+    }
+    const body = await res.json();
+    if (!body.emailSent) {
+      console.warn('[adminActivateSubscription] activation ok but email not sent:', body.emailError ?? body.reason);
+    }
+    return body.success === true;
+  } catch (err) {
+    console.error('[adminActivateSubscription] fetch error:', err);
+    return false;
   }
-
-  return true;
 };
 
 export const updateGlobalConfig = async (roomCheckEnabled: boolean) => {

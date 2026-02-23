@@ -20,7 +20,7 @@ export default async function handler(req: any, res: any) {
 
     try {
         const data = await resend.emails.send({
-            from: 'Nova Schola <onboarding@resend.dev>', // Default testing sender
+            from: process.env.RESEND_FROM_EMAIL ?? 'Nova Schola <onboarding@resend.dev>',
             to: [to],
             subject: subject,
             html: html,
