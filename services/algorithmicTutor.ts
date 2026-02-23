@@ -213,7 +213,11 @@ export class AlgorithmicTutor {
 
     private static detectProblem(text: string, history: any[]): any {
         const parse = (str: string): any => {
-            const clean = str.toLowerCase().trim();
+            // Normalize integer notation with parentheses before any regex matching.
+            // Converts: (-9) → -9   (+5) → +5   (5) → 5
+            // This handles input like "-5+(-9)", "-3+(5)", "5-(-3)" from students.
+            const clean = str.toLowerCase().trim()
+                .replace(/\(\s*([+-]?\d+(?:\.\d+)?)\s*\)/g, '$1');
 
             // 1. PERCENTAGES (High Priority)
             const hasPctSym = clean.includes('%');
