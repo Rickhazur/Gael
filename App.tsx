@@ -224,7 +224,7 @@ const App: React.FC = () => {  // Authentication State
       if (!data.session && !getSessionResolved) {
         // Timeout fired before getSession completed → session is likely corrupted.
         // Sign out to reset Supabase's internal auth state (equivalent to clearing cache).
-        supabase.auth.signOut();
+        supabase?.auth.signOut();
       }
       handleSession(data.session);
     });
@@ -389,16 +389,29 @@ const App: React.FC = () => {  // Authentication State
     setUserName('');
     setUserRole('STUDENT');
     setCurrentView(ViewState.DASHBOARD);
-    localStorage.removeItem('nova_demo_mode');
+
+    // Purgar exhaustivamente la memoria del navegador para evitar logins pasados atascados
+    const keysToRemove: string[] = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith('nova_') || key.startsWith('sb-'))) {
+        keysToRemove.push(key);
+      }
+    }
+    keysToRemove.forEach(k => localStorage.removeItem(k));
     sessionStorage.clear();
+
     try {
       await Promise.race([
         logoutSupabase(),
         new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 3000))
       ]);
     } catch (_) {
-      // Ignorar: ya cerramos sesión en la UI
+      // Ignorar timeouts
     }
+
+    // Forzar una recarga completa limpia (Hard Reload) para destruir los contextos y estados persistentes
+    window.location.href = '/';
   };
 
   const isGoogleCallbackURL = window.location.pathname.includes('/api/google/callback') ||
