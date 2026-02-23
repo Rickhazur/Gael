@@ -209,13 +209,31 @@ const App: React.FC = () => {  // Authentication State
       }
     };
 
-    supabase.auth.getSession().then(({ data }) => handleSession(data.session));
+    // Wrap getSession in a 5s timeout to handle stale/expired tokens that hang.
+    // Track whether getSession resolved on its own so we only signOut() when
+    // the session was genuinely stuck (corrupted), not just slow on a valid session.
+    let getSessionResolved = false;
+    const getSessionPromise = supabase.auth.getSession().then(result => {
+      getSessionResolved = true;
+      return result;
+    });
+    const sessionTimeout = new Promise<{ data: { session: null } }>((resolve) =>
+      setTimeout(() => resolve({ data: { session: null } }), 5000)
+    );
+    Promise.race([getSessionPromise, sessionTimeout]).then(({ data }) => {
+      if (!data.session && !getSessionResolved) {
+        // Timeout fired before getSession completed → session is likely corrupted.
+        // Sign out to reset Supabase's internal auth state (equivalent to clearing cache).
+        supabase.auth.signOut();
+      }
+      handleSession(data.session);
+    });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
 
-    // Safety timeout: si la carga tarda más de 6s, salimos del splash
+    // Safety timeout: si la carga tarda más de 3s, salimos del splash
     const safetyTimer = setTimeout(() => {
       setIsLoading(false);
-    }, 6000);
+    }, 3000);
 
     return () => { subscription.unsubscribe(); clearTimeout(safetyTimer); };
   }, []);

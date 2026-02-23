@@ -6,7 +6,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Brain, Smartphone, ShieldCheck, Eye, EyeOff, Globe, Loader2, BookOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { registerStudent } from '../services/supabase';
+import { registerStudent, sendPasswordReset } from '../services/supabase';
 import { toast } from 'sonner';
 import { AvatarDisplay } from './Gamification/AvatarDisplay';
 
@@ -210,10 +210,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                 msg = language === 'es'
                     ? "❌ El correo electrónico no es válido. Por favor usa un correo real (ej: @gmail.com)"
                     : "❌ The email address is invalid. Please use a real email (e.g., @gmail.com)";
-            } else if (error.message?.includes('Email not confirmed')) {
-                msg = language === 'es'
-                    ? "📧 Tu correo no ha sido verificado. Revisa tu bandeja de entrada y spam."
-                    : "📧 Your email has not been verified. Check your inbox and spam folder.";
             } else if (error.message?.includes('No se pudo guardar la cuenta') || error.message?.includes('Database error saving new user') || error.message?.includes('saving new user')) {
                 msg = error.message || (language === 'es'
                     ? "No se pudo guardar la cuenta en la base de datos. Si el problema persiste, contacta a soporte."
@@ -890,7 +886,25 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
 
                                     {!isRegistering && (
                                         <div className="flex justify-center">
-                                            <button type="button" className="text-sm text-stone-400 hover:text-indigo-600 transition-colors">
+                                            <button
+                                                type="button"
+                                                className="text-sm text-stone-400 hover:text-indigo-600 transition-colors"
+                                                onClick={async () => {
+                                                    if (!formData.email.trim()) {
+                                                        toast.error(language === 'es' ? 'Escribe tu correo primero.' : 'Enter your email first.');
+                                                        return;
+                                                    }
+                                                    try {
+                                                        await sendPasswordReset(formData.email.trim());
+                                                        toast.success(
+                                                            language === 'es' ? 'Correo enviado' : 'Email sent',
+                                                            { description: language === 'es' ? `Revisa tu bandeja de ${formData.email} para restablecer tu contraseña.` : `Check ${formData.email} for a password reset link.`, duration: 8000 }
+                                                        );
+                                                    } catch (err: any) {
+                                                        toast.error(err.message || (language === 'es' ? 'No se pudo enviar el correo.' : 'Could not send email.'));
+                                                    }
+                                                }}
+                                            >
                                                 {text.forgotPass}
                                             </button>
                                         </div>

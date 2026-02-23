@@ -765,7 +765,26 @@ export async function generateSocraticSteps(
         - Para enteros negativos: "El termómetro marca -3°C y baja 5 más. ¿Dónde queda?"
         - Fomenta la verificación: "Sustituye tu respuesta en la ecuación original. ¿Funciona?"
         - Problemas contextualizados: distancia/velocidad, economía básica, temperatura
-        - Tono maduro pero motivador: "¡Piensa como un científico! Cada paso tiene una razón 🔬"`;
+        - Tono maduro pero motivador: "¡Piensa como un científico! Cada paso tiene una razón 🔬"
+
+        🎨 USO OBLIGATORIO DE COLORES EN PROBLEMAS DE TEXTO (PROTOCOLO DETECTIVE):
+        Cuando el estudiante presente un problema de palabras, SIEMPRE usa "visualType": "text_only"
+        con "highlights" para resaltar los datos clave con colores:
+        - "blue"   → Primer dato o cantidad principal (ej: "x + 7")
+        - "green"  → Segundo dato o cantidad secundaria (ej: "= 15")
+        - "orange" → Palabras clave de operación (ej: "aumentó", "igualó", "dividido")
+        - "purple" → Datos adicionales o condiciones especiales
+        - "red"    → La incógnita o pregunta a resolver (ej: "¿Cuánto vale x?")
+
+        FLUJO SOCRÁTICO OBLIGATORIO PARA ECUACIONES (7°):
+        Paso 1: Presenta la ecuación con colores. Pregunta qué representa cada parte.
+        Paso 2: Pregunta qué operación hay que deshacer primero. ESPERA RESPUESTA.
+        Paso 3: Guía a aplicar la operación inversa en ambos lados. ESPERA RESPUESTA.
+        Paso 4: Pide verificación: "Sustituye x = ? en la ecuación. ¿Se cumple?"
+        Paso 5: Celebra con tono maduro: "¡Pensaste como un matemático! 🔬"
+
+        NUNCA des la respuesta. SIEMPRE espera que el estudiante razone cada paso.`;
+
     } else { // 8th Grade & Up (13-14+ years)
         gradePersona = `Eres la Profesora Lina, tutora experta en matemáticas para octavo grado (13-14 años).
         Usas el MÉTODO SOCRÁTICO: NUNCA das respuestas directas. SIEMPRE guías con preguntas que construyan comprensión profunda.
@@ -1349,14 +1368,39 @@ export async function generateSocraticSteps(
         { role: "user", content: userMessageContent }
     ];
 
-    // 🚀 FULL AI SOCRATIC FLOW
-    // The Algorithmic guards are now in TutorChat.tsx. 
-    // Here we ensure the AI always has the chance to play "Detective".
-
-
-    // (AlgorithmicTutor call is now above, before the legacy bypass)
-
-
+    // 🚀 GRADE 7+ BYPASS: Algebra, equations, proportions and other 7th-grade topics
+    // are NOT covered by the elementary mock patterns below. Send directly to AI.
+    if (gradeNum >= 7) {
+        const DEEPSEEK_KEY_G7 = import.meta.env?.VITE_DEEPSEEK_API_KEY;
+        if (DEEPSEEK_KEY_G7) {
+            try {
+                const dsResult = await callDeepSeek(sysPrompt, chatHistory as any, userMessageContent, true);
+                if (dsResult) return dsResult;
+            } catch (dsError) {
+                console.warn("⚠️ DeepSeek failed for grade 7, falling back to Gemini...", dsError);
+            }
+        }
+        try {
+            const geminiResult = await callGeminiSocratic(sysPrompt, chatHistory, userMessageContent, language);
+            if (geminiResult) return geminiResult;
+            throw new Error("Empty Gemini response for grade 7");
+        } catch (geminiError) {
+            console.warn("⚠️ Gemini failed for grade 7, trying OpenAI...", geminiError);
+            try {
+                const aiRes = await callOpenAI(sysPrompt, chatHistory as any, userMessageContent, true);
+                if (aiRes) return aiRes;
+            } catch (openaiError) {
+                console.error("❌ All engines failed for grade 7:", openaiError);
+            }
+            return {
+                topic: "connection_error",
+                steps: [{ id: 1, type: "explanation",
+                    text: { es: "¡Ups! Mi conexión está un poco lenta. ☁️ ¿Podrías intentar enviarme el ejercicio de nuevo?", en: "Oops! My connection is a bit slow. ☁️ Could you try sending the exercise again?" },
+                    visualType: "none", expectedAnswer: "ok"
+                }]
+            };
+        }
+    }
 
     // 🚀 FAILSAFE: SPECIAL MOCK FOR FLAGSHIP PROBLEM (Tank 200L)
     const isTankProblem = text.includes('200') && text.includes('tanque') && (text.includes('mitad') || text.includes('medio'));
