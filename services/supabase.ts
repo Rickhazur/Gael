@@ -23,9 +23,7 @@ export const loginWithSupabase = async (email: string, password: string, intende
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     console.error('Login error:', error);
-    if (error.message.includes('Email not confirmed')) {
-      throw new Error('Tu correo electrónico no ha sido verificado. Por favor revisa tu bandeja de entrada (y spam).');
-    } else if (error.message.includes('Invalid login credentials')) {
+    if (error.message.includes('Invalid login credentials')) {
       throw new Error('Correo o contraseña incorrectos. Inténtalo de nuevo.');
     }
     throw error;

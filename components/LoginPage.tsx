@@ -210,10 +210,6 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                 msg = language === 'es'
                     ? "❌ El correo electrónico no es válido. Por favor usa un correo real (ej: @gmail.com)"
                     : "❌ The email address is invalid. Please use a real email (e.g., @gmail.com)";
-            } else if (error.message?.includes('Email not confirmed')) {
-                msg = language === 'es'
-                    ? "📧 Tu correo no ha sido verificado. Revisa tu bandeja de entrada y spam."
-                    : "📧 Your email has not been verified. Check your inbox and spam folder.";
             } else if (error.message?.includes('No se pudo guardar la cuenta') || error.message?.includes('Database error saving new user') || error.message?.includes('saving new user')) {
                 msg = error.message || (language === 'es'
                     ? "No se pudo guardar la cuenta en la base de datos. Si el problema persiste, contacta a soporte."
