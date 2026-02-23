@@ -1,12 +1,13 @@
 export interface Accessory {
     id: string;
     name: string;
-    type: 'head' | 'eyes' | 'glasses' | 'neck' | 'back' | 'hand' | 'body';
+    type: 'head' | 'eyes' | 'glasses' | 'neck' | 'back' | 'hand' | 'body' | 'sticker' | 'torso' | 'watch' | 'legs' | 'pet';
     rarity: 'common' | 'rare' | 'epic' | 'legendary';
     cost: number;
     conditionType: 'none' | 'level' | 'mission';
     conditionValue?: number | string;
     icon: string;
+    backIcon?: string;
 }
 
 export { AVATARS } from '../../../data/avatarData';
@@ -150,31 +151,7 @@ export const ACCESSORIES: Accessory[] = [
 
     { id: 'acc_jersey_bayern_kane', name: 'Bayern - Harry Kane #9', type: 'torso', rarity: 'epic', cost: 1500, conditionType: 'none', icon: '/avatars/jerseys/Gemini_Generated_Image_2j52142j52142j52.png' },
 
-    // --- CAMISETAS COOL KIDS 2025 (tendencias modernas, iconos: emoji fallback si no hay PNG) ---
-    { id: 'acc_jersey_axolotl', name: 'Camiseta Ajolote Mágico', type: 'torso', rarity: 'epic', cost: 650, conditionType: 'none', icon: '🦎' },
-    { id: 'acc_jersey_capybara', name: 'Camiseta Capybara Chill', type: 'torso', rarity: 'epic', cost: 600, conditionType: 'none', icon: '🦦' },
-    { id: 'acc_jersey_frog', name: 'Camiseta Ranita Kawaii', type: 'torso', rarity: 'rare', cost: 450, conditionType: 'none', icon: '🐸' },
-    { id: 'acc_jersey_space', name: 'Camiseta Astronauta Cosmos', type: 'torso', rarity: 'epic', cost: 750, conditionType: 'none', icon: '🚀' },
-    { id: 'acc_jersey_dino', name: 'Camiseta Dino Rex', type: 'torso', rarity: 'epic', cost: 700, conditionType: 'none', icon: '🦖' },
-    { id: 'acc_jersey_rainbow', name: 'Camiseta Arcoíris Tie-Dye', type: 'torso', rarity: 'rare', cost: 500, conditionType: 'none', icon: '🌈' },
-    { id: 'acc_jersey_unicorn', name: 'Camiseta Unicornio Galáctico', type: 'torso', rarity: 'legendary', cost: 950, conditionType: 'none', icon: '🦄' },
-    { id: 'acc_jersey_dragon', name: 'Camiseta Dragón de Fuego', type: 'torso', rarity: 'legendary', cost: 1000, conditionType: 'none', icon: '🐉' },
-    { id: 'acc_jersey_neon', name: 'Camiseta Neón Glow', type: 'torso', rarity: 'epic', cost: 680, conditionType: 'none', icon: '🌟' },
-    { id: 'acc_jersey_galaxy', name: 'Camiseta Galaxia Infinita', type: 'torso', rarity: 'legendary', cost: 900, conditionType: 'none', icon: '🌌' },
-    { id: 'acc_jersey_robot', name: 'Camiseta Robo Futuro', type: 'torso', rarity: 'epic', cost: 720, conditionType: 'none', icon: '🤖' },
-    { id: 'acc_jersey_anime', name: 'Camiseta Anime Power', type: 'torso', rarity: 'epic', cost: 800, conditionType: 'none', icon: '👘' },
-    { id: 'acc_jersey_squish', name: 'Camiseta Squishmallow Style', type: 'torso', rarity: 'rare', cost: 550, conditionType: 'none', icon: '🧸' },
-    { id: 'acc_jersey_eco', name: 'Camiseta Eco Superhéroe', type: 'torso', rarity: 'rare', cost: 480, conditionType: 'none', icon: '🌱' },
-    { id: 'acc_jersey_butterfly', name: 'Camiseta Mariposa Y2K', type: 'torso', rarity: 'epic', cost: 650, conditionType: 'none', icon: '🦋' },
 
-    // --- POP-UP 3D CHARACTERS REMOVED ---
-
-
-    { id: 'acc_jersey_coquette', name: 'Camiseta Coquette Bows', type: 'torso', rarity: 'epic', cost: 680, conditionType: 'none', icon: '🎀' },
-    { id: 'acc_jersey_pixel', name: 'Camiseta Cyber Pixel', type: 'torso', rarity: 'epic', cost: 750, conditionType: 'none', icon: '👾' },
-    { id: 'acc_jersey_fortnite', name: 'Camiseta Battle Royale', type: 'torso', rarity: 'legendary', cost: 850, conditionType: 'none', icon: '🎮' },
-    { id: 'acc_jersey_monster', name: 'Camiseta Monstruo Cute', type: 'torso', rarity: 'rare', cost: 420, conditionType: 'none', icon: '👹' },
-    { id: 'acc_jersey_sloth', name: 'Camiseta Perezoso Zen', type: 'torso', rarity: 'rare', cost: 400, conditionType: 'none', icon: '🦥' },
 
     // --- REMOVED LEGS AND SOCKS ---
 

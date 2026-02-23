@@ -413,16 +413,19 @@ export class AlgorithmicTutor {
             const generic = parseGenericWordProblem(text);
             if (generic) return { ...generic, wpType: (generic as any).type, type: 'wordProblem' as const, isNew: true };
         }
+        // Try parse() for structured patterns (geometry, algebra, coordinates, etc.)
+        // BEFORE the word problem guard, so these don't get incorrectly delegated to AI.
+        const currentProblem = parse(text);
+
         // 🛡️ WORD PROBLEM GUARD – solo delegar al AI si no es problema verbal reconocido
-        if (text.length > 25 && /[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(text) && !text.includes('=')) {
+        // AND parse() didn't find a structured pattern
+        if (!currentProblem && text.length > 25 && /[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(text) && !text.includes('=')) {
             const isPureMath = /^[\d\s\+\-\*\/\(\)\.]*$/.test(text);
             if (!isPureMath) {
                 console.log("📝 Detected Context/Word Problem. Delegating to Socratic AI.");
                 return null;
             }
         }
-
-        const currentProblem = parse(text);
 
         if (currentProblem) {
             // DUPLICATE GUARD: If we are already solving this exact problem, don't restart it!

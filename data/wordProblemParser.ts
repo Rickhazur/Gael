@@ -377,7 +377,9 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     // Geometría: rectángulo/cuadrado/círculo/triángulo con base, altura o radio
     const rectMatch = t.match(/(?:rect[aá]ngulo|cuadrado|forma\s+de\s+rect[aá]ngulo)[\s\S]*?(?:largo|base)\s*(?:de\s+)?(\d+(?:[.,]\d+)?)\s*[\s\S]*?(?:ancho|altura)\s*(?:de\s+)?(\d+(?:[.,]\d+)?)/i)
         || t.match(/(?:base|largo)\s+(\d+(?:[.,]\d+)?)\s*(?:y|,|\.)\s*(?:altura|ancho)\s+(\d+(?:[.,]\d+)?)/i)
-        || t.match(/(?:rect[aá]ngulo|cuadrado)\s+(?:de\s+)?(\d+(?:[.,]\d+)?)\s*(?:por|x|×)\s*(\d+(?:[.,]\d+)?)/i);
+        || t.match(/(?:rect[aá]ngulo|cuadrado)\s+(?:de\s+)?(\d+(?:[.,]\d+)?)\s*(?:por|x|×)\s*(\d+(?:[.,]\d+)?)/i)
+        // "5 m de largo y 3 m de ancho" - number BEFORE dimension keyword
+        || t.match(/(\d+(?:[.,]\d+)?)\s*(?:m|cm|metros?|cent[ií]metros?)?\s*(?:de\s+)?(?:largo|base)[\s\S]*?(\d+(?:[.,]\d+)?)\s*(?:m|cm|metros?|cent[ií]metros?)?\s*(?:de\s+)?(?:ancho|altura)/i);
 
     if (rectMatch && /\b(?:área|area|per[ií]metro|cu[aá]nto\s+mide)\b/i.test(t)) {
         const b = parseNum(rectMatch[1] || '0');
@@ -417,7 +419,7 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
             return { type: 'geometry', shape: 'circle', radius: r, text: t, highlights };
         }
     }
-    const triMatch = t.match(/(?:tri[aá]ngulo)\s+(?:de\s+)?(?:base\s+)?(\d+(?:[.,]\d+)?)\s*(?:y|,)\s*(?:altura\s+)?(\d+(?:[.,]\d+)?)|base\s+(\d+(?:[.,]\d+)?)\s*(?:y|,)\s*altura\s+(\d+(?:[.,]\d+)?)/i);
+    const triMatch = t.match(/(?:tri[aá]ngulo)\s+(?:de\s+)?(?:base\s+)?(\d+(?:[.,]\d+)?)\s*(?:y|,|\s)\s*(?:altura\s+)?(\d+(?:[.,]\d+)?)|base\s+(\d+(?:[.,]\d+)?)\s*(?:y|,|\s)\s*altura\s+(\d+(?:[.,]\d+)?)/i);
     if (triMatch && /\b(?:área|area|tri[aá]ngulo|cu[aá]nto\s+mide)\b/i.test(t)) {
         const b = parseNum(triMatch[1] || triMatch[3] || '0');
         const h = parseNum(triMatch[2] || triMatch[4] || '0');
@@ -432,13 +434,13 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     }
 
     // Resta: "tenía X kg, vendió/usó Y kg, ¿cuántos kg quedan?"
-    const subtractTwo = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|unidades?|°C|grados)?[^.]*?(?:vendió|gastó|usó|perdió|sold|spent|used|lost|bajó|descendió|disminuyó|decreció|lost|lost)[^.]*?(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|°C|grados)?/i);
+    const subtractTwo = t.match(/(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|unidades?|°C|grados)?[\s\S]*?(?:vendió|vendieron|gastó|gastaron|usó|usaron|perdió|perdieron|sold|spent|used|lost|bajó|descendió|disminuyó|decreció)[\s\S]*?(-?\d+(?:[.,]\d+)?)\s*(?:kg|litros?|L|°C|grados)?/i);
     if (subtractTwo && /\bquedan\b|cuántos?\s+quedan|how\s+many\s+(?:left|remain)|quedaron|restan|final\b/i.test(t)) {
         const n1 = parseNum(subtractTwo[1]);
         const n2 = parseNum(subtractTwo[2]);
         if (n1 !== 0 || n2 !== 0) {
             const unit = /\bkg\b|kilogramos?/i.test(t) ? 'kg' : /\blitros?\b|L\b/i.test(t) ? 'litros' : 'unidades';
-            const keywordSub = t.match(/\b(vendió|gastó|usó|perdió|sold|spent|used|lost)\b/i)?.[0];
+            const keywordSub = t.match(/\b(vendió|vendieron|gastó|gastaron|usó|usaron|perdió|perdieron|sold|spent|used|lost)\b/i)?.[0];
             const highlights: { text: string; color: string }[] = [
                 { text: subtractTwo[1], color: 'blue' },
                 { text: subtractTwo[2], color: 'green' },
@@ -450,7 +452,10 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
     }
 
     // Multiplicación: "4 cajas con 12 manzanas cada una", "4 × 12", "4 packs of 6"
-    const multMatch = t.match(/(-?\d+)\s*(?:cajas?|paquetes?|packs?|bolsas?|veces)\s*(?:de|con|of)\s*(-?\d+)\s*(?:unidades?|manzanas?|each)?/i)
+    // Also supports inverted order: "paquetes de 6 galletas. Si compro 5 paquetes"
+    const multMatch = t.match(/(-?\d+)\s*(?:cajas?|paquetes?|packs?|bolsas?|veces)\s*(?:de|con|of)\s*(-?\d+)\s*(?:unidades?|manzanas?|galletas?|each)?/i)
+        || t.match(/(?:paquetes?|cajas?|bolsas?)\s*(?:de|con)\s*(-?\d+)\s*(?:unidades?|manzanas?|galletas?|dulces?)?[\s\S]*?(?:compro|compré|compramos|bought|tiene|tengo)\s+(-?\d+)\s*(?:paquetes?|cajas?|bolsas?)/i)
+        || t.match(/(?:compro|compré|compramos|bought|tiene|tengo)\s+(-?\d+)\s*(?:paquetes?|cajas?|bolsas?)\s*(?:de|con)\s*(-?\d+)/i)
         || t.match(/(-?\d+)\s*(?:×|x|\*|por|times)\s*(-?\d+)/)
         || t.match(/(-?\d+)\s*(?:cada\s+una|cada\s+uno|each)\s*[^.]*?(-?\d+)/i);
     if (multMatch && (/\bcuántas?\b|total\b|how\s+many|in\s+total/i.test(t) || multMatch[0].includes('×') || multMatch[0].includes('x'))) {
@@ -469,16 +474,17 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
         }
     }
 
-    // División: "36 manzanas entre 6 niños", "36 ÷ 6", "repartir 36 entre 6"
-    const divMatch = t.match(/(-?\d+)\s*(?:manzanas?|galletas?|dulces?|entre|÷|\/)\s*(-?\d+)\s*(?:niños?|personas?|children|people)?/i)
-        || t.match(/repartir\s+(-?\d+)\s+entre\s+(-?\d+)/i)
+    // División: "36 manzanas entre 6 niños", "36 ÷ 6", "repartir 36 entre 6", "Se reparten 36 galletas entre 6"
+    const divMatch = t.match(/(-?\d+)\s*(?:manzanas?|galletas?|dulces?|hojas?|entre|÷|\/)\s*(-?\d+)\s*(?:niños?|personas?|estudiantes?|children|people)?/i)
+        || t.match(/(?:repartir|reparten|repartieron|repartirse|reparte)\s+(-?\d+)\s+entre\s+(-?\d+)/i)
+        || t.match(/(?:se\s+)?(?:reparten|repartieron|repartirse|reparte|repartir)\s+(-?\d+)\s*(?:manzanas?|galletas?|dulces?|hojas?|caramelos?)?\s+entre\s+(-?\d+)/i)
         || t.match(/(-?\d+)\s*[÷\/]\s*(-?\d+)/);
 
     // División Agrupación (Contenedores): "125 alumnos. Cada autobús lleva 48. ¿Cuántos autobuses...?"
     // Patrón: (Num Total) ... Cada (Singular) ... (Num Capacidad) ... Cuántos (Plural)
     const groupingMatch = t.match(/(-?\d+)\s*(?:alumnos?|personas?|litros?|kg|libros?|unidades?)?[\s\S]*?cada\s+(?:uno|autobús|bus|caja|bote|auto|coche|viaje|bolsa)\s*(?:puede\s+llevar|caben|tiene|lleva|hace)?\s*(-?\d+)/i);
 
-    if ((divMatch && (/\bcuántas?\s+cada\b|how\s+many\s+each|cada\s+uno|per\s+person/i.test(t) || divMatch[0].includes('÷') || /repartir/i.test(t))) ||
+    if ((divMatch && (/\bcuántas?\b[^.?]*?\bcada\s+(?:uno|una|niño|niña|persona|estudiante)\b|\bcuántas?\s+(?:le\s+)?tocan\b|how\s+many\s+each|cada\s+uno|per\s+person|cuántas?\s+(?:galletas?|manzanas?|dulces?|hojas?)\s+(?:le\s+)?(?:tocan|recibe)/i.test(t) || divMatch[0].includes('÷') || /\b(?:repartir|reparten|repartieron|repartirse|reparte)\b/i.test(t))) ||
         (groupingMatch && /\bcuántos?\s+(?:autobuses|buses|cajas|botes|viajes|bolsas|necesitan)\b/i.test(t))) {
 
         const match = divMatch || groupingMatch;
@@ -490,8 +496,8 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
             const unit = /\bmanzanas?\b|galletas?\b|dulces?\b/i.test(t) ? (t.match(/\b(manzanas?|galletas?|dulces?)/i)?.[1] || 'unidades') : /\blitros?\b|L\b/i.test(t) ? 'litros' : /\bkg\b|kilogramos?/i.test(t) ? 'kg' : /\balumnos?|personas?/i.test(t) ? 'personas' : 'unidades';
 
             // Detect keywords for highlighting
-            const keyDiv = t.match(/\b(entre|repartir|÷|\/|cada\s+uno|cada\s+autobús|cada\s+bus|cada\s+caja)\b/i)?.[0];
-            const keyQuestion = t.match(/\bcuántas?\s+(?:cada|autobuses|buses|cajas|viajes|necesitan)\b|how\s+many\s+each|cada\s+uno/i)?.[0] || 'cuántos';
+            const keyDiv = t.match(/\b(entre|repartir|reparten|repartieron|÷|\/|cada\s+uno|cada\s+autobús|cada\s+bus|cada\s+caja)\b/i)?.[0];
+            const keyQuestion = t.match(/\bcuántas?\b[^.?]*?\bcada\b|\bcuántas?\s+(?:cada|autobuses|buses|cajas|viajes|necesitan|le\s+tocan|recibe)\b|how\s+many\s+each|cada\s+uno/i)?.[0] || 'cuántos';
 
             const highlights: { text: string; color: string }[] = [
                 { text: match[1], color: 'blue' },
@@ -569,8 +575,10 @@ export function parseGenericWordProblem(text: string): AnyWordProblemParsed | nu
         const getOp = (s: string) => {
             if (divRe.test(s)) return '÷';
             if (multRe.test(s)) return '×';
-            if (addRe.test(s)) return '+';
+            // Check subtract BEFORE add: "más" can appear in filler text ("litros más") 
+            // even when the actual verb is a subtraction word like "Vendí"
             if (subRe.test(s)) return '-';
+            if (addRe.test(s)) return '+';
             return null;
         };
 

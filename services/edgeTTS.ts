@@ -202,7 +202,19 @@ class EdgeTTSService {
             }
         }
 
-        // 3. Exact lang match (e.g., es-MX)
+        // 3. Prefer female voices for English female configs
+        if (config.gender === 'female' && !isSpanish) {
+            const exactLangMatchFemale = this.voices.find(v =>
+                filter(v) && v.lang.toLowerCase() === config.lang.toLowerCase() &&
+                (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('samantha') || v.name.toLowerCase().includes('victoria') || v.name.toLowerCase().includes('jenny'))
+            );
+            if (exactLangMatchFemale) {
+                console.log(`🎤 Voice selected: "${exactLangMatchFemale.name}" (${exactLangMatchFemale.lang}) [female exact lang]`);
+                return exactLangMatchFemale;
+            }
+        }
+
+        // 4. Exact lang match (e.g., es-MX)
         const exactLangMatch = this.voices.find(v =>
             filter(v) && v.lang.toLowerCase() === config.lang.toLowerCase()
         );
@@ -211,7 +223,7 @@ class EdgeTTSService {
             return exactLangMatch;
         }
 
-        // 4. For Spanish: prioritize Latin American variants
+        // 5. For Spanish: prioritize Latin American variants
         if (isSpanish) {
             const latinCodes = ['es-mx', 'es-co', 'es-ar', 'es-us', 'es-cl', 'es-pe', 'es-ve'];
             for (const code of latinCodes) {
@@ -306,6 +318,10 @@ class EdgeTTSService {
 
             const config = EDGE_VOICES[tutor];
             const utterance = new SpeechSynthesisUtterance(cleanText);
+
+            // CRITICAL: Set the language explicitly so the browser knows how to pronounce it!
+            // Without this, Rachelle will speak English using Spanish phonetics (strong Latin accent).
+            utterance.lang = config.lang;
 
             utterance.rate = options?.rate !== undefined ? (config.rate + (options.rate / 100)) : config.rate;
             utterance.pitch = options?.pitch !== undefined ? (config.pitch + (options.pitch / 100)) : config.pitch;

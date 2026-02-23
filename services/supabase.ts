@@ -206,7 +206,7 @@ export const registerStudent = async (data: { email: string; password: string; n
   // 3. Inicializar Economía (ignorar si ya existe o falla por RLS)
   supabase.from("economy").insert({
     user_id: authData.user.id,
-    coins: 100 // Bono de bienvenida
+    coins: 200 // Bono de bienvenida
   }).then(({ error }) => { if (error) console.warn("Economy init:", error); });
 
   // Notificar Admin
@@ -318,7 +318,7 @@ export const registerParentAndStudent = async (data: {
   if (studentAuth.user) {
     await supabase.from("economy").insert({
       user_id: studentAuth.user.id,
-      coins: 100
+      coins: 200
     });
   }
 
@@ -1572,7 +1572,7 @@ export const adminCreateUser = async (email: string, password: string, name: str
   if (profileError) console.error('Error updating profile:', profileError);
 
   // 3. Initialize economy
-  await supabase.from('economy').insert({ user_id: authData.user.id, coins: 0 });
+  await supabase.from('economy').insert({ user_id: authData.user.id, coins: 200 });
 
   return {
     success: true,
