@@ -1,4 +1,15 @@
-import { Accessory } from '../types';
+export interface Accessory {
+    id: string;
+    name: string;
+    type: 'head' | 'eyes' | 'glasses' | 'neck' | 'back' | 'hand' | 'body';
+    rarity: 'common' | 'rare' | 'epic' | 'legendary';
+    cost: number;
+    conditionType: 'none' | 'level' | 'mission';
+    conditionValue?: number | string;
+    icon: string;
+}
+
+export { AVATARS } from '../../../data/avatarData';
 
 export const ACCESSORIES: Accessory[] = [
     // --- HEAD (CABEZA) ---
