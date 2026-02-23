@@ -10,6 +10,7 @@ const supabaseAdmin = createClient(
 const resend = new Resend(process.env.RESEND_API_KEY);
 
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL ?? 'Nova Schola <onboarding@resend.dev>';
+const REPLY_TO = process.env.RESEND_REPLY_TO ?? 'novaschola25@gmail.com';
 const APP_URL = process.env.VITE_APP_URL ?? 'https://nova-schola.vercel.app';
 
 export default async function handler(req: any, res: any) {
@@ -104,6 +105,7 @@ export default async function handler(req: any, res: any) {
   try {
     const result = await resend.emails.send({
       from: FROM_EMAIL,
+      reply_to: REPLY_TO,
       to: [emailTarget.email],
       subject: 'Cuenta activada – Nova Schola',
       html,
