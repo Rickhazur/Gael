@@ -284,36 +284,39 @@ class EdgeTTSService {
     }
 
     async speak(text: string, tutor: keyof typeof EDGE_VOICES = 'lina', options?: SpeechOptions & { cancelExisting?: boolean }): Promise<void> {
-        // Always cancel previous speech to prevent queue buildup
+        // Cancel previous speech to prevent queue buildup
         this.synth.cancel();
         this.currentUtterance = null;
 
+        // Chrome bug: cancel() can leave synth stuck in paused state (common after tab
+        // refresh or background tab). Resume before queuing next utterance.
+        if (this.synth.paused) {
+            this.synth.resume();
+        }
+
         return new Promise((resolve) => {
             // Clean emojis and weird characters from text so TTS doesn't read them
-            // Removes: Emojis, Pictographs, and excessive whitespace
             const cleanText = text
                 .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F0F5}\u{1F200}-\u{1F270}\u{2600}-\u{26FF}\u{2300}-\u{23FF}]/gu, '')
-                .replace(/\*\*/g, '') // Eliminar marcadores de negrita de markdown
+                .replace(/\*\*/g, '')
                 .replace(/\s+/g, ' ')
                 .trim();
+
+            if (!cleanText) { resolve(); return; }
 
             const config = EDGE_VOICES[tutor];
             const utterance = new SpeechSynthesisUtterance(cleanText);
 
-            // Configure voice
             utterance.rate = options?.rate !== undefined ? (config.rate + (options.rate / 100)) : config.rate;
             utterance.pitch = options?.pitch !== undefined ? (config.pitch + (options.pitch / 100)) : config.pitch;
             utterance.volume = 1.0;
 
-            // Find best voice (refresh in case more voices loaded since init)
             this.refreshVoices();
             const selectedVoice = this.findBestVoice(config);
-
             if (selectedVoice) {
                 utterance.voice = selectedVoice;
             }
 
-            // Add dynamic variation for expressiveness
             this.addExpressiveness(utterance, tutor, config);
 
             utterance.onstart = () => {
@@ -326,14 +329,22 @@ class EdgeTTSService {
                 resolve();
             };
 
-            utterance.onerror = () => {
+            utterance.onerror = (e) => {
+                console.warn('🔇 TTS error:', (e as any).error);
                 this.currentUtterance = null;
                 window.dispatchEvent(new CustomEvent('nova-demo-voice-end', { detail: { voice: tutor } }));
-                resolve(); // Resolve anyway to not hang sequences
+                resolve();
             };
 
             this.currentUtterance = utterance;
-            this.synth.speak(utterance);
+
+            // Chrome bug: calling speak() immediately after cancel() on the same tick
+            // causes the utterance to silently fail (no onstart, no onend).
+            // A small delay lets the browser flush the cancel before queuing new speech.
+            setTimeout(() => {
+                if (this.synth.paused) this.synth.resume();
+                this.synth.speak(utterance);
+            }, 50);
         });
     }
 
