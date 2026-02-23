@@ -2,20 +2,11 @@
 
 import React, { useState } from 'react';
 import { useAvatar } from '../../context/AvatarContext';
-import {
-    AVATARS_GRADE_1,
-    AVATARS_GRADE_2,
-    AVATARS_GRADE_3,
-    AVATARS_GRADE_4,
-    AVATARS_GRADE_5,
-    AVATARS_GRADE_6,
-    AVATARS_GRADE_7,
-    Avatar
-} from './data/avatars';
+import { AVATARS } from './data/avatars';
+import { AvatarBase } from '../../data/avatarData';
 import { Button } from '@/components/ui/button';
 import { Check, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-
 
 interface AvatarSelectorProps {
     onSelect?: () => void;
@@ -26,21 +17,8 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({ onSelect, grade 
     const { setAvatar } = useAvatar();
     const [selectedId, setSelectedId] = useState<string | null>(null);
 
-    // Select avatars based on grade
-    const getAvatarsForGrade = (): Avatar[] => {
-        switch (grade) {
-            case 1: return AVATARS_GRADE_1;
-            case 2: return AVATARS_GRADE_2;
-            case 3: return AVATARS_GRADE_3;
-            case 4: return AVATARS_GRADE_4;
-            case 5: return AVATARS_GRADE_5;
-            case 6: return AVATARS_GRADE_6;
-            case 7: return AVATARS_GRADE_7;
-            default: return AVATARS_GRADE_4; // Default to 4th grade
-        }
-    };
-
-    const avatars = getAvatarsForGrade();
+    // Filter avatars based on grade
+    const avatars = AVATARS.filter(a => a.grade === grade || a.grade === 0);
 
     const handleConfirm = () => {
         if (selectedId) {
@@ -88,7 +66,7 @@ export const AvatarSelector: React.FC<AvatarSelectorProps> = ({ onSelect, grade 
             `}>
                             <div className="absolute inset-0 bg-gradient-to-br from-white/0 to-black/5 z-0" />
                             <img
-                                src={avatar.baseImage}
+                                src={avatar.imageUrl}
                                 alt={avatar.name}
                                 className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                             />

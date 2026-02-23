@@ -392,7 +392,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                             {/* THE PEDESTAL GRID */}
                             <div className="grid grid-cols-2 lg:grid-cols-3 gap-x-12 gap-y-32">
                                 {mainTab === 'characters' && AVATARS
-                                    .filter(av => av.id.startsWith(`g${grade}`))
+                                    .filter(av => av.grade === grade || av.grade === 0)
                                     .map((item, idx) => {
                                         const equipped = currentAvatar === item.id;
                                         return (
@@ -413,7 +413,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                                         <div className="font-bold text-slate-400 text-[10px] uppercase truncate px-4">{item.name}</div>
                                                     </div>
                                                     <div className="relative z-10 transition-transform duration-500 group-hover:scale-125 group-hover:-translate-y-4">
-                                                        <img src={item.baseImage} className="w-40 h-40 object-contain drop-shadow-2xl" />
+                                                        <img src={item.imageUrl} className="w-40 h-40 object-contain drop-shadow-2xl" />
                                                     </div>
                                                 </div>
                                             </motion.div>
