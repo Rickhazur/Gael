@@ -1,6 +1,6 @@
 
 
-export type AvatarId = 'leon_v1' | 'leon_v2' | 'leon_v3' | 'leon_v4' | 'leon_v5' | 'leon_v6' | 'delfin_segundo' | 'aguila_tercero' | 'tigre_cuarto' | 'dragon_quinto' | 'dragon_sexto' | 'koala_exploradorx' | 'zorro_aventurero';
+export type AvatarId = string;
 
 export interface AvatarBase {
     id: AvatarId;
@@ -112,27 +112,35 @@ export const AVATARS: AvatarBase[] = [
         personality: '¡Caza el conocimiento!'
     },
 
-    // --- QUINTO (5th Grade) - Dragón ---
-    {
-        id: 'dragon_quinto',
-        name: 'Drake el Dragón',
-        description: 'El Sabio de Quinto',
-        grade: 5,
-        imageUrl: '/avatars/dragon.png',
-        color: '#dc2626',
-        personality: '¡Fuego de sabiduría!'
-    },
+    // --- 5to, 6to y 7mo Grado (3D Simple Collection) ---
+    { id: 'g5_boy_1', name: 'Andrés (Simple)', description: 'Avatar base con camiseta blanca, ideal para personalizar.', grade: 5, imageUrl: '/avatars/g5_boy_1.png', color: '#3B82F6', personality: 'Equilibrado' },
+    { id: 'g5_boy_2', name: 'Mateo (Simple)', description: 'Avatar base con cabello rizado y estilo limpio.', grade: 5, imageUrl: '/avatars/g5_boy_2.png', color: '#10B981', personality: 'Alegre' },
+    { id: 'g5_boy_3', name: 'Santi (Simple)', description: 'Avatar base rubio con diseño minimalista.', grade: 5, imageUrl: '/avatars/g5_boy_3.png', color: '#F59E0B', personality: 'Curioso' },
+    { id: 'g5_boy_4', name: 'Kenji (Simple)', description: 'Avatar base de estilo urbano y despejado.', grade: 5, imageUrl: '/avatars/g5_boy_4.png', color: '#EF4444', personality: 'Enfocado' },
+    { id: 'g5_girl_1', name: 'Lucía (Simple)', description: 'Avatar base femenino con diseño limpio y moderno.', grade: 5, imageUrl: '/avatars/g5_girl_1_1769540901853.png', color: '#EC4899', personality: 'Líder' },
+    { id: 'g5_girl_2', name: 'Emma (Simple)', description: 'Avatar base femenino con un look deportivo y sencillo.', grade: 5, imageUrl: '/avatars/g5_girl_2_1769540916141.png', color: '#8B5CF6', personality: 'Dinámica' },
+    { id: 'g5_girl_3', name: 'Sara (Simple)', description: 'Avatar base femenino con rasgos expresivos y neutros.', grade: 5, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#F97316', personality: 'Creativa' },
+    { id: 'g5_girl_4', name: 'Mía (Simple)', description: 'Avatar base femenino ideal para cualquier accesorio.', grade: 5, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#06B6D4', personality: 'Inteligente' },
 
-    // --- SEXTO (6th Grade) - Dragón ---
-    {
-        id: 'dragon_sexto',
-        name: 'Drake el Maestro',
-        description: 'El Sabio de Sexto',
-        grade: 6,
-        imageUrl: '/avatars/dragon.png',
-        color: '#991b1b', // Un rojo un poco más oscuro
-        personality: '¡Sabiduría ancestral para retos mayores!'
-    },
+    // Grado 6
+    { id: 'g6_boy_1', name: 'Andrés (Simple)', description: 'Avatar base con camiseta blanca, ideal para personalizar.', grade: 6, imageUrl: '/avatars/g5_boy_1.png', color: '#3B82F6', personality: 'Equilibrado' },
+    { id: 'g6_boy_2', name: 'Mateo (Simple)', description: 'Avatar base con cabello rizado y estilo limpio.', grade: 6, imageUrl: '/avatars/g5_boy_2.png', color: '#10B981', personality: 'Alegre' },
+    { id: 'g6_boy_3', name: 'Santi (Simple)', description: 'Avatar base rubio con diseño minimalista.', grade: 6, imageUrl: '/avatars/g5_boy_3.png', color: '#F59E0B', personality: 'Curioso' },
+    { id: 'g6_boy_4', name: 'Kenji (Simple)', description: 'Avatar base de estilo urbano y despejado.', grade: 6, imageUrl: '/avatars/g5_boy_4.png', color: '#EF4444', personality: 'Enfocado' },
+    { id: 'g6_girl_1', name: 'Lucía (Simple)', description: 'Avatar base femenino con diseño limpio y moderno.', grade: 6, imageUrl: '/avatars/g5_girl_1_1769540901853.png', color: '#EC4899', personality: 'Líder' },
+    { id: 'g6_girl_2', name: 'Emma (Simple)', description: 'Avatar base femenino con un look deportivo y sencillo.', grade: 6, imageUrl: '/avatars/g5_girl_2_1769540916141.png', color: '#8B5CF6', personality: 'Dinámica' },
+    { id: 'g6_girl_3', name: 'Sara (Simple)', description: 'Avatar base femenino con rasgos expresivos y neutros.', grade: 6, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#F97316', personality: 'Creativa' },
+    { id: 'g6_girl_4', name: 'Mía (Simple)', description: 'Avatar base femenino ideal para cualquier accesorio.', grade: 6, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#06B6D4', personality: 'Inteligente' },
+
+    // Grado 7
+    { id: 'g7_boy_1', name: 'Andrés (Simple)', description: 'Avatar base con camiseta blanca, ideal para personalizar.', grade: 7, imageUrl: '/avatars/g5_boy_1.png', color: '#3B82F6', personality: 'Equilibrado' },
+    { id: 'g7_boy_2', name: 'Mateo (Simple)', description: 'Avatar base con cabello rizado y estilo limpio.', grade: 7, imageUrl: '/avatars/g5_boy_2.png', color: '#10B981', personality: 'Alegre' },
+    { id: 'g7_boy_3', name: 'Santi (Simple)', description: 'Avatar base rubio con diseño minimalista.', grade: 7, imageUrl: '/avatars/g5_boy_3.png', color: '#F59E0B', personality: 'Curioso' },
+    { id: 'g7_boy_4', name: 'Kenji (Simple)', description: 'Avatar base de estilo urbano y despejado.', grade: 7, imageUrl: '/avatars/g5_boy_4.png', color: '#EF4444', personality: 'Enfocado' },
+    { id: 'g7_girl_1', name: 'Lucía (Simple)', description: 'Avatar base femenino con diseño limpio y moderno.', grade: 7, imageUrl: '/avatars/g5_girl_1_1769540901853.png', color: '#EC4899', personality: 'Líder' },
+    { id: 'g7_girl_2', name: 'Emma (Simple)', description: 'Avatar base femenino con un look deportivo y sencillo.', grade: 7, imageUrl: '/avatars/g5_girl_2_1769540916141.png', color: '#8B5CF6', personality: 'Dinámica' },
+    { id: 'g7_girl_3', name: 'Sara (Simple)', description: 'Avatar base femenino con rasgos expresivos y neutros.', grade: 7, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#F97316', personality: 'Creativa' },
+    { id: 'g7_girl_4', name: 'Mía (Simple)', description: 'Avatar base femenino ideal para cualquier accesorio.', grade: 7, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#06B6D4', personality: 'Inteligente' },
 
     // --- UNIVERSAL ---
     {
