@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { AVATARS } from './data/avatars';
+import { AVATARS } from '@/data/avatarData';
 import { AvatarBase as Avatar } from '@/data/avatarData';
 import { useAvatar } from '@/context/AvatarContext';
 import { Button } from '@/components/ui/button';
@@ -41,13 +41,11 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
 
                 <div className="text-center space-y-4">
                     <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight drop-shadow-lg font-fredoka">
-                        ¡Elige tu Héroe!
+                        ¡Selecciona tu Héroe Nova!
                     </h1>
 
-                    {/* Grade Selector - Filtrado para mostrar solo el grado del estudiante */}
                     <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-800/50 p-2 rounded-xl backdrop-blur-sm border border-slate-700">
                         {[1, 2, 3, 4, 5, 6, 7]
-                            .filter((g) => g === initialGrade)
                             .map((g) => (
                                 <Button
                                     key={g}

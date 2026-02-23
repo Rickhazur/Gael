@@ -17,8 +17,8 @@ import { PetProvider } from '@/context/PetContext';
 import SplashScreen from './components/SplashScreen';
 
 // Components - lazy loaded (only needed after specific navigation)
-const LandingPage = React.lazy(() => import('./components/LandingPage'));
-const LoginPage = React.lazy(() => import('./components/LoginPage'));
+import LandingPage from './components/LandingPage';
+import LoginPage from './components/LoginPage';
 const MainLayout = React.lazy(() => import('./components/MainLayout').then(m => ({ default: m.MainLayout })));
 const ICFESLayout = React.lazy(() => import('./components/icfes/ICFESLayout').then(m => ({ default: m.ICFESLayout })));
 const ICFESDashboard = React.lazy(() => import('./components/icfes/ICFESDashboard').then(m => ({ default: m.ICFESDashboard })));
@@ -209,34 +209,48 @@ const App: React.FC = () => {  // Authentication State
       }
     };
 
-    // Wrap getSession in a 5s timeout to handle stale/expired tokens that hang.
-    // Track whether getSession resolved on its own so we only signOut() when
-    // the session was genuinely stuck (corrupted), not just slow on a valid session.
+    // Race between getSession and timeout
     let getSessionResolved = false;
     const getSessionPromise = supabase.auth.getSession().then(result => {
+      console.log('✅ Supabase session resolved');
       getSessionResolved = true;
       return result;
     });
+
     const sessionTimeout = new Promise<{ data: { session: null } }>((resolve) =>
-      setTimeout(() => resolve({ data: { session: null } }), 5000)
+      setTimeout(() => {
+        if (!getSessionResolved) {
+          console.warn('⚠️ Supabase session timeout (5s)');
+          resolve({ data: { session: null } });
+        }
+      }, 5000)
     );
+
     Promise.race([getSessionPromise, sessionTimeout]).then(({ data }) => {
       if (!data.session && !getSessionResolved) {
-        // Timeout fired before getSession completed → session is likely corrupted.
-        // Sign out to reset Supabase's internal auth state (equivalent to clearing cache).
-        supabase?.auth.signOut();
+        console.error('🛑 Critical: Session check stuck. Force resetting auth state.');
+        supabase?.auth.signOut().catch(() => { });
       }
       handleSession(data.session);
     });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => handleSession(session));
 
-    // Safety timeout: si la carga tarda más de 3s, salimos del splash
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('🔄 Auth state changed:', event);
+      handleSession(session);
+    });
+
+    // Safety timeout: si la carga tarda más de 2.5s, salimos del splash SÍ O SÍ
+    // Usamos un flag para no re-ejecutar si ya salimos
     const safetyTimer = setTimeout(() => {
+      console.log('🛡️ Safety timeout triggered - Forcing splash exit');
       setIsLoading(false);
-    }, 3000);
+    }, 2500);
 
-    return () => { subscription.unsubscribe(); clearTimeout(safetyTimer); };
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      clearTimeout(safetyTimer);
+    };
+  }, []); // Solo al montar
 
   // Login Handler
   const handleLogin = async (data: any, mode: 'STUDENT' | 'ADMIN' | 'PARENT') => {

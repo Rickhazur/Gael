@@ -5,7 +5,10 @@ const SplashScreen: React.FC = () => {
     const [showRepair, setShowRepair] = useState(false);
 
     useEffect(() => {
-        const timer = setTimeout(() => setShowRepair(true), 4000); // 4s fallback
+        const timer = setTimeout(() => {
+            setShowRepair(true);
+            console.log('🔄 Splash taking too long, showing repair option...');
+        }, 2000); // Aparece más rápido (2s)
         return () => clearTimeout(timer);
     }, []);
 
