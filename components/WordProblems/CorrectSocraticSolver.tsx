@@ -171,11 +171,11 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
 
   const handleAnswer = () => {
     if (!currentStepData || !currentStepData.expectedAnswer) return;
-    
+
     const isCorrect = Array.isArray(currentStepData.expectedAnswer)
-      ? currentStepData.expectedAnswer.some(answer => 
-          userAnswer.toLowerCase().includes(answer.toLowerCase())
-        )
+      ? currentStepData.expectedAnswer.some(answer =>
+        userAnswer.toLowerCase().includes(answer.toLowerCase())
+      )
       : userAnswer.toLowerCase().includes(currentStepData.expectedAnswer.toLowerCase());
 
     if (isCorrect) {
@@ -206,13 +206,14 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
       }
     } else {
       // Respuesta incorrecta - Lina guía
+      import('@/services/remediationStore').then(m => m.remediationStore.addFailureMapping('fractions'));
       edgeTTS.speak('Piensa de nuevo. Lee con atención la pregunta.', 'lina');
     }
   };
 
   const toggleHighlight = (type: string) => {
-    setHighlightedData(prev => 
-      prev.includes(type) 
+    setHighlightedData(prev =>
+      prev.includes(type)
         ? prev.filter(d => d !== type)
         : [...prev, type]
     );
@@ -220,7 +221,7 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
 
   const getHighlightClass = (type: string) => {
     if (!highlightedData.includes(type)) return '';
-    
+
     const colors: Record<string, string> = {
       character: 'bg-blue-200 text-blue-800',
       initial: 'bg-green-200 text-green-800',
@@ -228,7 +229,7 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
       amount: 'bg-purple-200 text-purple-800',
       questions: 'bg-red-200 text-red-800'
     };
-    
+
     return colors[type] || 'bg-yellow-200 text-yellow-800';
   };
 
@@ -240,11 +241,11 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
         className="text-center p-8 bg-white rounded-2xl shadow-lg max-w-2xl mx-auto"
       >
         <LinaAvatar state="celebrating" size={150} />
-        
+
         <h2 className="text-3xl font-bold text-purple-600 mt-6 mb-4">
           🏆 ¡Misión Completada!
         </h2>
-        
+
         <div className="bg-green-50 rounded-xl p-6 mb-6">
           <h3 className="text-xl font-bold text-green-800 mb-4">✅ Solución Encontrada:</h3>
           <p className="text-lg text-gray-700 mb-2">
@@ -257,7 +258,7 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
             ¡Descubriste la solución usando el método Socrático!
           </p>
         </div>
-        
+
         <div className="bg-purple-50 rounded-xl p-6">
           <h4 className="text-lg font-bold text-purple-800 mb-3">🧠 Las 3 Misiones:</h4>
           <div className="space-y-2 text-left">
@@ -290,20 +291,19 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
         <h1 className="text-3xl font-bold text-purple-600 mb-2">
           🕵️‍♀️ Misión {mission}: {mission === 1 ? 'Entender el Problema' : mission === 2 ? 'Entender Qué Hacer' : 'Solución Socrática'}
         </h1>
-        
+
         <div className="flex justify-center gap-4 mb-4">
           {[1, 2, 3].map(m => (
             <div
               key={m}
-              className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${
-                m === mission ? 'bg-purple-500 text-white' : m < mission ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
-              }`}
+              className={`w-12 h-12 rounded-full flex items-center justify-center font-bold ${m === mission ? 'bg-purple-500 text-white' : m < mission ? 'bg-green-500 text-white' : 'bg-gray-300 text-gray-600'
+                }`}
             >
               {m}
             </div>
           ))}
         </div>
-        
+
         <div className="w-full bg-gray-200 rounded-full h-3">
           <motion.div
             className="bg-purple-500 h-3 rounded-full"
@@ -322,46 +322,46 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
           className="bg-white rounded-2xl shadow-lg p-6 mb-6"
         >
           <h2 className="text-xl font-bold text-blue-600 mb-4">🎨 Coloremos los Datos Importantes</h2>
-          
+
           <div className="bg-blue-50 rounded-xl p-4 mb-4">
             <p className="text-lg leading-relaxed">
-              <span 
+              <span
                 className={`cursor-pointer px-2 py-1 rounded transition-all ${getHighlightClass('character')}`}
                 onClick={() => toggleHighlight('character')}
               >
                 👧 Ana
               </span>
-              
+
               {" tenía "}
-              
-              <span 
+
+              <span
                 className={`cursor-pointer px-2 py-1 rounded transition-all ${getHighlightClass('initial')}`}
                 onClick={() => toggleHighlight('initial')}
               >
                 🥤 3/4 de litro de jugo
               </span>
-              
+
               {". Luego "}
-              
-              <span 
+
+              <span
                 className={`cursor-pointer px-2 py-1 rounded transition-all ${getHighlightClass('action')}`}
                 onClick={() => toggleHighlight('action')}
               >
                 🥤 bebió
               </span>
-              
+
               {" "}
-              
-              <span 
+
+              <span
                 className={`cursor-pointer px-2 py-1 rounded transition-all ${getHighlightClass('amount')}`}
                 onClick={() => toggleHighlight('amount')}
               >
                 🥤 2/5 de litro
               </span>
-              
+
               {". "}
-              
-              <span 
+
+              <span
                 className={`cursor-pointer px-2 py-1 rounded transition-all ${getHighlightClass('questions')}`}
                 onClick={() => toggleHighlight('questions')}
               >
@@ -369,15 +369,15 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
               </span>
             </p>
           </div>
-          
+
           <div className="flex justify-center gap-4 mb-4">
             <LinaAvatar state="speaking" />
           </div>
-          
+
           <p className="text-center text-gray-600 mb-4">
             "Haz clic en cada parte para colorear los datos importantes"
           </p>
-          
+
           <div className="flex justify-center">
             <button
               onClick={() => setStep(1)}
@@ -404,7 +404,7 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
               <p className="text-2xl text-gray-800">{currentStepData.question}</p>
             </div>
           </div>
-          
+
           <div className="space-y-4">
             <input
               type="text"
@@ -415,7 +415,7 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
               className="w-full p-4 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
               autoFocus
             />
-            
+
             <div className="flex gap-4">
               <button
                 onClick={handleAnswer}
@@ -424,14 +424,14 @@ export const CorrectSocraticSolver: React.FC<CorrectSocraticSolverProps> = ({
                 ✅ Responder
               </button>
             </div>
-            
-            {currentStepData.explanation && showExplanation && (
+
+            {(currentStepData as any).explanation && showExplanation && (
               <motion.div
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="p-4 bg-blue-50 rounded-xl border-2 border-blue-200"
               >
-                <p className="text-blue-800">{currentStepData.explanation}</p>
+                <p className="text-blue-800">{(currentStepData as any).explanation}</p>
               </motion.div>
             )}
           </div>

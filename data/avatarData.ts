@@ -66,12 +66,12 @@ export const AVATARS: AvatarBase[] = [
     { id: 'g4_gamer', name: 'Gamer Guru 🕹️', description: 'Capitán de e-sports.', grade: 4, imageUrl: '/avatars/g4_gamer.png', color: '#FF4500', personality: 'Competitivo' },
 
     // --- QUINTO (5th Grade) - 3D Simple Collection ---
-    { id: 'g5_boy_1', name: 'Andrés (3D)', description: 'Avatar para quinto grado.', grade: 5, imageUrl: '/avatars/g5_boy_1.png', color: '#3B82F6', personality: 'Equilibrado' },
-    { id: 'g5_boy_2', name: 'Mateo (3D)', description: 'Estilo limpio y moderno.', grade: 5, imageUrl: '/avatars/g5_boy_2.png', color: '#10B981', personality: 'Alegre' },
-    { id: 'g5_boy_3', name: 'Santi (3D)', description: 'Diseño minimalista.', grade: 5, imageUrl: '/avatars/g5_boy_3.png', color: '#F59E0B', personality: 'Curioso' },
-    { id: 'g5_girl_1', name: 'Lucía (3D)', description: 'Líder 3D de quinto grado.', grade: 5, imageUrl: '/avatars/g5_girl_1_1769540901853.png', color: '#EC4899', personality: 'Líder' },
-    { id: 'g5_girl_2', name: 'Emma (3D)', description: 'Estilo deportivo.', grade: 5, imageUrl: '/avatars/g5_girl_2_1769540916141.png', color: '#8B5CF6', personality: 'Dinámica' },
-    { id: 'g5_girl_3', name: 'Sara (3D)', description: 'Expresiva y creativa.', grade: 5, imageUrl: '/avatars/g5_girl_3_1769540930925.png', color: '#F97316', personality: 'Creativa' },
+    { id: 'g5_boy_1', name: 'Andrés (3D)', description: 'Avatar para quinto grado.', grade: 5, imageUrl: '/avatars/g5_boy_1_arms_down.png', color: '#3B82F6', personality: 'Equilibrado' },
+    { id: 'g5_boy_2', name: 'Mateo (3D)', description: 'Estilo limpio y moderno.', grade: 5, imageUrl: '/avatars/g5_boy_2_arms_down.png', color: '#10B981', personality: 'Alegre' },
+    { id: 'g5_boy_3', name: 'Santi (3D)', description: 'Diseño minimalista.', grade: 5, imageUrl: '/avatars/g5_boy_3_arms_down.png', color: '#F59E0B', personality: 'Curioso' },
+    { id: 'g5_girl_1', name: 'Lucía (3D)', description: 'Líder 3D de quinto grado.', grade: 5, imageUrl: '/avatars/g5_girl_1_arms_down.png', color: '#EC4899', personality: 'Líder' },
+    { id: 'g5_girl_2', name: 'Emma (3D)', description: 'Estilo deportivo.', grade: 5, imageUrl: '/avatars/g5_girl_2_arms_down.png', color: '#8B5CF6', personality: 'Dinámica' },
+    { id: 'g5_girl_3', name: 'Sara (3D)', description: 'Expresiva y creativa.', grade: 5, imageUrl: '/avatars/g5_girl_3_arms_down.png', color: '#F97316', personality: 'Creativa' },
 
     // --- SEXTO (6th Grade) - Elite 3D Collection ---
     { id: 'g6_boy_1', name: 'Andrés Elite', description: 'Versión avanzada para sexto grado.', grade: 6, imageUrl: '/avatars/g5_boy_1.png', color: '#1E40AF', personality: 'Enfocado' },

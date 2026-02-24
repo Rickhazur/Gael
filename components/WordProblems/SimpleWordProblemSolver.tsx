@@ -121,16 +121,16 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
   const handleAnswer = () => {
     const currentStepData = steps[currentStep];
     const isCorrect = userAnswer.toLowerCase().includes(currentStepData.expectedAnswer.toLowerCase());
-    
+
     if (isCorrect) {
       // Highlight the data for this step
       if (currentStepData.highlightData) {
         setHighlightedData(prev => [...new Set([...prev, ...currentStepData.highlightData])]);
       }
-      
+
       // Lina celebra
       edgeTTS.speak(currentStepData.explanation, 'lina');
-      
+
       if (currentStep < steps.length - 1) {
         setCurrentStep(prev => prev + 1);
         setUserAnswer('');
@@ -147,6 +147,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
       }
     } else {
       // Respuesta incorrecta
+      import('@/services/remediationStore').then(m => m.remediationStore.addFailureMapping('word_problems'));
       edgeTTS.speak('No es correcto. Intenta de nuevo.', 'lina');
     }
   };
@@ -196,11 +197,11 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
         className="text-center p-8 bg-white rounded-2xl shadow-lg"
       >
         <LinaAvatar state="celebrating" size={150} />
-        
+
         <h2 className="text-3xl font-bold text-purple-600 mt-6 mb-4">
           🏆 ¡Problema Resuelto!
         </h2>
-        
+
         <div className="bg-green-50 rounded-xl p-6 mb-6">
           <h3 className="text-xl font-bold text-green-800 mb-4">✅ Solución Encontrada:</h3>
           <p className="text-lg text-gray-700 mb-2">
@@ -213,7 +214,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
             ¡Descubriste la solución paso a paso!
           </p>
         </div>
-        
+
         <div className="bg-purple-50 rounded-xl p-6">
           <h4 className="text-lg font-bold text-purple-800 mb-3">🧠 ¿Qué aprendiste?</h4>
           <ul className="text-left text-gray-700 space-y-2">
@@ -223,7 +224,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
             <li>✅ Encontrar el común denominador</li>
           </ul>
         </div>
-        
+
         <button
           onClick={() => {
             setCurrentStep(0);
@@ -286,7 +287,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
             <p className="text-xl text-gray-800">{steps[currentStep].question}</p>
           </div>
         </div>
-        
+
         <div className="space-y-4">
           <input
             type="text"
@@ -297,7 +298,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
             className="w-full p-3 border-2 border-purple-200 rounded-xl focus:border-purple-500 focus:outline-none text-lg"
             autoFocus
           />
-          
+
           <div className="flex gap-4">
             <button
               onClick={() => setShowHint(!showHint)}
@@ -305,7 +306,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
             >
               💡 Pista
             </button>
-            
+
             <button
               onClick={handleAnswer}
               className="px-6 py-2 bg-purple-500 text-white rounded-xl hover:bg-purple-600 transition-colors"
@@ -313,7 +314,7 @@ export const SimpleWordProblemSolver: React.FC<SimpleWordProblemSolverProps> = (
               ✅ Responder
             </button>
           </div>
-          
+
           {showHint && (
             <motion.div
               initial={{ opacity: 0, y: 10 }}

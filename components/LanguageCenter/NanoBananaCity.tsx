@@ -20,6 +20,7 @@ import FarmZone from './FarmZone';
 import BeachZone from './BeachZone';
 import SpaceZone from './SpaceZone';
 import { MyHouseHub } from '@/components/MyHouse/MyHouseHub';
+import { remediationStore } from '@/services/remediationStore';
 
 const hexToEmoji = (hex: string) => {
   if (!hex) return '❓';
@@ -197,6 +198,21 @@ const NanoBananaCity: React.FC<NanoBananaCityProps> = ({ onBack }) => {
   const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
   const mapRef = useRef<HTMLDivElement>(null);
   const mapContainerRef = useRef<HTMLDivElement>(null);
+
+  const [remediationWords, setRemediationWords] = useState<string[]>([]);
+
+  useEffect(() => {
+    const loadRemediations = () => {
+      const words = remediationStore.getRemediationWords();
+      setRemediationWords(words);
+      if (words.length > 0 && activeCat === 'Buildings') {
+        setActiveCat('🎯 Practice');
+      }
+    };
+    loadRemediations();
+    window.addEventListener('nova_remediation_updated', loadRemediations);
+    return () => window.removeEventListener('nova_remediation_updated', loadRemediations);
+  }, [activeCat]);
 
   // Persistence
   useEffect(() => {
@@ -611,6 +627,7 @@ const NanoBananaCity: React.FC<NanoBananaCityProps> = ({ onBack }) => {
           <div className="relative">
             <div className="flex overflow-x-auto gap-2 pb-2 no-scrollbar snap-x">
               {[
+                ...(remediationWords.length > 0 ? [{ id: '🎯 Practice', icon: '🎯', label: 'Practice' }] : []),
                 { id: 'Buildings', icon: '🏙️', label: 'City' },
                 { id: 'Infrastructure', icon: '🚦', label: 'Roads' },
                 { id: 'Nature', icon: '🌳', label: 'Nature' },
@@ -645,38 +662,40 @@ const NanoBananaCity: React.FC<NanoBananaCityProps> = ({ onBack }) => {
           </h3>
 
           <div className="grid grid-cols-2 gap-3 pb-32"> {/* Extra padding bottom for fixed panel */}
-            {(CATALOG[activeCat] || []).map((item: CityItem) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  playClick();
-                  setSelected(item);
-                  const isPilot = localStorage.getItem('nova_user_name') === 'Andrés (Test Pilot)';
-                  setIsUnlocked(isPilot);
-                  speakBilingual(item);
-                }}
-                className={`group relative aspect-[4/3] rounded-2xl border-b-4 transition-all duration-200 flex flex-col items-center justify-center gap-2
+            {(activeCat === '🎯 Practice'
+              ? Object.values(CATALOG).flat().filter(item => remediationWords.includes(item.id))
+              : (CATALOG[activeCat] || [])).map((item: CityItem) => (
+                <button
+                  key={item.id}
+                  onClick={() => {
+                    playClick();
+                    setSelected(item);
+                    const isPilot = localStorage.getItem('nova_user_name') === 'Andrés (Test Pilot)';
+                    setIsUnlocked(isPilot);
+                    speakBilingual(item);
+                  }}
+                  className={`group relative aspect-[4/3] rounded-2xl border-b-4 transition-all duration-200 flex flex-col items-center justify-center gap-2
                             ${selected?.id === item.id
-                    ? (isNight ? 'bg-indigo-600 border-indigo-800 ring-4 ring-indigo-500/30 translate-y-1' : 'bg-blue-500 border-blue-700 text-white ring-4 ring-blue-200 translate-y-1')
-                    : (isNight ? 'bg-slate-800 border-slate-950 text-slate-300 hover:bg-slate-700 hover:-translate-y-1' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1')
-                  }
+                      ? (isNight ? 'bg-indigo-600 border-indigo-800 ring-4 ring-indigo-500/30 translate-y-1' : 'bg-blue-500 border-blue-700 text-white ring-4 ring-blue-200 translate-y-1')
+                      : (isNight ? 'bg-slate-800 border-slate-950 text-slate-300 hover:bg-slate-700 hover:-translate-y-1' : 'bg-white border-slate-200 text-slate-600 hover:border-blue-300 hover:shadow-lg hover:-translate-y-1')
+                    }
                         `}
-              >
-                {/* HOLOGRAPHIC BG EFFECT FOR SELECTED */}
-                {selected?.id === item.id && (
-                  <div className="absolute inset-0 bg-white/10 animate-pulse rounded-xl" />
-                )}
+                >
+                  {/* HOLOGRAPHIC BG EFFECT FOR SELECTED */}
+                  {selected?.id === item.id && (
+                    <div className="absolute inset-0 bg-white/10 animate-pulse rounded-xl" />
+                  )}
 
-                <div className="w-12 h-12 transition-transform duration-300 group-hover:scale-110 drop-shadow-md flex items-center justify-center text-4xl">
-                  {hexToEmoji(item.hex)}
-                </div>
+                  <div className="w-12 h-12 transition-transform duration-300 group-hover:scale-110 drop-shadow-md flex items-center justify-center text-4xl">
+                    {hexToEmoji(item.hex)}
+                  </div>
 
-                <div className="flex flex-col items-center leading-none z-10">
-                  <span className={`text-xs font-black uppercase ${selected?.id === item.id ? 'text-white' : ''}`}>{item.w}</span>
-                  <span className={`text-[9px] font-bold ${selected?.id === item.id ? 'text-blue-100' : 'text-slate-400 group-hover:text-slate-500'}`}>{item.es}</span>
-                </div>
-              </button>
-            ))}
+                  <div className="flex flex-col items-center leading-none z-10">
+                    <span className={`text-xs font-black uppercase ${selected?.id === item.id ? 'text-white' : ''}`}>{item.w}</span>
+                    <span className={`text-[9px] font-bold ${selected?.id === item.id ? 'text-blue-100' : 'text-slate-400 group-hover:text-slate-500'}`}>{item.es}</span>
+                  </div>
+                </button>
+              ))}
           </div>
         </div>
 

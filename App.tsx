@@ -453,9 +453,13 @@ const App: React.FC = () => {  // Authentication State
     window.location.href = '/';
   };
 
-  const isGoogleCallbackURL = window.location.pathname.includes('/api/google/callback') ||
+  // Google callback detection — explicitly exclude Supabase password recovery URLs
+  const isPasswordRecoveryURL = window.location.hash.includes('type=recovery');
+  const isGoogleCallbackURL = !isPasswordRecoveryURL && (
+    window.location.pathname.includes('/api/google/callback') ||
     window.location.search.includes('code=') ||
-    window.location.hash.includes('access_token=');
+    window.location.hash.includes('access_token=')
+  );
 
   return (
     <QueryClientProvider client={queryClient}>
@@ -467,13 +471,7 @@ const App: React.FC = () => {  // Authentication State
                 <LearningProvider>
                   <TooltipProvider>
                     <Suspense fallback={<SplashScreen />}>
-                      {isGoogleCallbackURL ? (
-                        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
-                          <div className="w-full h-full flex items-center justify-center">
-                            <GoogleClassroomSync />
-                          </div>
-                        </div>
-                      ) : showPasswordReset ? (
+                      {showPasswordReset ? (
                         <ResetPasswordPage
                           onSuccess={() => {
                             setShowPasswordReset(false);
@@ -490,8 +488,15 @@ const App: React.FC = () => {  // Authentication State
                             window.location.href = '/';
                           }}
                         />
+                      ) : isGoogleCallbackURL ? (
+                        <div className="min-h-screen bg-slate-900 flex items-center justify-center">
+                          <div className="w-full h-full flex items-center justify-center">
+                            <GoogleClassroomSync />
+                          </div>
+                        </div>
                       ) : (
                         <>
+
                           {isLoading ? (
                             <SplashScreen />
                           ) : !isAuthenticated && !showLogin ? (
