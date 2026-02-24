@@ -88,7 +88,7 @@ export const sendPasswordReset = async (email: string) => {
   if (!supabase) throw new Error("Sistema desconectado.");
 
   // Use the current origin so the recovery link redirects back to our app
-  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://nova-schola.vercel.app';
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://www.novaschola.co';
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: siteUrl,
