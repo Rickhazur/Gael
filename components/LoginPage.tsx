@@ -937,8 +937,40 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                 <span>{language === 'es' ? 'VER DEMO INTERACTIVA' : 'VIEW INTERACTIVE DEMO'}</span>
                             </button>
 
+                            {/* Deep Repair Utility: Clears all local state to fix persistent "stuck" issues */}
+                            <div className="flex flex-col items-center gap-2 mt-4 pt-4 border-t border-stone-50">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        if (window.confirm(language === 'es'
+                                            ? "¿Tienes problemas para entrar? Esto limpiará la memoria del navegador y arreglará errores de carga. Deberás volver a iniciar sesión."
+                                            : "Problems entering? This will clear browser memory and fix loading errors. You will need to log in again.")) {
+
+                                            localStorage.clear();
+                                            sessionStorage.clear();
+                                            if ('serviceWorker' in navigator) {
+                                                navigator.serviceWorker.getRegistrations().then(regs => {
+                                                    regs.forEach(r => r.unregister());
+                                                });
+                                            }
+                                            if ('caches' in window) {
+                                                caches.keys().then(keys => {
+                                                    keys.forEach(k => caches.delete(k));
+                                                });
+                                            }
+                                            toast.success(language === 'es' ? "¡Memoria limpiada! Reiniciando..." : "Memory cleared! Restarting...");
+                                            setTimeout(() => window.location.href = '/', 1500);
+                                        }
+                                    }}
+                                    className="text-stone-400 hover:text-stone-600 text-[10px] font-bold uppercase tracking-widest transition-colors flex items-center gap-2"
+                                >
+                                    <div className="w-1 h-1 bg-stone-300 rounded-full" />
+                                    {language === 'es' ? "Reparar acceso (limpiar cache)" : "Repair access (clear cache)"}
+                                </button>
+                            </div>
+
                             {mode === 'PARENT' && (
-                                <div className="flex flex-col items-center gap-4 mt-8">
+                                <div className="flex flex-col items-center gap-4 mt-4">
                                     <div className="flex items-center gap-1 text-sm text-stone-500">
                                         <span>{isRegistering ? text.hasAccount : text.noAccount}</span>
                                         <button

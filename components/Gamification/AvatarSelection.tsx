@@ -44,9 +44,10 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                         ¡Selecciona tu Héroe Nova!
                     </h1>
 
-                    <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-800/50 p-2 rounded-xl backdrop-blur-sm border border-slate-700">
-                        {[1, 2, 3, 4, 5, 6, 7]
-                            .map((g) => (
+                    {/* Show grade title instead of selector if we are enforcing it */}
+                    {!initialGrade ? (
+                        <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-800/50 p-2 rounded-xl backdrop-blur-sm border border-slate-700">
+                            {[1, 2, 3, 4, 5, 6, 7].map((g) => (
                                 <Button
                                     key={g}
                                     variant={selectedGrade === g ? "default" : "ghost"}
@@ -61,7 +62,15 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                                     {g}° Grado
                                 </Button>
                             ))}
-                    </div>
+                        </div>
+                    ) : (
+                        <div className="inline-flex items-center gap-2 bg-kid-orange/20 border border-kid-orange/30 px-6 py-3 rounded-2xl shadow-xl">
+                            <GraduationCap className="w-6 h-6 text-kid-orange" />
+                            <span className="text-xl font-black text-white font-fredoka uppercase tracking-wide">
+                                Grado {initialGrade}° • Avatares de tu Curso
+                            </span>
+                        </div>
+                    )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">

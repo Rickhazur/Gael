@@ -43,6 +43,7 @@ export const EDGE_VOICES = {
     } as EdgeVoiceConfig,
     rachelle: {
         name: 'Microsoft Jenny Online (Natural)',
+        altNames: ['Samantha', 'Victoria', 'Jenny', 'Jenny Online', 'English', 'Google US English', 'US English', 'Female'],
         lang: 'en-US',
         rate: 0.85, // Slower for ESL learners
         pitch: 1.1,
@@ -254,10 +255,17 @@ class EdgeTTSService {
             return langMatch;
         }
 
-        // 6. Last resort fallback
-        const fallback = this.voices[0] || null;
-        if (fallback) console.log(`🎤 Voice FALLBACK: "${fallback.name}" (${fallback.lang})`);
-        return fallback;
+        // 5. Last resort fallback: ONLY if the language matches!
+        // Never ever return a Spanish voice as a fallback for English (and vice versa)
+        // because it sounds like a foreigner trying to speak (the "Latin accent" issue).
+        const finalSameLangFallback = this.voices.find(v => v.lang.toLowerCase().startsWith(langGroup));
+        if (finalSameLangFallback) {
+            console.log(`🎤 Voice selected: "${finalSameLangFallback.name}" (${finalSameLangFallback.lang}) [last same-lang fallback]`);
+            return finalSameLangFallback;
+        }
+
+        console.warn(`⚠️ No suitable voice found for "${langGroup}". Allowing browser default.`);
+        return null;
     }
 
     private addExpressiveness(utterance: SpeechSynthesisUtterance, tutor: string, config: EdgeVoiceConfig): void {
