@@ -86,12 +86,17 @@ export const logoutSupabase = async () => {
 
 export const sendPasswordReset = async (email: string) => {
   if (!supabase) throw new Error("Sistema desconectado.");
+
+  // Use the current origin so the recovery link redirects back to our app
+  const siteUrl = typeof window !== 'undefined' ? window.location.origin : 'https://nova-schola.vercel.app';
+
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
+    redirectTo: siteUrl,
   });
   if (error) throw error;
   return { success: true };
 };
+
 
 export const registerStudent = async (data: { email: string; password: string; name: string; gradeLevel: number; guardianPhone?: string; isBilingual?: boolean }) => {
   if (!supabase) throw new Error("Sistema desconectado.");

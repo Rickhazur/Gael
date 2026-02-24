@@ -1,6 +1,7 @@
 import React, { useState, useEffect, Suspense } from 'react';
 import { supabase, isOffline, loginWithSupabase, logoutSupabase } from './services/supabase';
 import { ViewState, UserLevel, Language } from './types';
+import ResetPasswordPage from './components/ResetPasswordPage';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { Toaster } from "@/components/ui/sonner";
@@ -44,6 +45,7 @@ const App: React.FC = () => {  // Authentication State
   const [gradeLevel, setGradeLevel] = useState<number>(3);
   const [mustChangePassword, setMustChangePassword] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [showPasswordReset, setShowPasswordReset] = useState(false);
 
   // Login Form State
   const [loginMode, setLoginMode] = useState<'STUDENT' | 'ADMIN' | 'PARENT'>('STUDENT');
@@ -67,6 +69,13 @@ const App: React.FC = () => {  // Authentication State
     if (viewParam && Object.values(ViewState).includes(viewParam as ViewState)) {
       setCurrentView(viewParam as ViewState);
       setShowLogin(true);
+    }
+
+    // Detect password recovery from URL hash (Supabase appends #type=recovery&access_token=...)
+    const hash = window.location.hash;
+    if (hash && hash.includes('type=recovery')) {
+      console.log('🔑 Password recovery detected from URL hash');
+      setShowPasswordReset(true);
     }
   }, []);
 
@@ -156,6 +165,13 @@ const App: React.FC = () => {  // Authentication State
           role = 'ADMIN';
         }
 
+        // 🔑 If user is in password recovery mode, skip status checks and don't auto-login
+        if (showPasswordReset) {
+          console.log('🔑 Password recovery mode active — skipping session handling');
+          setIsLoading(false);
+          return;
+        }
+
         if (!(window as any).isRegisteringInProgress) {
           // 🛡️ SECURITY CHECK: Si la cuenta está pendiente o rechazada, cerrar sesión.
           // Admin ALWAYS bypasses this check.
@@ -236,6 +252,15 @@ const App: React.FC = () => {  // Authentication State
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('🔄 Auth state changed:', event);
+
+      // 🔑 Intercept PASSWORD_RECOVERY event to show password change UI
+      if (event === 'PASSWORD_RECOVERY') {
+        console.log('🔑 PASSWORD_RECOVERY event received — showing reset page');
+        setShowPasswordReset(true);
+        setIsLoading(false);
+        return; // Don't process as normal session
+      }
+
       handleSession(session);
     });
 
@@ -448,6 +473,23 @@ const App: React.FC = () => {  // Authentication State
                             <GoogleClassroomSync />
                           </div>
                         </div>
+                      ) : showPasswordReset ? (
+                        <ResetPasswordPage
+                          onSuccess={() => {
+                            setShowPasswordReset(false);
+                            setIsAuthenticated(false);
+                            window.history.replaceState(null, '', window.location.pathname);
+                            supabase?.auth.signOut().catch(() => { });
+                            window.location.href = '/';
+                          }}
+                          onCancel={() => {
+                            setShowPasswordReset(false);
+                            setIsAuthenticated(false);
+                            window.history.replaceState(null, '', window.location.pathname);
+                            supabase?.auth.signOut().catch(() => { });
+                            window.location.href = '/';
+                          }}
+                        />
                       ) : (
                         <>
                           {isLoading ? (
