@@ -24,8 +24,7 @@ export async function callOpenAI(
     try {
         const responseText = await withTimeoutAndRetry(
             async () => {
-                const origin = typeof window !== 'undefined' ? window.location.origin : '';
-                const url = `${origin}/api-openai/v1/chat/completions`;
+                const url = `/api-openai/v1/chat/completions`;
 
                 const res = await fetch(url, {
                     method: "POST",
@@ -76,8 +75,7 @@ export async function generateOpenAIImage(prompt: string): Promise<string | null
     try {
         const response = await withTimeoutAndRetry(
             async () => {
-                const origin = typeof window !== 'undefined' ? window.location.origin : '';
-                const url = `${origin}/api-openai/v1/images/generations`;
+                const url = `/api-openai/v1/images/generations`;
 
                 const res = await fetch(url, {
                     method: "POST",
