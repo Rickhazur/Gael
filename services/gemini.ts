@@ -64,6 +64,11 @@ export async function callGeminiSocratic(
     // LISTA DE MODELOS A INTENTAR (v1beta endpoint)
     const MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
 
+    // Apply system prompt once before retries to avoid stacking on each model attempt
+    if (systemPrompt && contents.length > 0) {
+        contents[0].parts[0].text = `INSTRUCCIONES: ${systemPrompt}\n\nMENSAJE: ${contents[0].parts[0].text}`;
+    }
+
     async function tryGemini(modelName: string) {
         // v1beta soporta response_mime_type para JSON mode
         const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
@@ -77,11 +82,6 @@ export async function callGeminiSocratic(
                 max_output_tokens: 2048,
             }
         };
-
-        // En v1, para máxima compatibilidad, enviamos las instrucciones en el primer mensaje
-        if (systemPrompt && contents.length > 0) {
-            contents[0].parts[0].text = `INSTRUCCIONES: ${systemPrompt}\n\nMENSAJE: ${contents[0].parts[0].text}`;
-        }
 
         if (jsonMode) {
             body.generationConfig.response_mime_type = "application/json";
