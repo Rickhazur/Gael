@@ -2,6 +2,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, Info, MoreVertical, Eye, Trash2, CheckCircle, Clock, UserPlus } from 'lucide-react';
 import { adminCreateUser, adminGetAllProfiles, adminUpdateUserStatus, adminUpdateUserPlan, adminDeleteUser } from '../../services/supabase';
+import { AVAILABLE_GRADES, DEFAULT_GRADE } from '@/constants';
 import { useToast } from '@/components/ui/use-toast';
 
 const PaymentsManagement: React.FC = () => {
@@ -14,7 +15,8 @@ const PaymentsManagement: React.FC = () => {
         name: '',
         email: '',
         whatsapp: '',
-        password: ''
+        password: '',
+        gradeLevel: DEFAULT_GRADE
     });
 
     const loadStudents = async () => {
@@ -32,15 +34,16 @@ const PaymentsManagement: React.FC = () => {
         setIsModalOpen(true);
     };
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setFormData({ ...formData, [e.target.name]: e.target.value });
+    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        const { name, value } = e.target;
+        setFormData({ ...formData, [name]: name === 'gradeLevel' ? parseInt(value) : value });
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
         try {
-            const res = await adminCreateUser(formData.email, formData.password, formData.name, formData.whatsapp);
+            const res = await adminCreateUser(formData.email, formData.password, formData.name, formData.whatsapp, formData.gradeLevel);
             if (res.success) {
                 if (res.isVerified) {
                     toast({ title: "Estudiante inscrito", description: "El usuario ha sido creado y está listo." });
@@ -52,7 +55,7 @@ const PaymentsManagement: React.FC = () => {
                     });
                 }
                 setIsModalOpen(false);
-                setFormData({ name: '', email: '', whatsapp: '', password: '' });
+                setFormData({ name: '', email: '', whatsapp: '', password: '', gradeLevel: DEFAULT_GRADE });
                 loadStudents();
             } else {
                 toast({ title: "Error", description: res.error || "No se pudo inscribir.", variant: "destructive" });
@@ -129,19 +132,31 @@ const PaymentsManagement: React.FC = () => {
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="estudiante@email.com"
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">WhatsApp del Acudiente</label>
+                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Grado Escolar</label>
+                                <select
+                                    name="gradeLevel"
+                                    value={formData.gradeLevel}
+                                    onChange={handleInputChange}
+                                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
+                                >
+                                    {AVAILABLE_GRADES.map(g => (
+                                        <option key={g} value={g}>Grado {g}°</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div>
+                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Email del Acudiente</label>
                                 <input
                                     name="whatsapp"
-                                    type="tel"
+                                    type="email"
                                     required
                                     value={formData.whatsapp}
                                     onChange={handleInputChange}
                                     className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="+57 300 123 4567"
+                                    placeholder="correo@ejemplo.com"
                                 />
                             </div>
                             <div>

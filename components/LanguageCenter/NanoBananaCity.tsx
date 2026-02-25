@@ -21,6 +21,7 @@ import BeachZone from './BeachZone';
 import SpaceZone from './SpaceZone';
 import { MyHouseHub } from '@/components/MyHouse/MyHouseHub';
 import { remediationStore } from '@/services/remediationStore';
+import { callGeminiSocratic } from '@/services/gemini';
 
 const hexToEmoji = (hex: string) => {
   if (!hex) return '❓';
@@ -399,13 +400,33 @@ const NanoBananaCity: React.FC<NanoBananaCityProps> = ({ onBack }) => {
       const heard = e.results[0][0].transcript.toLowerCase();
       const confidence = e.results[0][0].confidence;
 
-      // Relaxed match logic - if word is heard, accept it regardless of confidence
       if (heard.includes(target.w.toLowerCase()) || (target.w.length > 4 && heard.includes(target.w.toLowerCase().slice(0, 4)))) {
         setIsUnlocked(true);
         setTutorText({ en: "Great! Place it!", es: "¡Bien! ¡Ponlo!" });
         playSuccess();
       } else {
-        setTutorText({ en: "Almost! Try again!", es: "¡Casi! ¡Intenta de nuevo!" });
+        // AI PHONETIC SCORING
+        setTutorText({ en: "Analyzing...", es: "Analizando..." });
+        setCurrentSubtitle({ en: "Listening to your sounds...", es: "Analizando tu pronunciación..." });
+
+        const sysPrompt = `Eres Nova, experta en fonética inglesa para niños hispanohablantes. El alumno intentó decir la palabra en inglés '${target.w}'. Oímos que dijo '${heard}'. 
+Reglas estrictas:
+1. Da UN SOLO TIP CORTO en español (máx 10 palabras) sobre la fonética exacta que falló.
+2. Ejemplo de salida: "Tu sonido 'TH' sonó como 'D', muerde un poco la lengua."
+3. Si el sonido es incomprensible o totalmente diferente, responde sólo: "Intenta de nuevo."`;
+
+        callGeminiSocratic(sysPrompt, [], `Dije ${heard} en vez de ${target.w}`, "es", false)
+          .then((result) => {
+            const tip = result.replace(/\[.*?\]/g, '').trim();
+            const esMsg = tip.length > 5 ? tip : "¡Casi! ¡Intenta de nuevo!";
+            setTutorText({ en: "Let's try again!", es: esMsg });
+            setCurrentSubtitle(null); // Clear subtitle
+            edgeTTS.speak(esMsg, "lina");
+          })
+          .catch((err) => {
+            setTutorText({ en: "Almost! Try again!", es: "¡Casi! ¡Intenta de nuevo!" });
+            setCurrentSubtitle(null);
+          });
       }
     };
     rec.onend = () => setIsListening(false);

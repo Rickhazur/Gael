@@ -567,8 +567,14 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
 
             // Load BG
             const bg = new Image();
-            bg.crossOrigin = "anonymous";
             bg.onload = () => { sceneBg.current = bg; };
+            bg.onerror = () => {
+                console.warn("BG CORS error, retrying without anonymous");
+                const bgNoCors = new Image();
+                bgNoCors.onload = () => { sceneBg.current = bgNoCors; };
+                bgNoCors.src = bgUrl;
+            };
+            bg.crossOrigin = "anonymous";
             bg.src = bgUrl;
 
             // Load Items
@@ -582,8 +588,6 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
 
             items.forEach(grp => {
                 const itemImg = new Image();
-                itemImg.crossOrigin = "anonymous";
-                itemImg.src = grp.imgUrl;
                 itemImg.onload = () => {
                     // Create N copies
                     for (let i = 0; i < grp.count; i++) {
@@ -600,7 +604,30 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
                         });
                         startX += 60;
                     }
-                }
+                };
+                itemImg.onerror = () => {
+                    console.warn("Item CORS error, retrying without anonymous");
+                    const itemNoCors = new Image();
+                    itemNoCors.onload = () => {
+                        for (let i = 0; i < grp.count; i++) {
+                            sceneItems.current.push({
+                                id: `${grp.id}_${i}`,
+                                img: itemNoCors,
+                                x: startX + (Math.random() * 50),
+                                y: startY + (Math.random() * 50),
+                                w: 80,
+                                h: 80,
+                                isDragging: false,
+                                dragOffsetX: 0,
+                                dragOffsetY: 0
+                            });
+                            startX += 60;
+                        }
+                    };
+                    itemNoCors.src = grp.imgUrl;
+                };
+                itemImg.crossOrigin = "anonymous";
+                itemImg.src = grp.imgUrl;
             });
 
             // Start Render Loop
@@ -669,28 +696,43 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
         drawImage: (url: string) => {
             isInteractive.current = false;
             const img = new Image();
-            img.crossOrigin = "anonymous";
             img.onload = () => {
                 const ctx = contextRef.current;
                 const canvas = canvasRef.current;
                 if (ctx && canvas) {
                     const dpr = window.devicePixelRatio || 1;
                     const cW = canvas.width / dpr, cH = canvas.height / dpr;
-
-                    // Clear previous content to ensure clean scene
                     ctx.clearRect(0, 0, cW, cH);
                     ctx.fillStyle = '#ffffff';
                     ctx.fillRect(0, 0, cW, cH);
-
-                    const scale = Math.min(cW / img.width, cH / img.height) * 0.9; // Slight margin
+                    const scale = Math.min(cW / img.width, cH / img.height) * 0.9;
                     const w = img.width * scale, h = img.height * scale;
-                    // Draw instant for images
                     ctx.drawImage(img, (cW - w) / 2, (cH - h) / 2, w, h);
                 }
             };
             img.onerror = (e) => {
-                console.error("Failed to load image on whiteboard:", url, e);
+                console.warn("Image CORS error, retrying without anonymous:", url);
+                const imgNoCors = new Image();
+                imgNoCors.onload = () => {
+                    const ctx = contextRef.current;
+                    const canvas = canvasRef.current;
+                    if (ctx && canvas) {
+                        const dpr = window.devicePixelRatio || 1;
+                        const cW = canvas.width / dpr, cH = canvas.height / dpr;
+                        ctx.clearRect(0, 0, cW, cH);
+                        ctx.fillStyle = '#ffffff';
+                        ctx.fillRect(0, 0, cW, cH);
+                        const scale = Math.min(cW / imgNoCors.width, cH / imgNoCors.height) * 0.9;
+                        const w = imgNoCors.width * scale, h = imgNoCors.height * scale;
+                        ctx.drawImage(imgNoCors, (cW - w) / 2, (cH - h) / 2, w, h);
+                    }
+                };
+                imgNoCors.onerror = (err) => {
+                    console.error("Failed to load image even without CORS:", url, err);
+                };
+                imgNoCors.src = url;
             };
+            img.crossOrigin = "anonymous";
             img.src = url;
         },
         drawText: (text: string, highlights: { text: string; color?: string }[] = []) => {

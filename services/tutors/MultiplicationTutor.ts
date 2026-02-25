@@ -25,48 +25,89 @@ export class MultiplicationTutor {
         };
         const currentResults = getResults(lastState);
 
-        // --- STEP 1: INITIALIZE & TEACH POSITIONAL VALUE (Socratic Classic) ---
-        if (prob.isNew) {
-            const mDigit = parseInt(n2Str[n2Str.length - 1]);
-            const tDigit = parseInt(n1Str[n1Str.length - 1]);
+        const currentPhase = lastState?.phase || (prob.isNew ? 'init' : 'solving');
 
-            // 🎓 GRADE-BASED PEDAGOGY
+        // =========================================================
+        // 🟢 PHASE: INIT (Greeting + Utility + Alignment)
+        // =========================================================
+        if (currentPhase === 'init') {
             let introEs = "";
             let introEn = "";
             let speechEs = "";
             let speechEn = "";
 
-            if (grade <= 1) { // 1st Grade
-                introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a multiplicar!\n\n¿Cuánto es **${n1} × ${n2}**? Es como sumar **${n1}** varias veces. 🍭`;
-                introEn = `Hi! 🌟 I'm **Professor Lina**. Let's multiply!\n\nHow much is **${n1} × ${n2}**? It's like adding **${n1}** several times. 🍭`;
-                speechEs = `¡Hola! Soy la profe Lina. Multiplicar es como hacer grupos. ¿Cuánto es ${n1} por ${n2}? Puedes imaginar 2 grupos de 3 dulces. ¿Cuántos hay en total?`;
-                speechEn = `Hi! I'm Professor Lina. Multiplying is like making groups. What is ${n1} times ${n2}? You can imagine 2 groups of 3 candies. How many are there in total?`;
-            } else if (grade === 2) { // 2nd Grade
-                introEs = `¡Hola! 👋 Vamos a aprender a multiplicar.\n\nEmpezamos por la derecha 👉 ¿Cuánto es **${mDigit} × ${tDigit}**?`;
-                introEn = `Hi! 👋 Let's learn to multiply.\n\nStart on the right 👉 What is **${mDigit} × ${tDigit}**?`;
-                speechEs = `¡Hola! Vamos a multiplicar estos números. Empezamos por la derecha, por las unidades. ¿Cuánto es ${mDigit} por ${tDigit}?`;
-                speechEn = `Hi! Let's multiply these numbers. We start on the right, with the units. What is ${mDigit} times ${tDigit}?`;
-            } else { // 3rd Grade+
-                introEs = `¡Misión Multiplicación! 🚀 Vamos a resolver **${n1} × ${n2}**.\n\nRecuerda la regla de oro: siempre empezamos por la **derecha** (unidades). 👉\n\nEl **${mDigit}** de abajo visitará primero al **${tDigit}** de arriba. ¿Cuánto es **${mDigit} × ${tDigit}**?`;
-                introEn = `Multiplication Mission! 🚀 Let's solve **${n1} × ${n2}**.\n\nRemember the golden rule: we always start from the **right** (units). 👉\n\nThe **${mDigit}** from below will first visit the **${tDigit}** above. What is **${mDigit} × ${tDigit}**?`;
-                speechEs = `¡Hola campeón! ¡Lista para una súper multiplicación! Vamos a resolver ${n1} por ${n2}. El secreto es empezar por la derecha, por las unidades. ¿Cuánto nos da ${mDigit} por ${tDigit}?`;
-                speechEn = `Hi champion! Ready for a super multiplication? Let's solve ${n1} times ${n2}. The secret is to start on the right, with units. What is ${mDigit} times ${tDigit}?`;
+            if (grade <= 1) {
+                introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a multiplicar!\n\n¿Sabes qué es multiplicar? 🍭 Es como sumar grupos de cosas ricas. ¡Nos ayuda a contar mucho más rápido!\n\nMira la pizarra: alineé los números uno debajo del otro. ¿Los ves listos para jugar?`;
+                introEn = `Hi! 🌟 I'm **Professor Lina**. Let's multiply!\n\nDo you know what multiplying is? 🍭 It's like adding groups of yummy things. It helps us count much faster!\n\nLook at the board: I aligned the numbers one under the other. Are they ready to play?`;
+                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a aprender a multiplicar. Es como un truco de magia para contar súper rápido. Mira la pizarra: puse los números alineaditos. ¿Ya los viste?`;
+                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to learn to multiply. It's like a magic trick for counting super fast. Look at the board: I put the numbers all lined up. Do you see them?`;
+            } else {
+                introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para la Misión Multiplicación!\n\nMultiplicar es una de las herramientas más poderosas 🛠️. Te servirá para calcular áreas, recetas y ¡hasta para programar robots!\n\nPrimero, alineamos los números: **unidades con unidades**. ¿Ves qué bien quedaron en el tablero?`;
+                introEn = `Hi! 👋 I'm **Professor Lina**. Ready for the Multiplication Mission!\n\nMultiplying is one of the most powerful tools 🛠️. It will help you calculate areas, recipes, and even program robots!\n\nFirst, we align the numbers: **units with units**. Do they look good on the board?`;
+                speechEs = `¡Hola! Soy la profe Lina. ¡Qué emoción! Vamos a multiplicar. Esta operación te va a encantar porque te ahorra mucho tiempo al sumar. Mira la pizarra: ¿viste cómo puse los números alineados por unidades?`;
+                speechEn = `Hi! I'm Professor Lina. So excited! Let's multiply. You're going to love this operation because it saves you so much time. Look at the board: did you see how I aligned the numbers by units?`;
             }
 
             return {
                 steps: [{
-                    text: introEs, // Fixed: use grade-based text
+                    text: introEs,
                     speech: lang === 'es' ? speechEs : speechEn,
                     visualType: "vertical_op",
                     visualData: {
                         operand1: n1Str, operand2: n2Str, operator: "×", result: [""],
-                        highlightDigit: { row: 0, col: 0 },
-                        multiplierDigit: { row: 1, col: 0 },
-                        context: lang === 'es' ? "Empezando: Unidades × Unidades" : "Starting: Units × Units"
+                        phase: 'direction_check'
                     },
-                    detailedExplanation: { es: "Inicio de multiplicación", en: "Starting multiplication" }
+                    detailedExplanation: { es: "Introducción y Alineación", en: "Intro and Alignment" }
                 }]
             };
+        }
+
+        // =========================================================
+        // 🟢 PHASE: DIRECTION CHECK (Where do we start?)
+        // =========================================================
+        if (currentPhase === 'direction_check') {
+            const startsRight = cleanInput.includes('derecha') || cleanInput.includes('right') || cleanInput.includes('final') || cleanInput.includes('unidades') || cleanInput.includes('units');
+
+            if (startsRight) {
+                const mDigit = parseInt(n2Str[n2Str.length - 1]);
+                const tDigit = parseInt(n1Str[n1Str.length - 1]);
+
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Eso es! 🎯 En la multiplicación también empezamos siempre por la **derecha**, por las **unidades**.\n\nEl **${mDigit}** de abajo visitará primero al **${tDigit}** de arriba. ¿Cuánto es **${mDigit} × ${tDigit}**?`
+                            : `That's it! 🎯 In multiplication, we also always start on the **right**, with the **units**.\n\nThe **${mDigit}** from below will first visit the **${tDigit}** above. What is **${mDigit} × ${tDigit}**?`,
+                        speech: lang === 'es'
+                            ? `¡Muy bien! Siempre por la derecha. Entonces, el ${mDigit} de abajo multiplica al ${tDigit} de arriba. ¿Cuánto es ${mDigit} por ${tDigit}?`
+                            : `Very good! Always on the right. So, the ${mDigit} below multiplies the ${tDigit} above. What is ${mDigit} times ${tDigit}?`,
+                        visualType: "vertical_op",
+                        visualData: {
+                            operand1: n1Str, operand2: n2Str, operator: "×", result: [""],
+                            highlightDigit: { row: 0, col: 0 },
+                            multiplierDigit: { row: 1, col: 0 },
+                            phase: 'solving'
+                        },
+                        detailedExplanation: { es: "Inicio de cálculos", en: "Starting calculations" }
+                    }]
+                };
+            } else {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Pensemos un momento! 👀 ¿Por dónde empezamos este viaje? ¿Por la **izquierda** o por la **derecha** (unidades)?`
+                            : `Let's think for a moment! 👀 Where do we start this journey? From the **left** or from the **right** (units)?`,
+                        speech: lang === 'es'
+                            ? `¡Hmm! Para que nos salga perfecto, ¿por dónde empezamos? ¿Por la izquierda o por la derecha?`
+                            : `Hmm! To make it perfect, where do we start? From the left or the right?`,
+                        visualType: "vertical_op",
+                        visualData: {
+                            operand1: n1Str, operand2: n2Str, operator: "×", result: [""],
+                            phase: 'direction_check'
+                        },
+                        detailedExplanation: { es: "Pregunta de dirección", en: "Direction question" }
+                    }]
+                };
+            }
         }
 
         // --- STEP 2: HANDLE POSITIONAL IDENTIFICATION ---

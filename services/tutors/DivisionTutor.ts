@@ -39,42 +39,57 @@ export class DivisionTutor {
         // =========================================================
         const isBasicFact = dividend <= 100 && divisor <= 10 && dividend % divisor === 0;
 
-        if (prob.isNew || phase === 'intro') {
+        if (prob.isNew || phase === 'init') {
+            // 🎓 FIRST-TIME INTRO (Greeting + Utility + Setup)
+            let introEs = "";
+            let introEn = "";
+            let speechEs = "";
+            let speechEn = "";
+
+            if (grade <= 1) {
+                introEs = `¡Hola! 🌈 Soy la **Profesora Lina**. ¡Vamos a aprender a repartir!\n\nRepartir es la base de la división. Nos ayuda a compartir dulces con amigos para que todos tengan la misma cantidad. 🍬\n\nMira la pizarra: el número grande (**${dividend}**) está adentro de la casita, y el pequeño (**${divisor}**) está afuera. ¿Los ves listos?`;
+                introEn = `Hi! 🌈 I'm **Professor Lina**. Let's learn to share!\n\nSharing is the basis of division. It helps us share candies with friends so everyone has the same amount. 🍬\n\nLook at the board: the big number (**${dividend}**) is inside the house, and the small one (**${divisor}**) is outside. Ready?`;
+                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a jugar a repartir cosas ricas. Repartir es dividir. Mira la pizarra: el número grande va adentro de la casita y el pequeño afuera. ¿Ya los viste?`;
+                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to play at sharing yummy things. Sharing is dividing. Look at the board: the big number goes inside the house and the small one outside. Do you see them?`;
+            } else {
+                introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para la Misión División!\n\nDividir es un súper poder que usamos para organizar grupos, repartir premios y calcular tiempos ⏳.\n\nPara empezar, recuerda: **el número más grande (${dividend}) va adentro de la casita, y el más pequeño (${divisor}) va afuera.** ¿Están bien colocaditos?`;
+                introEn = `Hi! 👋 I'm **Professor Lina**. Ready for the Division Mission!\n\nDivision is a superpower we use to organize groups, share prizes, and calculate times ⏳.\n\nTo start, remember: **the larger number (${dividend}) goes inside the house, and the smaller one (${divisor}) goes outside.** Are they in their places?`;
+                speechEs = `¡Hola! Soy la profe Lina. ¡Qué alegría! Vamos a aprender a dividir. Es súper útil para cuando tienes que repartir algo entre tus amigos. Mira la pizarra: el secreto es poner el grande adentro y el pequeño afuera. ¿Lo ves?`;
+                speechEn = `Hi! I'm Professor Lina. So glad to see you! Let's learn to divide. It's super useful for when you have to share something with friends. Look at the board: the secret is to put the big one inside and the small one outside. Do you see it?`;
+            }
+
+            return {
+                steps: [{
+                    text: introEs,
+                    speech: lang === 'es' ? speechEs : speechEn,
+                    visualType: "division",
+                    visualData: {
+                        dividend: dividendStr, divisor: divisorStr, quotient: "", divisionStyle: style,
+                        highlight: "all",
+                        phase: 'intro', // Next step will be the standard intro or solving
+                        context: lang === 'es' ? "Alistando la división" : "Setting up division",
+                        isNew: true
+                    },
+                    detailedExplanation: { es: "Introducción y Colocación", en: "Intro and Placement" }
+                }]
+            };
+        }
+
+        if (phase === 'intro') {
             if (isBasicFact || grade <= 2) {
-                // 🎓 GRADE-BASED PEDAGOGY
-                let introEs = "";
-                let introEn = "";
-                let speechEs = "";
-                let speechEn = "";
-
-                if (grade <= 1) { // 1st Grade
-                    introEs = `¡Hola! 🌈 Soy la **Profesora Lina**. ¡Vamos a repartir!\n\nSi tienes **${dividend}** dulces y quieres dárselos a **${divisor}** amigos, ¿cuántos le tocan a cada uno? 🍭`;
-                    introEn = `Hi! 🌈 I'm **Professor Lina**. Let's share!\n\nIf you have **${dividend}** candies and want to give them to **${divisor}** friends, how many does each one get? 🍭`;
-                    speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a aprender a repartir. Imagina que tienes ${dividend} dulces y ${divisor} amigos. ¿Cuántos dulces crees que le tocan a cada uno para que todos estén felices?`;
-                    speechEn = `Hi, sweetie! I'm Professor Lina. Today we're learning to share. Imagine you have ${dividend} candies and ${divisor} friends. How many candies do you think each one gets so everyone is happy?`;
-                } else if (grade === 2) { // 2nd Grade
-                    introEs = `¡Hola! 👋 Vamos a resolver esta división.\n\n¿Qué número multiplicado por **${divisor}** nos da **${dividend}**? Piénsalo como el juego de las tablas. 🎲`;
-                    introEn = `Hi! 👋 Let's solve this division.\n\nWhat number times **${divisor}** gives us **${dividend}**? Think of it as the multiplication table game. 🎲`;
-                    speechEs = `¡Hola! Vamos a repartir estos números. ¿Qué número por ${divisor} nos da ${dividend}? ¡Vamos tú puedes!`;
-                    speechEn = `Hi! Let's share these numbers. What number times ${divisor} equals ${dividend}? You can do it!`;
-                } else { // 3rd Grade+
-                    introEs = `¡Vamos a dividir! 🍬\n\nTenemos **${dividend}** y queremos repartirlo en **${divisor}** grupos iguales.\n\nEl secreto es usar la multiplicación al revés. Mira la tabla del **${divisor}**.\n\n¿Qué número multiplicado por **${divisor}** nos da **${dividend}**?`;
-                    introEn = `Let's divide! 🍬\n\nWe have **${dividend}** and want to share it into **${divisor}** equal groups.\n\nThe secret is using multiplication in reverse. Look at the **${divisor}** times table.\n\nWhat number times **${divisor}** gives **${dividend}**?`;
-                    speechEs = `¡Hola! ¡Qué alegría verte por aquí! Vamos a repartir estos ${dividend} dulces entre ${divisor} amiguitos. ¡Hágale pues! ¿Qué número multiplicado por ${divisor} nos daría justo ${dividend}? Miremos la tabla, ¡pues!`;
-                    speechEn = `Hi there, champ! So glad to see you! Let's share these ${dividend} candies among ${divisor} friends. Let's do it! What number times ${divisor} gives us exactly ${dividend}? Let's check the table!`;
-                }
-
+                // If it's a basic fact, we transition to basic_fact_solve
                 return {
                     steps: [{
-                        text: introEs,
-                        speech: lang === 'es' ? speechEs : speechEn,
+                        text: lang === 'es'
+                            ? `¡Muy bien! Ahora, ¿cuántas veces cabe el **${divisor}** en el **${dividend}**? Piénsalo como el juego de las tablas. 🎲`
+                            : `Very good! Now, how many times does **${divisor}** fit in **${dividend}**? Think of it as the multiplication table game. 🎲`,
+                        speech: lang === 'es' ? `¡Eso es! ¿Cuántas veces cabe el ${divisor} en el ${dividend}?` : `That's it! How many times does ${divisor} fit in ${dividend}?`,
                         visualType: "division",
                         visualData: {
                             dividend: dividendStr, divisor: divisorStr, quotient: "", divisionStyle: style,
                             highlight: "all",
                             phase: 'basic_fact_solve',
-                            context: lang === 'es' ? "Reparto equitativo" : "Fair sharing",
-                            isNew: true
+                            context: lang === 'es' ? "Reparto equitativo" : "Fair sharing"
                         },
                         detailedExplanation: { es: "División básica", en: "Basic division" }
                     }]
@@ -105,8 +120,7 @@ export class DivisionTutor {
                         dividend: dividendStr, divisor: divisorStr, quotient: "", divisionStyle: style,
                         highlightDigit: { row: 0, col: colIdx },
                         phase: 'find_quotient',
-                        context: lang === 'es' ? `Dividiendo ${part}` : `Dividing ${part}`,
-                        isNew: true
+                        context: lang === 'es' ? `Dividiendo ${part}` : `Dividing ${part}`
                     },
                     detailedExplanation: { es: "Inicio algoritmo división", en: "Start division algorithm" }
                 }]
@@ -257,8 +271,8 @@ export class DivisionTutor {
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `¡Sigamos concentrados! 🚀\n\nEstamos dividiendo **${currentVal}** entre **${divisor}**. Mira la tabla del **${divisor}**.\n\n¿Por qué número multiplicamos el **${divisor}** para acercarnos al **${currentVal}** sin pasarnos?`
-                            : `Let's stay focused! 🚀\n\nWe are dividing **${currentVal}** by **${divisor}**. Look at the **${divisor}** table.\n\nWhat number can we multiply **${divisor}** by to get close to **${currentVal}** without going over?`,
+                            ? `¡Sigamos concentrados! 🚀\n\nEstamos dividiendo **${currentVal}** entre **${divisor}**. Mira la tabla del **${divisor}**.\n\n¿Cuántas veces cabe el **${divisor}** en el **${currentVal}**?`
+                            : `Let's stay focused! 🚀\n\nWe are dividing **${currentVal}** by **${divisor}**. Look at the **${divisor}** table.\n\nHow many times does **${divisor}** fit in **${currentVal}**?`,
                         speech: lang === 'es' ? `¿Cuántas veces cabe el ${divisor} en el ${currentVal}?` : `How many times does ${divisor} fit in ${currentVal}?`,
                         visualType: "division",
                         visualData: { ...lastState, context: boardHint, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },

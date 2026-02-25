@@ -42,7 +42,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
     const [showParentPassword, setShowParentPassword] = useState(false);
     const [showStudentPassword, setShowStudentPassword] = useState(false);
     const [isHabeasAccepted, setIsHabeasAccepted] = useState(false);
-    const [regStep, setRegStep] = useState(1); // 1: Parent, 2: Child, 3: WhatsApp, 4: Consent
+    const [regStep, setRegStep] = useState(1); // 1: Parent, 2: Child, 3: Email, 4: Consent
 
     const [savedAvatarId, setSavedAvatarId] = useState<string | null>(() => {
         return localStorage.getItem('nova_avatar_id');
@@ -396,13 +396,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                     {mode === 'PARENT' && regStep === 3 && (
                                         <div className="space-y-4">
                                             <div className="space-y-1">
-                                                <label className="text-[10px] text-stone-400 font-bold uppercase">WhatsApp para Reportes</label>
+                                                <label className="text-[10px] text-stone-400 font-bold uppercase">Email para Reportes</label>
                                                 <input
-                                                    type="tel"
+                                                    type="email"
                                                     value={formData.whatsappPhone}
                                                     onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
                                                     className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-emerald-500 transition-all font-bold placeholder:text-slate-600"
-                                                    placeholder="+57 300..."
+                                                    placeholder="correo@ejemplo.com"
                                                 />
                                                 <p className="text-[10px] text-slate-500 px-1 italic">Recibirás boletines semanales.</p>
                                             </div>
@@ -597,8 +597,8 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                     <h1 className="text-5xl font-bold text-stone-900 mb-2 tracking-tight">
                         Nova Schola
                     </h1>
-                    <p className="text-xl text-indigo-600 font-medium mb-12">
-                        {language === 'es' ? 'La Educación del Futuro' : 'The Future of Education'}
+                    <p className="text-xl text-indigo-600 font-medium mb-12 italic">
+                        {language === 'es' ? 'Primaria Bilingüe Inteligente' : 'Smart Bilingual Elementary'}
                     </p>
                 </div>
             </div>
@@ -650,7 +650,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                         {s < regStep ? '✓' : s}
                                     </div>
                                     <span className={`text-[9px] uppercase font-black tracking-widest ${s === regStep ? 'text-indigo-600' : 'text-stone-400'}`}>
-                                        {s === 1 ? 'Acudiente' : s === 2 ? 'Estudiante' : s === 3 ? 'WhatsApp' : 'Legal'}
+                                        {s === 1 ? 'Acudiente' : s === 2 ? 'Estudiante' : s === 3 ? 'Email' : 'Legal'}
                                     </span>
                                 </div>
                             ))}
@@ -780,17 +780,17 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                         </motion.div>
                                     )}
 
-                                    {/* STEP 3: WhatsApp & Optional Integrations */}
+                                    {/* STEP 3: Email & Optional Integrations */}
                                     {regStep === 3 && (
                                         <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="space-y-6">
                                             <div className="space-y-2">
                                                 <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentPhone}</label>
                                                 <input
-                                                    type="tel"
+                                                    type="email"
                                                     value={formData.whatsappPhone}
                                                     onChange={(e) => setFormData({ ...formData, whatsappPhone: e.target.value })}
                                                     className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-green-500 transition-all font-bold"
-                                                    placeholder="+57 300..."
+                                                    placeholder="correo@ejemplo.com"
                                                 />
                                                 <p className="text-[11px] text-stone-400 italic">{text.parentPhoneDesc}</p>
                                             </div>

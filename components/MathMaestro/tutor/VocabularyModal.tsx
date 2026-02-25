@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { MATH_VOCABULARY, GradeVocabulary, MathTerm } from '../data/MathVocabulary';
+import { AVAILABLE_GRADES } from '@/constants';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { BookOpen, Search, Volume2 } from 'lucide-react';
 import { generateSpeech } from '@/services/edgeTTS';
@@ -46,7 +47,7 @@ export function VocabularyModal() {
                     {/* Sidebar: Grades */}
                     <div className="w-48 bg-white border-r border-slate-200 p-4 flex flex-col gap-2">
                         <label className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Grades / Grados</label>
-                        {[1, 2, 3, 4, 5, 6, 7].map(g => (
+                        {AVAILABLE_GRADES.map(g => (
                             <Button
                                 key={g}
                                 variant={selectedGrade === g ? "default" : "ghost"}

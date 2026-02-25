@@ -453,7 +453,7 @@ export const registerParentAndStudent = async (data: {
   };
 };
 
-export const updateUserProfile = async (uid: string, profileData: { name: string; avatar: string }) => {
+export const updateUserProfile = async (uid: string, profileData: { name?: string; avatar?: string; whatsapp_notifications_enabled?: boolean }) => {
   if (!supabase) return { success: false };
   const { error } = await supabase.from("profiles").update(profileData).eq("id", uid);
   if (error) throw error;
@@ -846,6 +846,61 @@ export const consignToBank = async (studentId: string, amount: number) => {
     });
 
   return !error;
+};
+
+/**
+ * Award coins to BOTH wallet (cash) and bank (savings) in one go.
+ * This is the preferred method for parent rewards to ensure synchronization.
+ */
+export const awardCoinsDual = async (studentId: string, amount: number) => {
+  if (studentId === TEST_PILOT_STUDENT_ID) return true;
+  if (!supabase) return false;
+
+  // 1. Try single dual RPC first (Atomic & High Performance)
+  try {
+    const { data, error } = await supabase.rpc('award_dual_coins_secure', {
+      p_student_id: studentId,
+      p_amount: amount
+    });
+    if (!error && data === true) return true;
+  } catch (e) {
+    console.warn("RPC award_dual_coins_secure failed, trying sequential logic", e);
+  }
+
+  // 2. Sequential Fallback using individual RPCs
+  // (Order matters: award coins first as it's more likely to have the INSERT logic)
+  const coinsSuccess = await adminAwardCoins(studentId, amount);
+  const bankSuccess = await consignToBank(studentId, amount);
+
+  if (coinsSuccess && bankSuccess) return true;
+
+  // 3. Last Resort: Combined direct Upsert (Robust fallback if RPCs are missing/broken)
+  try {
+    const { data: current } = await supabase
+      .from("economy")
+      .select("coins, savings_balance")
+      .eq("user_id", studentId)
+      .maybeSingle();
+
+    const newCoins = (current?.coins || 0) + (coinsSuccess ? 0 : amount);
+    const newSavings = (current?.savings_balance || 0) + (bankSuccess ? 0 : amount);
+
+    if (!coinsSuccess || !bankSuccess) {
+      const { error } = await supabase
+        .from("economy")
+        .upsert({
+          user_id: studentId,
+          coins: newCoins,
+          savings_balance: newSavings,
+          last_updated: new Date().toISOString()
+        });
+      return !error;
+    }
+  } catch (e) {
+    console.error("Critical economy update failure:", e);
+  }
+
+  return coinsSuccess || bankSuccess; // At least partial success is better than nothing in UI
 };
 
 export const adminAwardXP = async (studentId: string, amount: number) => {
@@ -1546,7 +1601,7 @@ export const getAllStudents = async () => {
 
 // --- ADMIN USER MANAGEMENT ---
 
-export const adminCreateUser = async (email: string, password: string, name: string, guardianPhone: string) => {
+export const adminCreateUser = async (email: string, password: string, name: string, guardianPhone: string, gradeLevel: number = 3) => {
   if (!supabase) return { success: false, error: 'No connection' };
 
   // 1. Create auth user
@@ -1555,7 +1610,7 @@ export const adminCreateUser = async (email: string, password: string, name: str
     password,
     options: {
       emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
-      data: { name, role: 'STUDENT', level: 'primary' } // Default metadata
+      data: { name, role: 'STUDENT', level: 'primary', gradeLevel } // Default metadata
     }
   });
 
@@ -1569,6 +1624,7 @@ export const adminCreateUser = async (email: string, password: string, name: str
       name,
       role: 'STUDENT',
       level: 'primary',
+      grade_level: gradeLevel,
       guardian_phone: guardianPhone,
       must_change_password: true
     })
@@ -1577,7 +1633,7 @@ export const adminCreateUser = async (email: string, password: string, name: str
   if (profileError) console.error('Error updating profile:', profileError);
 
   // 3. Initialize economy
-  await supabase.from('economy').insert({ user_id: authData.user.id, coins: 200 });
+  await supabase.from('economy').upsert({ user_id: authData.user.id, coins: 200 }, { onConflict: 'user_id' });
 
   return {
     success: true,

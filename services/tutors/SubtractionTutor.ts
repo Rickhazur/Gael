@@ -171,33 +171,27 @@ export class SubtractionTutor {
             };
         }
 
-        // --- FIRST STEP INTRO ---
-        if (prob.isNew && vColIdx === 0) {
-            const q = col.borrowed
-                ? (lang === 'es' ? `¿A ${col.d1} le podemos quitar ${col.d2}?` : `Can we take ${col.d2} from ${col.d1}?`)
-                : (lang === 'es' ? `¿Cuánto es ${col.d1} menos ${col.d2}?` : `What is ${col.d1} minus ${col.d2}?`);
+        const currentPhase = lastState?.phase || (prob.isNew ? 'init' : 'solving');
 
-            // 🎓 GRADE-BASED PEDAGOGY
+        // =========================================================
+        // 🟢 PHASE: INIT (Greeting + Utility + Alignment)
+        // =========================================================
+        if (currentPhase === 'init') {
             let introEs = "";
             let introEn = "";
             let speechEs = "";
             let speechEn = "";
 
-            if (grade <= 1) { // 1st Grade
-                introEs = `¡Hola! 🦋 Soy la **Profesora Lina**. ¡Vamos a restar!\n\n¿Cuánto es **${prob.n1} − ${prob.n2}**? Puedes usar colores o contar hacia atrás. 🎨`;
-                introEn = `Hi! 🦋 I'm **Professor Lina**. Let's subtract!\n\nHow much is **${prob.n1} − ${prob.n2}**? You can use colors or count backwards. 🎨`;
-                speechEs = `¡Hola! Soy la profe Lina. Hoy vamos a jugar a quitar cosas. ¿Cuánto es ${prob.n1} menos ${prob.n2}? Puedes imaginar que tienes caramelos y me das algunos. ¿Cuántos te quedan?`;
-                speechEn = `Hi! I'm Professor Lina. Today we're going to play at taking things away. What is ${prob.n1} minus ${prob.n2}? You can imagine you have candies and give me some. How many do you have left?`;
-            } else if (grade === 2) { // 2nd Grade
-                introEs = `¡Hola! 👋 Vamos a restar estos números.\n\nEmpezamos por la derecha 👉 **${q}**`;
-                introEn = `Hi! 👋 Let's subtract these numbers.\n\nStart on the right 👉 **${q}**`;
-                speechEs = `¡Hola! Vamos a restar. Siempre empezamos por el ladito de la derecha. ${q}`;
-                speechEn = `Hi! Let's subtract. We always start on the right side. ${q}`;
-            } else { // 3rd Grade+
-                introEs = `¡Vamos a restar! 📉 **${prob.n1} − ${prob.n2}**\n\nEmpezamos por la derecha 👉 **${q}**`;
-                introEn = `Let's subtract! 📉 **${prob.n1} − ${prob.n2}**\n\nStart on the right 👉 **${q}**`;
-                speechEs = `¡Misión resta activada! Empezamos por la derecha. ${q}`;
-                speechEn = `Subtraction mission activated! Start on the right. ${q}`;
+            if (grade <= 1) {
+                introEs = `¡Hola! 🦋 Soy la **Profesora Lina**. ¡Vamos a restar!\n\n¿Sabes por qué es útil restar? 🎨 Nos ayuda a saber cuántas cosas nos quedan después de regalar o usar algunas. ¡Como cuando compartes tus dulces!\n\nMira el tablero: puse los números uno debajo del otro, bien ordenaditos. ¿Los ves?`;
+                introEn = `Hi! 🦋 I'm **Professor Lina**. Let's subtract!\n\nDo you know why subtracting is useful? 🎨 It helps us know how many things we have left after giving away or using some. Like when you share your candies!\n\nLook at the board: I put the numbers one under the other, very neat. Do you see them?`;
+                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a restar. Restar es genial para saber cuánto te queda de algo rico. Mira cómo puse los números en la pizarra. ¿Están bien peinaditos uno debajo del otro?`;
+                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to subtract. Subtracting is great for knowing how much you have left of something yummy. Look how I placed the numbers on the board. Are they nicely lined up?`;
+            } else {
+                introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Preparados para restar!\n\nLa resta es como un juego de quitar pistas 🔍. Nos sirve para calcular vueltos, distancias y tiempos.\n\nPrimero, alineé los números: **unidades con unidades** y **decenas con decenas**. ¿Los ves listos en su lugar?`;
+                introEn = `Hi! 👋 I'm **Professor Lina**. Ready to subtract!\n\nSubtraction is like a game of taking away clues 🔍. It helps us calculate change, distances, and times.\n\nFirst, I aligned the numbers: **units with units** and **tens with tens**. Do they look ready?`;
+                speechEs = `¡Hola! Soy la profe Lina. ¡Vamos a restar! Esta operación es súper útil para cuando vas a la tienda. Mira la pizarra: los números están alineaditos, uno debajo del otro. ¿Ya los viste?`;
+                speechEn = `Hi! I'm Professor Lina. Let's subtract! This operation is super useful for when you go to the store. Look at the board: the numbers are all lined up, one under the other. Do you see them?`;
             }
 
             return {
@@ -205,10 +199,62 @@ export class SubtractionTutor {
                     text: lang === 'es' ? introEs : introEn,
                     speech: lang === 'es' ? speechEs : speechEn,
                     visualType: "vertical_op",
-                    visualData: { operand1: s1, operand2: s2, operator: "-", result: "", highlightDigit: { row: 0, col: 0 } },
-                    detailedExplanation: { es: "Inicio de resta", en: "Starting subtraction" }
+                    visualData: {
+                        operand1: s1, operand2: s2, operator: "-", result: "",
+                        phase: 'direction_check'
+                    },
+                    detailedExplanation: { es: "Introducción y Alineación", en: "Intro and Alignment" }
                 }]
             };
+        }
+
+        // =========================================================
+        // 🟢 PHASE: DIRECTION CHECK (Where do we start?)
+        // =========================================================
+        if (currentPhase === 'direction_check') {
+            const cleanInput = input.toLowerCase();
+            const startsRight = cleanInput.includes('derecha') || cleanInput.includes('right') || cleanInput.includes('final') || cleanInput.includes('unidades') || cleanInput.includes('units');
+
+            if (startsRight) {
+                const q = col.borrowed
+                    ? (lang === 'es' ? `¿A ${col.d1} le podemos quitar ${col.d2}?` : `Can we take ${col.d2} from ${col.d1}?`)
+                    : (lang === 'es' ? `¿Cuánto es ${col.d1} menos ${col.d2}?` : `What is ${col.d1} minus ${col.d2}?`);
+
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Exacto! 🎯 Siempre empezamos por la **derecha**, por las **unidades**.\n\nAhora sí, **${q}**`
+                            : `Exactly! 🎯 We always start on the **right**, with the **units**.\n\nNow, **${q}**`,
+                        speech: lang === 'es'
+                            ? `¡Eso es! Muy bien. Siempre empezamos por la derecha. Entonces, ${q}`
+                            : `That's it! Very good. We always start on the right. So, ${q}`,
+                        visualType: "vertical_op",
+                        visualData: {
+                            operand1: s1, operand2: s2, operator: "-", result: "",
+                            highlightDigit: { row: 0, col: 0 },
+                            phase: 'solving'
+                        },
+                        detailedExplanation: { es: "Inicio de cálculos", en: "Starting calculations" }
+                    }]
+                };
+            } else {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Miremos con cuidado! 👀 Para que la resta salga perfecta, ¿empezamos por la **izquierda** o por la **derecha** (las unidades)?`
+                            : `Let's look carefully! 👀 To make the subtraction perfect, do we start from the **left** or from the **right** (the units)?`,
+                        speech: lang === 'es'
+                            ? `¡Pensemos un poquito! Para no equivocarnos, ¿por dónde empezamos? ¿Por la izquierda o por la derecha?`
+                            : `Let's think for a bit! To avoid mistakes, where do we start? From the left or the right?`,
+                        visualType: "vertical_op",
+                        visualData: {
+                            operand1: s1, operand2: s2, operator: "-", result: "",
+                            phase: 'direction_check'
+                        },
+                        detailedExplanation: { es: "Pregunta de dirección", en: "Direction question" }
+                    }]
+                };
+            }
         }
 
         // --- CHECK BORROW INTERACTION ---

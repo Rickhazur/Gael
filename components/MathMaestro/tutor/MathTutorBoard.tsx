@@ -78,9 +78,10 @@ interface MathTutorBoardProps {
     userName?: string;
     userId?: string;
     onNavigate?: (view: ViewState) => void;
+    initialProblem?: string;
 }
 
-export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate }: MathTutorBoardProps) {
+export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate, initialProblem }: MathTutorBoardProps) {
     const { language, setLanguage } = useLearning();
     const { hasPet, setIsPetPanelOpen, completeLesson } = usePetContext();
     const effectiveLanguage = (language === 'bilingual' ? 'es' : language) as 'es' | 'en';
@@ -615,6 +616,22 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate 
         }
         setLastDrawnText(trimmed);
     };
+
+    // Handle initialProblem via prop for unified Math Center
+    useEffect(() => {
+        if (sessionState !== 'ready' || !whiteboardRef.current || !chatRef.current || !initialProblem) return;
+
+        requestAnimationFrame(() => {
+            handleIntelligentDraw(initialProblem);
+        });
+        const xml = generateBlocklyFromText(initialProblem);
+        if (xml) setBlocklyXml(xml);
+        // Add a slight delay to ensure chat is fully ready before sending
+        setTimeout(() => {
+            chatRef.current?.analyzeText(initialProblem);
+        }, 500);
+
+    }, [initialProblem, sessionState]);
 
     // NEW: Trigger Session Start ONCE when state becomes ready and component is mounted
     const [lastDrawnText, setLastDrawnText] = useState("");
@@ -1451,6 +1468,9 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                         onPersistProgress={(operationType) => {
                             if (userId) recordMathTutorCompletion(userId, operationType, true);
                             recordMathAttempt(operationType, true);
+                        }}
+                        onExerciseError={(operationType) => {
+                            recordMathAttempt(operationType, false);
                         }}
                     />
 

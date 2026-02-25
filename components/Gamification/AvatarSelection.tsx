@@ -5,6 +5,7 @@ import { useAvatar } from '@/context/AvatarContext';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { Check, Sparkles, ArrowRight, GraduationCap } from 'lucide-react';
+import { AVAILABLE_GRADES } from '@/constants';
 import { motion } from 'framer-motion';
 
 interface AvatarSelectionProps {
@@ -17,8 +18,8 @@ interface AvatarSelectionProps {
 export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectionProps) {
     const { setAvatar } = useAvatar();
     const [selectedId, setSelectedId] = useState<string | null>(null);
-    const [selectedGrade, setSelectedGrade] = useState<1 | 2 | 3 | 4 | 5 | 6 | 7>(
-        (initialGrade >= 1 && initialGrade <= 7 ? initialGrade : 4) as 1 | 2 | 3 | 4 | 5 | 6 | 7
+    const [selectedGrade, setSelectedGrade] = useState<number>(
+        (AVAILABLE_GRADES.includes(initialGrade) ? initialGrade : AVAILABLE_GRADES[0])
     );
 
     const activeAvatars = AVATARS.filter(a => a.grade === selectedGrade || a.grade === 0);
@@ -47,11 +48,11 @@ export function AvatarSelection({ initialGrade = 4, onComplete }: AvatarSelectio
                     {/* Show grade title instead of selector if we are enforcing it */}
                     {!initialGrade ? (
                         <div className="flex flex-wrap items-center justify-center gap-2 bg-slate-800/50 p-2 rounded-xl backdrop-blur-sm border border-slate-700">
-                            {[1, 2, 3, 4, 5, 6, 7].map((g) => (
+                            {AVAILABLE_GRADES.map((g) => (
                                 <Button
                                     key={g}
                                     variant={selectedGrade === g ? "default" : "ghost"}
-                                    onClick={() => { setSelectedGrade(g as any); setSelectedId(null); }}
+                                    onClick={() => { setSelectedGrade(g); setSelectedId(null); }}
                                     className={cn(
                                         "h-10 rounded-lg font-bold transition-all",
                                         selectedGrade === g

@@ -1,5 +1,6 @@
 import React from 'react';
 import type { Grade } from '@/types/research';
+import { AVAILABLE_GRADES } from '@/constants';
 import { cn } from '@/lib/utils';
 
 interface GradeSelectorProps {
@@ -9,8 +10,8 @@ interface GradeSelectorProps {
 }
 
 const gradeLabels = {
-  es: ['1º', '2º', '3º', '4º', '5º', '6º', '7º'],
-  en: ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th'],
+  es: ['1º', '2º', '3º', '4º', '5º'],
+  en: ['1st', '2nd', '3rd', '4th', '5th'],
 };
 
 const gradeColors = [
@@ -19,8 +20,6 @@ const gradeColors = [
   'bg-grade-3 hover:bg-grade-3/90 text-foreground',
   'bg-grade-4 hover:bg-grade-4/90',
   'bg-grade-5 hover:bg-grade-5/90',
-  'bg-grade-6 hover:bg-grade-6/90',
-  'bg-grade-7 hover:bg-teal-500',
 ];
 
 export function GradeSelector({ grade, onChange, language }: GradeSelectorProps) {
@@ -32,7 +31,7 @@ export function GradeSelector({ grade, onChange, language }: GradeSelectorProps)
         {language === 'es' ? 'Grado:' : 'Grade:'}
       </span>
       <div className="flex gap-1.5">
-        {([1, 2, 3, 4, 5, 6, 7] as Grade[]).map((g, i) => (
+        {(AVAILABLE_GRADES as Grade[]).map((g, i) => (
           <button
             key={g}
             onClick={() => onChange(g)}

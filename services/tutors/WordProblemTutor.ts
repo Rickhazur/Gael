@@ -172,9 +172,9 @@ export class WordProblemTutor {
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `🧩 **Vamos a analizar este problema juntos** 😊\n\nIdentifiquemos primero los **datos** importantes. Mira el tablero: resalté las fracciones y las **palabras clave**.\n\n👉 **¿Cuál es el primer dato?** (Es el que está en **rojo** / ${primerDatoLabel})`
-                            : `🧩 **Let's analyze this problem together** 😊\n\nFirst, let's identify the important **data**. Look at the board: I've highlighted the fractions and **keywords**.\n\n👉 **What is the first data point?** (It's the one in **red** / ${primerDatoLabel})`,
-                        speech: lang === 'es' ? 'Miremos el primer dato. ¿Cuál es?' : 'Let\'s look at the first piece of data. What is it?',
+                            ? `¡Hola! 🕵️‍♀️ Soy la **Profesora Lina**. **Vamos a analizar este problema juntos** 😊\n\nIdentifiquemos primero los **datos** importantes. Mira el tablero: resalté las fracciones y las **palabras clave**.\n\n👉 **¿Cuál es el primer dato?** (Es el que está en **rojo** / ${primerDatoLabel})`
+                            : `Hi! 🕵️‍♀️ I'm **Professor Lina**. **Let's analyze this problem together** 😊\n\nFirst, let's identify the important **data**. Look at the board: I've highlighted the fractions and **keywords**.\n\n👉 **What is the first data point?** (It's the one in **red** / ${primerDatoLabel})`,
+                        speech: lang === 'es' ? '¡Hola detective! Soy la profe Lina. Miremos el primer dato. ¿Cuál es?' : 'Hi detective! I\'m Professor Lina. Let\'s look at the first piece of data. What is it?',
                         visualType: 'text_only',
                         visualData: visualDataWithProblem(prob, null, { wpPhase: 'dato_1' }),
                         detailedExplanation: { es: 'Paso 1: Primer dato', en: 'Step 1: First datum' },

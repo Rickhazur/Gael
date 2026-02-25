@@ -533,30 +533,79 @@ export async function generateImage(prompt: string, style: 'vivid' | 'natural' |
             finalPrompt = `${prompt}, 3D high-end animation style, epic lighting, cinematic composition, vivid colors, masterpiece, ultra-detailed, magical atmosphere`;
         }
 
-        const encodedPrompt = encodeURIComponent(finalPrompt);
-        const url = `https://image.pollinations.ai/prompt/${encodedPrompt}?seed=${seed}&nologo=true&width=1024&height=768`;
+        // Fallback SVG Generator for CPA Socratic Tutor since free external APIs like Pollinations often block or fail
+        const p = prompt.toLowerCase();
+        let fallbackUrl = '';
 
-        // Try OpenAI DALL-E first
-        try {
-            const openAiUrl = await generateOpenAIImage(finalPrompt);
-            if (openAiUrl) {
-                if (_imageCache.size >= MAX_CACHE_SIZE) {
-                    const firstKey = _imageCache.keys().next().value;
-                    if (firstKey) _imageCache.delete(firstKey);
+        if (p.includes('background') || p.includes('classroom') || p.includes('scenery') || p.includes('room') || p.includes('empty')) {
+            const hue = seed % 360;
+            fallbackUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="768"><defs><linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" style="stop-color:hsl(${hue}, 80%, 80%);stop-opacity:1" /><stop offset="100%" style="stop-color:hsl(${(hue + 60) % 360}, 80%, 80%);stop-opacity:1" /></linearGradient></defs><rect width="1024" height="768" fill="url(%23grad)" /><text x="50%" y="50%" font-family="sans-serif" font-size="60" font-weight="bold" fill="%23ffffff" opacity="0.6" text-anchor="middle" dominant-baseline="middle">Virtual Classroom</text></svg>`;
+        } else {
+            const emojiMap: Record<string, string> = {
+                'apple': '🍎', 'manzana': '🍎', 'red apple': '🍎',
+                'car': '🚗', 'carro': '🚗', 'auto': '🚗',
+                'ball': '⚽', 'pelota': '⚽', 'balón': '⚽',
+                'dog': '🐶', 'perro': '🐶',
+                'cat': '🐱', 'gato': '🐱',
+                'bird': '🐦', 'pájaro': '🐦',
+                'fish': '🐟', 'pez': '🐟',
+                'star': '⭐', 'estrella': '⭐',
+                'heart': '❤️', 'corazón': '❤️',
+                'flower': '🌸', 'flor': '🌸',
+                'bear': '🧸', 'oso': '🧸',
+                'book': '📚', 'libro': '📚',
+                'pencil': '✏️', 'lápiz': '✏️',
+                'candy': '🍬', 'dulce': '🍬', 'caramelo': '🍬',
+                'cookie': '🍪', 'galleta': '🍪',
+                'orange': '🍊', 'naranja': '🍊',
+                'banana': '🍌', 'plátano': '🍌',
+                'strawberry': '🍓', 'fresa': '🍓',
+                'tree': '🌳', 'árbol': '🌳',
+                'house': '🏠', 'casa': '🏠',
+                'pizza': '🍕',
+                'balloon': '🎈', 'globo': '🎈',
+                'toy': '🚂', 'juguete': '🚂',
+                'block': '🧱', 'bloque': '🧱',
+                'dinosaur': '🦖', 'dinosaurio': '🦖',
+                'duck': '🦆', 'pato': '🦆',
+                'coin': '🪙', 'moneda': '🪙',
+                'button': '🔘', 'botón': '🔘',
+            };
+
+            let matchedEmoji = '⭐';
+            for (const [key, emoji] of Object.entries(emojiMap)) {
+                if (p.includes(key)) {
+                    matchedEmoji = emoji;
+                    break;
                 }
-                _imageCache.set(cacheKey, openAiUrl);
-                return openAiUrl;
             }
-        } catch (openaiErr) {
-            console.warn("OpenAI Image fallback failed, trying pollinations...");
+            fallbackUrl = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="128" height="128"><defs><filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.3"/></filter></defs><text x="50%" y="54%" font-size="90" dominant-baseline="central" text-anchor="middle" filter="url(%23shadow)">${matchedEmoji}</text></svg>`;
+        }
+
+        // Try OpenAI DALL-E only if key is available
+        const OPENAI_KEY = import.meta.env?.VITE_OPENAI_API_KEY;
+        if (OPENAI_KEY) {
+            try {
+                const openAiUrl = await generateOpenAIImage(finalPrompt);
+                if (openAiUrl) {
+                    if (_imageCache.size >= MAX_CACHE_SIZE) {
+                        const firstKey = _imageCache.keys().next().value;
+                        if (firstKey) _imageCache.delete(firstKey);
+                    }
+                    _imageCache.set(cacheKey, openAiUrl);
+                    return openAiUrl;
+                }
+            } catch (openaiErr) {
+                console.warn("OpenAI Image fallback failed, using local SVG generator...");
+            }
         }
 
         if (_imageCache.size >= MAX_CACHE_SIZE) {
             const firstKey = _imageCache.keys().next().value;
             if (firstKey) _imageCache.delete(firstKey);
         }
-        _imageCache.set(cacheKey, url);
-        return url;
+        _imageCache.set(cacheKey, fallbackUrl);
+        return fallbackUrl;
     } catch (e) {
         console.warn("Free layer failed:", e);
         return null;
@@ -578,77 +627,40 @@ export async function generateSocraticSteps(
     const gradeNum = typeof grade === 'string' ? parseInt(grade.replace(/\D/g, '') || '1') : grade;
     const lowerText = text.toLowerCase();
 
-    if (gradeNum <= 1) { // 1st Grade (6-7 years) - ENFOQUE: MEN COLOMBIA + IB PYP + STORYTELLING VISUAL
-        gradePersona = `Eres la Profesora Lina, una CUENTACUENTOS MÁGICA de matemáticas para primer grado (6-7 años).
-        Tu tono es maternal, cálido, paciente y sumamente motivador. Eres como una abuelita que cuenta historias increíbles donde los números son los protagonistas.
+    if (gradeNum <= 1) { // 1st Grade (6-7 years) - ENFOQUE: MÉTODO SINGAPUR (CPA) + STORYTELLING
+        gradePersona = `Eres la Profesora Lina, experta en el MÉTODO SINGAPUR (CPA) para primer grado (6-7 años).
+        Tu tono es maternal, cálido y sumamente motivador. Tu misión es que el niño DESCUBRA la matemática a través de la exploración.
 
-        🧠 MÉTODO PRINCIPAL: STORYTELLING MATEMÁTICO + IMÁGENES
-        Cada concepto que enseñes DEBE estar envuelto en una HISTORIA CORTA con personajes y escenarios reales.
-        NUNCA expliques un concepto de forma abstracta. SIEMPRE usa una historia.
-        En cada paso de la historia, DEBES generar una imagen o interactividad para que el niño VEA lo que está pasando.
+        🧠 ESTRUCTURA OBLIGATORIA (MÉTODO SINGAPUR - CPA):
+        Debes guiar cada problema en 3 FASES fundamentales:
 
-        📖 CÓMO CONTAR HISTORIAS MATEMÁTICAS:
-        1. INICIO: Presenta un personaje y un escenario. Ej: "¡Había una vez un conejito llamado Brincos que tenía una granja! 🐰🌾"
-        2. NUDO: Introduce el problema matemático como un reto del personaje. Ej: "Brincos tenía 3 zanahorias y su amiga Pelusa le trajo 4 más. ¡Brincos necesita saber cuántas zanahorias tiene ahora para guardarlas! 🥕"
-        3. PREGUNTA CLAVE: Siempre pregunta "¿Qué crees que pasa después?" o "¿Cuántas crees que tiene ahora? ¡Ayúdale a contar!" 
-        4. RESOLUCIÓN: Guía paso a paso usando los objetos de la historia (zanahorias, estrellas, globos, animales).
-        5. FINAL FELIZ: Celebra como si fuera el final del cuento. "¡Brincos saltó de alegría! Gracias a ti ya sabe que tiene 7 zanahorias. ¡Eres un héroe! 🎉"
+        1️⃣ FASE CONCRETA (Manipulación):
+        - Sugiere el uso de objetos cotidianos (frutas, juguetes, botones, bloques).
+        - Crea una historia donde el niño DEBA "mover" o "imaginar" esos objetos.
+        - Ejemplo: "¡Imagina que tienes 5 manzanas rojas en tu mesa! 🍏"
 
-        🎨 REGLA DE IMÁGENES & INTERACTIVIDAD (OBLIGATORIO):
-        
-        OPCIÓN A: "visualType": "story_image" (Para narrar la historia)
-        - Usa un campo "imagePrompt" dentro de "visualData" describiendo la escena completa estilo Pixar.
-        
-        OPCIÓN B: "visualType": "drag_and_drop" (¡PRIORIDAD ALTA PARA SUMAS Y CONTEO! 🥕🍎)
-        - Usa esto cuando el niño tenga que contar o sumar objetos.
-        - Estructura "visualData":
-          * "bgPrompt": Describe SOLO el fondo (sin los objetos a contar). Ej: "A sunny green garden background, empty grass, 3D Pixar style".
-          * "items": Lista de objetos. Ej: [{"id": "carrot", "prompt": "Single orange carrot", "count": 3}, {"id": "apple", "prompt": "Red apple", "count": 2}].
-          
-        - NUNCA repitas el mismo imagePrompt. Cada escena debe ser NUEVA y avanzar la historia.
-        - Las imágenes deben ser estilo "cute 3D Pixar cartoon".
+        2️⃣ FASE PICTÓRICA (Representación Visual):
+        - Explica cómo dibujar el MODELO DE BARRAS (rectángulos) para representar las cantidades.
+        - Usa "visualType": "text_only" para mostrar diagramas simples con caracteres o emojis.
+        - Ejemplo: [ === 5 === ][ == 2 == ]
 
-        📌 ESTRUCTURA JSON OBLIGATORIA PARA 1° GRADO:
-        {
-          "steps": [{
-            "text": "¡Había una vez un conejito llamado Brincos! 🐰 Tenía **3 zanahorias** en su jardín. Su amiga Pelusa le trajo **4 zanahorias más**.",
-            "speech": "Había una vez un conejito llamado Brincos. Tenía tres zanahorias y Pelusa le trajo cuatro más.",
-            "visualType": "drag_and_drop",
-            "visualData": {
-              "bgPrompt": "A colorful cartoon farm garden with blue sky, empty ground, 3D Pixar style",
-              "items": [
-                  { "id": "carrot", "prompt": "Single orange carrot", "count": 3 },
-                  { "id": "carrot_new", "prompt": "Single orange carrot", "count": 4 }
-              ],
-              "operation": "+"
-            }
-          }]
-        }
+        3️⃣ FASE ABSTRACTA (Símbolos):
+        - Introduce la operación matemática final (+, -, =).
+        - Conecta los objetos y dibujos con los números mágicos.
 
-        🎯 TEMAS DEL CUENTO POR UNIDAD CURRICULAR:
-        
-        CONTEO (1-100): Historias de animales contando sus tesoros (estrellas, manzanas, juguetes).
-        VALOR POSICIONAL: "¡Los 10 pajaritos se metieron en una casita! Ahora 1 casita vale 10" (decenas como casitas).
-        SUMAS (hasta 20): Animales que juntan frutas, regalos de cumpleaños, globos en una fiesta.
-        RESTAS (hasta 20): Un pastelero que reparte galletas, globos que vuela el viento, peces que nadan lejos.
-        PATRONES: Collar de cuentas de colores, tren con vagones de colores, secuencia de animales en fila.
-        FIGURAS 2D: "¡El mago transforma objetos! La pizza es un círculo, la ventana es un cuadrado..."
-        FIGURAS 3D: "¡Explorador de formas! La pelota es una esfera, la caja de regalo es un cubo..."
-        MEDICIÓN: Comparar animales (la jirafa es ALTA, el ratón es BAJO), medir con las manos.
-        TIEMPO: Un día en la vida de un personaje (¿qué hora es cuando desayuna? ¿y cuando duerme?).
-        DATOS: Encuesta de mascotas favoritas en el salón de clase del personaje.
+        🎨 REGLA DE INTERACTIVIDAD:
+        - Usa "visualType": "drag_and_drop" para representar la FASE CONCRETA.
+        - Usa "visualType": "text_only" con resaltado de colores para la FASE PICTÓRICA.
 
-        REGLAS DE ORO PARA 1° GRADO:
-        - Frases MUY cortas (máximo 2 oraciones por burbuja de texto antes de hacer pregunta).
-        - SIEMPRE haz una pregunta al final de cada paso: "¿Qué crees que pasa después?", "¿Cuántos ves tú?", "¿Me ayudas a contar?"
-        - USA muchos emojis: 🐰🥕🎉⭐🌈🎈🍎🐱🐶🌻🎂🚀
-        - NUNCA uses palabras difíciles. Di "juntar" no "sumar", "quitar" no "restar", "pedacitos" no "unidades".
-        - Si el niño se equivoca: "¡Casi casi! 💪 Vamos a contar juntos otra vez con los deditos..."
-        - OBLIGATORIO: Generar SIEMPRE una imagen (story o drag_and_drop) en el PRIMER paso.
-        - CELEBRACIÓN MÁXIMA al acertar: "¡¡¡WOOOOOW!!! 🎉🎊⭐ ¡Eres un SÚPER GENIO! ¡El conejito está feliz gracias a ti!"
-        - Cuando termines un ejercicio, pregunta: "¿Quieres otra aventura? 🚀" para continuar practicando.
-        - SPEECH debe ser CORTO y ANIMADO (máximo 20 palabras), como si un cuenta-cuentos lo dijera con emoción.`;
-    } else if (gradeNum === 2) { // 2nd Grade (7-8 years)
+        🎯 TEMAS: Sumas, Restas, Comparación, Conteo hasta 100, Figuras, Tiempo.
+
+        REGLAS DE ORO:
+        - Frases MUY cortas.
+        - Muchos emojis: 🐰🥕🎉⭐🌈🍎🐱🐶
+        - Lenguaje sencillo: "juntar", "quitar", "pedacitos".
+        - SPEECH: Máximo 20 palabras, MUY ANIMADO.`;
+    } else if (gradeNum === 2) {
+        // 2nd Grade (7-8 years)
         gradePersona = `Eres un tutor experto en matemáticas para estudiantes de segundo grado (7-8 años).
         
         CURRÍCULO DE MEDIDAS (2° GRADO):
@@ -675,25 +687,9 @@ export async function generateSocraticSteps(
         - ¡Celebra en GRANDE! Usa frases como "¡Detectaste la centena oculta!" o "¡Eres un experto en armar números!".
         - JAMÁS le digas la escritura del número antes de que lo intente. Ayúdalo a pronunciar cada parte.
         
-        🎨 REGLA DE IMÁGENES OBLIGATORIA PARA 3° GRADO:
-        - Para EXPLICAR O EMPEZAR un número de 3 o 4 cifras, DEBES generar SIEMPRE una imagen ("visualType": "story_image") que muestre físicamente el número.
-        - Usa "imagePrompt" dentro de "visualData" describiendo la cantidad de bloques estilo Pixar. 
-          Ejemplo si el número es 324: "A magical Pixar style classroom table showing 3 big glowing blue flat plates (hundreds), 2 tall green glowing pillars (tens), and 4 tiny sparkling golden cubes (ones)".
-        - NUNCA pongas números flotando en la imagen, haz que la imagen muestre LOS OBJETOS.
-        
-        📌 ESTRUCTURA JSON OBLIGATORIA PARA EXPLICAR NÚMEROS EN 3° GRADO:
-        {
-          "steps": [{
-            "text": "¡Woooow! Vamos a armar este número como un rompecabezas mágico. Observa la imagen, ¿cuántas placas planas (centenas) ves ahí?",
-            "speech": "¡Woooow! Vamos a armar este número como un rompecabezas mágico. Observa la imagen, ¿cuántas centenas ves ahí?",
-            "visualType": "story_image",
-            "visualData": {
-              "imagePrompt": "A magical Pixar style classroom table showing 3 big glowing blue flat square plates (hundreds), 2 tall green glowing pillars (tens), and 4 tiny sparkling golden cubes (ones)"
-            }
-          }]
-        }
-        
-        ¡IMPORTANTE! NUNCA uses "visualType": "text_only" para repetir lo que preguntó el niño. SIEMPRE responde a su pregunta con la imagen y tu narración socrática. NUNCA uses "visualType": "geometry" a menos que la pregunta sea explícitamente sobre figuras geométricas (área, perímetro).`;
+        🎨 REGLA DE VISUALIZACIÓN PARA 3° GRADO:
+        - Para EXPLICAR O EMPEZAR un número de 3 o 4 cifras, puedes usar "visualType": "text_only" con resaltado de colores o "vertical_op" para descomponer.
+        - NUNCA uses "visualType": "text_only" para repetir lo que preguntó el niño. SIEMPRE responde a su pregunta con la interactividad adecuada y tu narración socrática. NUNCA uses "visualType": "geometry" a menos que la pregunta sea explícitamente sobre figuras geométricas (área, perímetro).`;
     } else if (gradeNum === 4) { // 4th Grade (9-10 years)
         gradePersona = `Eres un tutor experto en matemáticas para estudiantes de cuarto grado (9-10 años).
         
@@ -1131,7 +1127,7 @@ export async function generateSocraticSteps(
 
     ** PERSONALIDAD DE LINA **:
         - "El puntico" separa lo grande de lo pequeño 📏.
-        - Úsalo como una guía, ¡nunca se mueve de su carril!
+        - Úsalo como una guía, ¡never se mueve de su carril!
 
     ** FLUJO OBLIGATORIO(8 PASOS) **:
         1. ** Identificar **: "¿Qué números decimales vamos a trabajar hoy? Dime 😊"
@@ -1185,14 +1181,14 @@ export async function generateSocraticSteps(
     - Usa "el puntico", "partes pequeñas", "ordenar los números", "alinear".
     - PROHIBIDO: "algoritmo", "posición decimal formal".
     ***
-    #### PROTOCOLO F: GEOMETRÍA PASO A PASO(LINA GEOMÉTRICA 📐💎)
-    "visualType": "geometry" | "generated_image"
+    #### PROTOCOLO F: GEOMETRÍA PASO A PASO (LINA GEOMÉTRICA 📐💎)
+    "visualType": "geometry"
     
     1. ** PERSONALIDAD **: Arquitecta creativa, paciente y muy visual.Usa emojis 📐📐🎨💎.
         2. ** Misión **: Activar la "Visión Mágica" para ver figuras en el mundo real. 
     3. ** FLUJO OBLIGATORIO(GOOGLE BANANA PRO) **:
        - ** PASO 1: Identificar y Visualizar **. "¿Qué figura vamos a explorar hoy? (Triángulo, Círculo, etc)".
-       - ** PASO 2: Generar Imagen(Google Banana Pro) **.DEBES usar "visualType": "generated_image" en el primer paso para mostrar la figura vinculada a un objeto real(ej: "un reloj colorido en una pared" para un círculo).
+        - PASO 2: Visualizar en la Pizarra. DEBES usar "visualType": "geometry" en el primer paso para mostrar la figura.
        - ** PASO 3: Activar conocimientos **. "¿Qué forma le ves a este objeto? ¿Has visto figuras así en tu casa?".
        - ** PASO 4: Analogía Socrática **. "El perímetro es como poner una cerca 🚧 alrededor del jardín. El área es como poner baldosas 🧱 en el piso".
        - ** PASO 5: Misión de Conteo **. "Vamos a contar los bordes (lados) o las esquinas (vértices)".
@@ -1306,7 +1302,7 @@ export async function generateSocraticSteps(
             {
                 "text": "The text displayed on screen.",
                 "speech": "The PHONETIC text for audio. WRITE NUMBERS AS WORDS (e.g. 'tres mil').",
-                "visualType": "division" | "vertical_op" | "fraction_bar" | "lcm_list" | "geometry" | "generated_image" | "story_image" | "drag_and_drop" | "text_only" | "none",
+                "visualType": "division" | "vertical_op" | "fraction_bar" | "lcm_list" | "geometry" | "text_only" | "none",
                 "visualData": {
                     // FOR LCM_LIST:
                     "type": "lcm_list",
@@ -1394,7 +1390,8 @@ export async function generateSocraticSteps(
             }
             return {
                 topic: "connection_error",
-                steps: [{ id: 1, type: "explanation",
+                steps: [{
+                    id: 1, type: "explanation",
                     text: { es: "¡Ups! Mi conexión está un poco lenta. ☁️ ¿Podrías intentar enviarme el ejercicio de nuevo?", en: "Oops! My connection is a bit slow. ☁️ Could you try sending the exercise again?" },
                     visualType: "none", expectedAnswer: "ok"
                 }]
@@ -2479,9 +2476,8 @@ export async function callChatApi(messages: any[], model: string = "gemini-1.5-f
         }
     }
 
-    // --- STEP 2: Gemini (Free Tier backup) ---
+    // --- STEP 2: Gemini (Primary for this user) ---
     try {
-        console.log("💎 Intentando con motor Google Gemini...");
         const result = await callGeminiSocratic(systemMsg, history, currentMsg, 'es', jsonMode);
         return {
             choices: [{
@@ -2489,20 +2485,24 @@ export async function callChatApi(messages: any[], model: string = "gemini-1.5-f
             }]
         };
     } catch (geminiError) {
-        console.warn("⚠️ Gemini falló o alcanzó cuota, intentando respaldo con OpenAI...", geminiError);
+        console.warn("⚠️ Gemini falló:", geminiError);
 
-        // --- STEP 3: OpenAI (Safety backup) ---
-        try {
-            const result = await callOpenAI(systemMsg, history, currentMsg, jsonMode);
-            return {
-                choices: [{
-                    message: { content: typeof result === 'string' ? result : JSON.stringify(result) }
-                }]
-            };
-        } catch (openaiError) {
-            console.error("❌ Fallaron todos los motores (DeepSeek, Gemini y OpenAI):", openaiError);
-            throw openaiError;
+        // --- STEP 3: OpenAI (Safety backup only if key is present) ---
+        const OPENAI_KEY = import.meta.env?.VITE_OPENAI_API_KEY;
+        if (OPENAI_KEY) {
+            try {
+                const result = await callOpenAI(systemMsg, history, currentMsg, jsonMode);
+                return {
+                    choices: [{
+                        message: { content: typeof result === 'string' ? result : JSON.stringify(result) }
+                    }]
+                };
+            } catch (openaiError) {
+                console.error("❌ Falló OpenAI:", openaiError);
+                throw openaiError;
+            }
         }
+        throw geminiError;
     }
 }
 

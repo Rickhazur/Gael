@@ -17,6 +17,7 @@ import {
     Settings
 } from 'lucide-react';
 import { useGamification } from '@/context/GamificationContext';
+import { AVAILABLE_GRADES } from '@/constants';
 import { toast } from 'sonner';
 import { ViewState } from '../types';
 import SmartTutorPrimary from './SmartTutorPrimary/PrimaryTutor';
@@ -94,9 +95,9 @@ const LabDev: React.FC<LabDevProps> = ({ onNavigate, gradeLevel, setGradeLevel, 
                     <div className="pt-4 border-t border-stone-100">
                         <h3 className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em] mb-4">Configuración Global</h3>
                         <div className="space-y-3">
-                            <div className="flex gap-1">
-                                {[1, 2, 3, 4, 5, 6, 7].map(g => (
-                                    <button key={g} onClick={() => setGradeLevel(g)} className={`flex-1 h-8 rounded-lg text-xs font-black transition-all ${gradeLevel === g ? 'bg-indigo-600 text-white' : 'bg-stone-100 text-stone-400'}`}>{g}º</button>
+                            <div className="flex gap-1 overflow-x-auto pb-2 scrollbar-hide">
+                                {AVAILABLE_GRADES.map(g => (
+                                    <button key={g} onClick={() => setGradeLevel(g)} className={`min-w-[32px] flex-1 h-8 rounded-lg text-xs font-black transition-all ${gradeLevel === g ? 'bg-indigo-600 text-white' : 'bg-stone-100 text-stone-400'}`}>{g}º</button>
                                 ))}
                             </div>
                             <div className="flex gap-1">
@@ -168,9 +169,9 @@ const LabDev: React.FC<LabDevProps> = ({ onNavigate, gradeLevel, setGradeLevel, 
                         {/* Renders */}
                         <div className="p-1">
                             {previewMode === ViewState.AI_CONSULTANT && <SmartTutorPrimary onNavigate={() => { }} gradeLevel={gradeLevel} setGradeLevel={setGradeLevel} />}
-                            {previewMode === ViewState.PARENT_DASHBOARD && <ParentDashboard />}
-                            {previewMode === ViewState.ARENA && <ArenaLobby language={language} />}
-                            {previewMode === ViewState.CURRICULUM && <MissionsLog language={language} />}
+                            {previewMode === ViewState.PARENT_DASHBOARD && <ParentDashboard parentId="debug-parent" language={language} />}
+                            {previewMode === ViewState.ARENA && <ArenaLobby language={language} grade={gradeLevel as any} userId="debug-student" onNavigate={() => { }} />}
+                            {previewMode === ViewState.CURRICULUM && <MissionsLog language={language} gradeLevel={gradeLevel} onNavigate={() => { }} />}
 
                             {![ViewState.AI_CONSULTANT, ViewState.PARENT_DASHBOARD, ViewState.ARENA, ViewState.CURRICULUM].includes(previewMode) && (
                                 <div className="p-20 text-center">

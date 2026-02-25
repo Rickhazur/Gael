@@ -16,6 +16,10 @@ export async function detectVisualConcepts(
         confidence: number;
     }>;
 }> {
+    // Disable visual concepts for math as requested
+    if (subject === 'math') {
+        return { hasVisualConcepts: false, concepts: [] };
+    }
     const prompt = `
 Eres un asistente educativo experto. Analiza el siguiente texto de un estudiante de primaria y detecta conceptos que se beneficiarían de una imagen educativa.
 

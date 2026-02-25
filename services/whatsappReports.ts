@@ -171,6 +171,70 @@ export const sendWhatsAppReport = async (
     }
 };
 
+/**
+ * Enhanced function to send report directly from a TutorReport object
+ * This maps TutorReport fields to the WhatsApp format
+ */
+export const sendWhatsAppTutorReport = async (
+    uid: string,
+    report: any // TutorReport
+): Promise<boolean> => {
+    try {
+        const { supabase } = await import('./supabase');
+        if (!supabase) return false;
+
+        // 1. Fetch Profile info (Student Name & Parent Phone & Notification Toggle)
+        const { data: profile, error: profError } = await supabase
+            .from('profiles')
+            .select('name, guardian_phone, grade_level, whatsapp_notifications_enabled')
+            .eq('id', uid)
+            .single();
+
+        if (profError || !profile || !profile.guardian_phone) {
+            console.warn('⚠️ No parent phone found for student:', uid);
+            return false;
+        }
+
+        // Check if notifications are disabled
+        if (profile.whatsapp_notifications_enabled === false) {
+            // console.log('🔕 WhatsApp notifications are disabled for this user');
+            return false;
+        }
+
+
+        // 2. Map TutorReport to StudentProgress format
+        const progress: StudentProgress = {
+            studentId: uid,
+            studentName: profile.name || 'Estudiante',
+            grade: profile.grade_level || 3,
+            sessionDate: new Date(),
+            topicsPracticed: [report.subject],
+            questionsAttempted: 10, // Mocked for now, TutorReport doesn't have it
+            questionsCorrect: Math.round((report.overallScore / 100) * 10),
+            questionsIncorrect: 10 - Math.round((report.overallScore / 100) * 10),
+            accuracyRate: report.overallScore,
+            strugglingTopics: report.challenges?.map((c: any) => c.area) || [],
+            remediationSuggested: (report.recommendations?.length || 0) > 0,
+            remediationTopics: report.recommendations || [],
+            timeSpent: 20, // Mocked
+            achievements: []
+        };
+
+        const contact: ParentContact = {
+            parentName: 'Padre/Madre',
+            parentPhone: profile.guardian_phone,
+            studentId: uid,
+            language: 'es',
+            reportFrequency: 'session'
+        };
+
+        return await sendWhatsAppReport(contact, progress);
+    } catch (err) {
+        console.error('Error in sendWhatsAppTutorReport:', err);
+        return false;
+    }
+};
+
 // Send immediate safety alert to parents
 export const sendSafetyAlert = async (
     parentContact: ParentContact,

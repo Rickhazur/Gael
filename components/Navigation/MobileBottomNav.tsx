@@ -23,12 +23,11 @@ export const MobileBottomNav: React.FC<MobileNavProps> = ({ currentView, onNavig
     ];
 
     const menuItems = [
-        { id: ViewState.MATH_TUTOR, icon: Brain, label: 'Mate' },
+        { id: ViewState.WORD_PROBLEMS, icon: Brain, label: 'Mate' },
         { id: ViewState.SPARK_CHAT, icon: Clapperboard, label: 'Chispa' },
         { id: ViewState.RESEARCH_CENTER, icon: Search, label: 'Research' },
         { id: ViewState.BUDDY_LEARN, icon: Globe, label: 'Idiomas' },
         { id: ViewState.ARTS_TUTOR, icon: Palette, label: 'Arte' },
-        { id: ViewState.WORD_PROBLEMS, icon: CircleHelp, label: 'Retos' },
         { id: ViewState.REWARDS, icon: ShoppingBag, label: 'Tienda' },
         { id: ViewState.NOTEBOOK_LIBRARY, icon: Layers, label: 'Cuadernos' },
 

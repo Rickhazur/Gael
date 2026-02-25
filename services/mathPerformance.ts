@@ -1,18 +1,21 @@
 /**
  * Adaptive difficulty: tracks recent math performance per operation
- * and suggests easy/medium/hard based on success rate.
+ * and suggests easy/medium/hard/expert based on success rate.
  */
 
 const STORAGE_KEY = 'nova_math_performance';
-const MAX_RECENT = 10;
-const RECENT_CORRECT_FOR_HARD = 4;
-const RECENT_WRONG_FOR_EASY = 2;
+const DIFF_STORAGE_KEY = 'nova_math_difficulties';
+const STREAK_NEEDED = 3;
 
 interface PerfEntry {
     operation: string;
     correct: boolean;
     ts: number;
 }
+
+export type DifficultyLevel = 'easy' | 'medium' | 'hard' | 'expert';
+
+const diffOrder: DifficultyLevel[] = ['easy', 'medium', 'hard', 'expert'];
 
 function loadPerf(): PerfEntry[] {
     try {
@@ -28,29 +31,82 @@ function loadPerf(): PerfEntry[] {
 function savePerf(entries: PerfEntry[]) {
     try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(entries.slice(-50)));
-    } catch (_) {}
+    } catch (_) { }
 }
 
 /**
- * Record a math attempt for adaptive difficulty
+ * Get the currently suggested difficulty for an operation.
+ */
+export function getSuggestedDifficulty(operation: string): DifficultyLevel {
+    try {
+        const raw = localStorage.getItem(DIFF_STORAGE_KEY);
+        if (raw) {
+            const parsed = JSON.parse(raw);
+            if (parsed && typeof parsed[operation] === 'string') {
+                return parsed[operation] as DifficultyLevel;
+            }
+        }
+    } catch (_) { }
+    return 'medium';
+}
+
+function saveSuggestedDifficulty(operation: string, difficulty: DifficultyLevel) {
+    try {
+        const raw = localStorage.getItem(DIFF_STORAGE_KEY);
+        let parsed: Record<string, string> = {};
+        if (raw) parsed = JSON.parse(raw) || {};
+        parsed[operation] = difficulty;
+        localStorage.setItem(DIFF_STORAGE_KEY, JSON.stringify(parsed));
+    } catch (_) { }
+}
+
+/**
+ * Record a math attempt for adaptive difficulty.
+ * Evaluates streaks to automatically step difficulty up or down.
  */
 export function recordMathAttempt(operation: string, wasCorrect: boolean): void {
     const entries = loadPerf();
     entries.push({ operation, correct: wasCorrect, ts: Date.now() });
-    savePerf(entries.slice(-MAX_RECENT * 3));
-}
+    savePerf(entries.slice(-100));
 
-/**
- * Get suggested difficulty for an operation based on recent performance
- */
-export function getSuggestedDifficulty(operation: string): 'easy' | 'medium' | 'hard' {
-    const entries = loadPerf().filter(e => e.operation === operation).slice(-MAX_RECENT);
-    if (entries.length < 2) return 'medium';
+    // Get latest entries for this operation
+    const opEntries = entries.filter(e => e.operation === operation);
 
-    const recentCorrect = entries.filter(e => e.correct).length;
-    const recentWrong = entries.length - recentCorrect;
+    if (opEntries.length >= STREAK_NEEDED) {
+        // Take the last 3
+        const recent = opEntries.slice(-STREAK_NEEDED);
 
-    if (recentWrong >= RECENT_WRONG_FOR_EASY) return 'easy';
-    if (recentCorrect >= RECENT_CORRECT_FOR_HARD && recentWrong === 0) return 'hard';
-    return 'medium';
+        const allCorrect = recent.every(e => e.correct);
+        const allWrong = recent.every(e => !e.correct);
+
+        let currentDiff = getSuggestedDifficulty(operation);
+        let currentIdx = diffOrder.indexOf(currentDiff);
+
+        let changed = false;
+        if (allCorrect && currentIdx < diffOrder.length - 1) {
+            // Level UP!
+            currentDiff = diffOrder[currentIdx + 1];
+            changed = true;
+            console.log(`[Adaptive] ${operation} Level UP to ${currentDiff}`);
+        } else if (allWrong && currentIdx > 0) {
+            // Level DOWN!
+            currentDiff = diffOrder[currentIdx - 1];
+            changed = true;
+            console.log(`[Adaptive] ${operation} Level DOWN to ${currentDiff}`);
+        }
+
+        if (changed) {
+            saveSuggestedDifficulty(operation, currentDiff);
+            // Clear the history for this operation to start fresh on the new level
+            const newEntries = entries.filter(e => e.operation !== operation);
+            savePerf(newEntries);
+
+            // Dispatch event for UI updates globally
+            if (typeof window !== 'undefined') {
+                window.dispatchEvent(new CustomEvent('nova_math_diff_updated', {
+                    detail: { operation, difficulty: currentDiff }
+                }));
+            }
+        }
+    }
 }

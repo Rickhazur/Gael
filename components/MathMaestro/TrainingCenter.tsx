@@ -1,258 +1,273 @@
 import { useState, useEffect } from 'react';
 import {
-    generateExercises,
-    clearExerciseHistory,
-    getExerciseStats,
-    type MathExercise,
-    type MathOperation,
-    type DifficultyLevel
+  generateExercises,
+  clearExerciseHistory,
+  getExerciseStats,
+  type MathExercise,
+  type MathOperation,
+  type DifficultyLevel
 } from '../../services/exerciseGenerator';
 import { getSuggestedDifficulty } from '../../services/mathPerformance';
 
 interface TrainingCenterProps {
-    onExerciseSelect?: (exercise: MathExercise) => void;
-    onClose: () => void;
+  onExerciseSelect?: (exercise: MathExercise) => void;
+  onClose: () => void;
 }
 
 export const TrainingCenter = ({ onExerciseSelect, onClose }: TrainingCenterProps) => {
-    const [selectedOperation, setSelectedOperation] = useState<MathOperation>('addition');
-    const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>(() =>
-        getSuggestedDifficulty('addition') as DifficultyLevel
-    );
-    const [exercises, setExercises] = useState<MathExercise[]>([]);
-    const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
-    const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
-    const [stats, setStats] = useState<Record<string, number>>({});
+  const [selectedOperation, setSelectedOperation] = useState<MathOperation>('addition');
+  const [selectedDifficulty, setSelectedDifficulty] = useState<DifficultyLevel>(() =>
+    getSuggestedDifficulty('addition') as DifficultyLevel
+  );
+  const [exercises, setExercises] = useState<MathExercise[]>([]);
+  const [completedExercises, setCompletedExercises] = useState<Set<string>>(new Set());
+  const [currentExerciseIndex, setCurrentExerciseIndex] = useState(0);
+  const [stats, setStats] = useState<Record<string, number>>({});
 
-    // Load exercises when operation or difficulty changes
-    useEffect(() => {
-        loadExercises();
-    }, [selectedOperation, selectedDifficulty]);
+  // Load exercises when operation or difficulty changes
+  useEffect(() => {
+    loadExercises();
+  }, [selectedOperation, selectedDifficulty]);
 
-    // Update stats
-    useEffect(() => {
-        setStats(getExerciseStats());
-    }, [exercises]);
+  // Update difficulty when operation changes
+  useEffect(() => {
+    const newDiff = getSuggestedDifficulty(selectedOperation) as DifficultyLevel;
+    setSelectedDifficulty(newDiff);
+  }, [selectedOperation]);
 
-    const loadExercises = () => {
-        const newExercises = generateExercises({
-            operation: selectedOperation,
-            difficulty: selectedDifficulty,
-            count: 10
-        });
-        setExercises(newExercises);
-        setCurrentExerciseIndex(0);
+  // Listen for adaptive difficulty level ups/downs
+  useEffect(() => {
+    const handleAdaptiveChange = (e: CustomEvent<{ operation: string; difficulty: DifficultyLevel }>) => {
+      if (e.detail.operation === selectedOperation) {
+        setSelectedDifficulty(e.detail.difficulty);
+      }
     };
+    window.addEventListener('nova_math_diff_updated', handleAdaptiveChange as EventListener);
+    return () => window.removeEventListener('nova_math_diff_updated', handleAdaptiveChange as EventListener);
+  }, [selectedOperation]);
 
-    const handleExerciseComplete = (exerciseId: string) => {
-        setCompletedExercises(prev => new Set(prev).add(exerciseId));
-    };
+  // Update stats
+  useEffect(() => {
+    setStats(getExerciseStats());
+  }, [exercises]);
 
-    const handleNextExercise = () => {
-        if (currentExerciseIndex < exercises.length - 1) {
-            setCurrentExerciseIndex(prev => prev + 1);
-        } else {
-            // Generate more exercises
-            loadExercises();
-        }
-    };
+  const loadExercises = () => {
+    const newExercises = generateExercises({
+      operation: selectedOperation,
+      difficulty: selectedDifficulty,
+      count: 10
+    });
+    setExercises(newExercises);
+    setCurrentExerciseIndex(0);
+  };
 
-    const handlePracticeExercise = (exercise: MathExercise) => {
-        if (onExerciseSelect) {
-            onExerciseSelect(exercise);
-        }
-    };
+  const handleExerciseComplete = (exerciseId: string) => {
+    setCompletedExercises(prev => new Set(prev).add(exerciseId));
+  };
 
-    const currentExercise = exercises[currentExerciseIndex];
-    const progress = exercises.length > 0
-        ? ((completedExercises.size / exercises.length) * 100).toFixed(0)
-        : 0;
+  const handleNextExercise = () => {
+    if (currentExerciseIndex < exercises.length - 1) {
+      setCurrentExerciseIndex(prev => prev + 1);
+    } else {
+      // Generate more exercises
+      loadExercises();
+    }
+  };
 
-    // Curriculum structure (MEN + IB PYP)
-    const curriculum = {
-        'Grado 1': {
-            topics: ['Números hasta 100', 'Suma simple', 'Resta simple', 'Patrones'],
-            operations: ['addition', 'subtraction'],
-            difficulty: 'easy' as DifficultyLevel
-        },
-        'Grado 2': {
-            topics: ['Números hasta 1000', 'Suma con reagrupación', 'Resta con préstamo', 'Tablas del 2 y 5'],
-            operations: ['addition', 'subtraction', 'multiplication'],
-            difficulty: 'easy' as DifficultyLevel
-        },
-        'Grado 3': {
-            topics: ['Números hasta 10000', 'Multiplicación', 'División simple', 'Fracciones básicas'],
-            operations: ['addition', 'subtraction', 'multiplication', 'division'],
-            difficulty: 'medium' as DifficultyLevel
-        },
-        'Grado 4': {
-            topics: ['Números grandes', 'Multiplicación de 2 dígitos', 'División larga', 'Fracciones equivalentes'],
-            operations: ['multiplication', 'division', 'fractions'],
-            difficulty: 'medium' as DifficultyLevel
-        },
-        'Grado 5': {
-            topics: ['Decimales', 'Operaciones con fracciones', 'División compleja', 'Problemas de aplicación'],
-            operations: ['multiplication', 'division', 'fractions'],
-            difficulty: 'hard' as DifficultyLevel
-        }
-    };
+  const handlePracticeExercise = (exercise: MathExercise) => {
+    if (onExerciseSelect) {
+      onExerciseSelect(exercise);
+    }
+  };
 
-    return (
-        <div className="training-center-overlay">
-            <div className="training-center-modal">
-                <div className="training-header">
-                    <h1>🎯 Centro de Entrenamiento Matemático</h1>
-                    <button onClick={onClose} className="close-btn">✕</button>
-                </div>
+  const currentExercise = exercises[currentExerciseIndex];
+  const progress = exercises.length > 0
+    ? ((completedExercises.size / exercises.length) * 100).toFixed(0)
+    : 0;
 
-                <div className="training-content">
-                    {/* Left Panel: Curriculum & Controls */}
-                    <div className="left-panel">
-                        <div className="curriculum-section">
-                            <h2>📚 Currículum</h2>
-                            <div className="curriculum-grid">
-                                {Object.entries(curriculum).map(([grade, info]) => (
-                                    <div key={grade} className="curriculum-card">
-                                        <h3>{grade}</h3>
-                                        <ul>
-                                            {info.topics.map(topic => (
-                                                <li key={topic}>{topic}</li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
+  // Curriculum structure (MEN + IB PYP)
+  const curriculum = {
+    'Grado 1': {
+      topics: ['Números hasta 100', 'Suma simple', 'Resta simple', 'Patrones'],
+      operations: ['addition', 'subtraction'],
+      difficulty: 'easy' as DifficultyLevel
+    },
+    'Grado 2': {
+      topics: ['Números hasta 1000', 'Suma con reagrupación', 'Resta con préstamo', 'Tablas del 2 y 5'],
+      operations: ['addition', 'subtraction', 'multiplication'],
+      difficulty: 'easy' as DifficultyLevel
+    },
+    'Grado 3': {
+      topics: ['Números hasta 10000', 'Multiplicación', 'División simple', 'Fracciones básicas'],
+      operations: ['addition', 'subtraction', 'multiplication', 'division'],
+      difficulty: 'medium' as DifficultyLevel
+    },
+    'Grado 4': {
+      topics: ['Números grandes', 'Multiplicación de 2 dígitos', 'División larga', 'Fracciones equivalentes'],
+      operations: ['multiplication', 'division', 'fractions'],
+      difficulty: 'medium' as DifficultyLevel
+    },
+    'Grado 5': {
+      topics: ['Decimales', 'Operaciones con fracciones', 'División compleja', 'Problemas de aplicación'],
+      operations: ['multiplication', 'division', 'fractions'],
+      difficulty: 'hard' as DifficultyLevel
+    }
+  };
 
-                        <div className="controls-section">
-                            <h2>⚙️ Configuración</h2>
+  return (
+    <div className="training-center-overlay">
+      <div className="training-center-modal">
+        <div className="training-header">
+          <h1>🎯 Centro de Entrenamiento Matemático</h1>
+          <button onClick={onClose} className="close-btn">✕</button>
+        </div>
 
-                            <div className="control-group">
-                                <label>Operación:</label>
-                                <select
-                                    value={selectedOperation}
-                                    onChange={(e) => setSelectedOperation(e.target.value as MathOperation)}
-                                    className="control-select"
-                                >
-                                    <option value="addition">➕ Suma</option>
-                                    <option value="subtraction">➖ Resta</option>
-                                    <option value="multiplication">✖️ Multiplicación</option>
-                                    <option value="division">➗ División</option>
-                                    <option value="fractions">🍰 Fracciones</option>
-                                </select>
-                            </div>
-
-                            <div className="control-group">
-                                <label>Dificultad:</label>
-                                <select
-                                    value={selectedDifficulty}
-                                    onChange={(e) => setSelectedDifficulty(e.target.value as DifficultyLevel)}
-                                    className="control-select"
-                                >
-                                    <option value="easy">🌱 Fácil</option>
-                                    <option value="medium">🌿 Intermedio</option>
-                                    <option value="hard">🌳 Difícil</option>
-                                    <option value="expert">🏆 Experto</option>
-                                </select>
-                            </div>
-
-                            <button onClick={loadExercises} className="generate-btn">
-                                🎲 Generar Nuevos Ejercicios
-                            </button>
-
-                            <div className="stats-box">
-                                <h3>📊 Estadísticas</h3>
-                                <p>Ejercicios completados: <strong>{completedExercises.size}</strong></p>
-                                <p>Progreso: <strong>{progress}%</strong></p>
-                                <div className="progress-bar">
-                                    <div className="progress-fill" style={{ width: `${progress}%` }}></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Right Panel: Exercise Display */}
-                    <div className="right-panel">
-                        <div className="exercise-display">
-                            {currentExercise ? (
-                                <>
-                                    <div className="exercise-header">
-                                        <span className="exercise-number">
-                                            Ejercicio {currentExerciseIndex + 1} de {exercises.length}
-                                        </span>
-                                        <span className={`difficulty-badge ${selectedDifficulty}`}>
-                                            {selectedDifficulty === 'easy' && '🌱 Fácil'}
-                                            {selectedDifficulty === 'medium' && '🌿 Intermedio'}
-                                            {selectedDifficulty === 'hard' && '🌳 Difícil'}
-                                            {selectedDifficulty === 'expert' && '🏆 Experto'}
-                                        </span>
-                                    </div>
-
-                                    <div className="exercise-problem">
-                                        <div className="problem-text">
-                                            {currentExercise.problem}
-                                        </div>
-                                    </div>
-
-                                    <div className="exercise-hint">
-                                        <strong>💡 Pista:</strong> {currentExercise.hint}
-                                    </div>
-
-                                    <div className="exercise-actions">
-                                        <button
-                                            onClick={() => handlePracticeExercise(currentExercise)}
-                                            className="practice-btn"
-                                        >
-                                            ✏️ Practicar en el Tablero
-                                        </button>
-
-                                        <button
-                                            onClick={() => {
-                                                handleExerciseComplete(currentExercise.id);
-                                                handleNextExercise();
-                                            }}
-                                            className="next-btn"
-                                        >
-                                            ➡️ Siguiente Ejercicio
-                                        </button>
-                                    </div>
-
-                                    <details className="exercise-solution">
-                                        <summary>🔍 Ver explicación</summary>
-                                        <p>{currentExercise.explanation}</p>
-                                    </details>
-                                </>
-                            ) : (
-                                <div className="no-exercises">
-                                    <p>🎯 Selecciona una operación y dificultad para comenzar</p>
-                                    <button onClick={loadExercises} className="start-btn">
-                                        🚀 Comenzar entrenamiento
-                                    </button>
-                                </div>
-                            )}
-                        </div>
-
-                        <div className="exercise-list">
-                            <h3>📋 Lista de Ejercicios</h3>
-                            <div className="exercise-items">
-                                {exercises.map((ex, idx) => (
-                                    <div
-                                        key={ex.id}
-                                        className={`exercise-item ${idx === currentExerciseIndex ? 'active' : ''} ${completedExercises.has(ex.id) ? 'completed' : ''}`}
-                                        onClick={() => setCurrentExerciseIndex(idx)}
-                                    >
-                                        <span className="item-number">{idx + 1}</span>
-                                        <span className="item-problem">{ex.problem}</span>
-                                        {completedExercises.has(ex.id) && <span className="check-mark">✓</span>}
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-                    </div>
-                </div>
+        <div className="training-content">
+          {/* Left Panel: Curriculum & Controls */}
+          <div className="left-panel">
+            <div className="curriculum-section">
+              <h2>📚 Currículum</h2>
+              <div className="curriculum-grid">
+                {Object.entries(curriculum).map(([grade, info]) => (
+                  <div key={grade} className="curriculum-card">
+                    <h3>{grade}</h3>
+                    <ul>
+                      {info.topics.map(topic => (
+                        <li key={topic}>{topic}</li>
+                      ))}
+                    </ul>
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <style jsx>{`
+            <div className="controls-section">
+              <h2>⚙️ Configuración</h2>
+
+              <div className="control-group">
+                <label>Operación:</label>
+                <select
+                  value={selectedOperation}
+                  onChange={(e) => setSelectedOperation(e.target.value as MathOperation)}
+                  className="control-select"
+                >
+                  <option value="addition">➕ Suma</option>
+                  <option value="subtraction">➖ Resta</option>
+                  <option value="multiplication">✖️ Multiplicación</option>
+                  <option value="division">➗ División</option>
+                  <option value="fractions">🍰 Fracciones</option>
+                </select>
+              </div>
+
+              <div className="control-group">
+                <label>Dificultad (Auto-ajustable):</label>
+                <div style={{ padding: '12px', background: 'rgba(255,255,255,0.1)', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '8px', color: 'white', fontWeight: 'bold' }}>
+                  {selectedDifficulty === 'easy' ? '🌱 Fácil' :
+                    selectedDifficulty === 'medium' ? '🌿 Intermedio' :
+                      selectedDifficulty === 'hard' ? '🌳 Difícil' : '🏆 Experto'}
+                </div>
+                <small style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.8rem', marginTop: '6px', display: 'block' }}>
+                  Nova ajusta la dificultad automáticamente según tu progreso.
+                </small>
+              </div>
+
+              <button onClick={loadExercises} className="generate-btn">
+                🎲 Generar Nuevos Ejercicios
+              </button>
+
+              <div className="stats-box">
+                <h3>📊 Estadísticas</h3>
+                <p>Ejercicios completados: <strong>{completedExercises.size}</strong></p>
+                <p>Progreso: <strong>{progress}%</strong></p>
+                <div className="progress-bar">
+                  <div className="progress-fill" style={{ width: `${progress}%` }}></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Panel: Exercise Display */}
+          <div className="right-panel">
+            <div className="exercise-display">
+              {currentExercise ? (
+                <>
+                  <div className="exercise-header">
+                    <span className="exercise-number">
+                      Ejercicio {currentExerciseIndex + 1} de {exercises.length}
+                    </span>
+                    <span className={`difficulty-badge ${selectedDifficulty}`}>
+                      {selectedDifficulty === 'easy' && '🌱 Fácil'}
+                      {selectedDifficulty === 'medium' && '🌿 Intermedio'}
+                      {selectedDifficulty === 'hard' && '🌳 Difícil'}
+                      {selectedDifficulty === 'expert' && '🏆 Experto'}
+                    </span>
+                  </div>
+
+                  <div className="exercise-problem">
+                    <div className="problem-text">
+                      {currentExercise.problem}
+                    </div>
+                  </div>
+
+                  <div className="exercise-hint">
+                    <strong>💡 Pista:</strong> {currentExercise.hint}
+                  </div>
+
+                  <div className="exercise-actions">
+                    <button
+                      onClick={() => handlePracticeExercise(currentExercise)}
+                      className="practice-btn"
+                    >
+                      ✏️ Practicar en el Tablero
+                    </button>
+
+                    <button
+                      onClick={() => {
+                        handleExerciseComplete(currentExercise.id);
+                        handleNextExercise();
+                      }}
+                      className="next-btn"
+                    >
+                      ➡️ Siguiente Ejercicio
+                    </button>
+                  </div>
+
+                  <details className="exercise-solution">
+                    <summary>🔍 Ver explicación</summary>
+                    <p>{currentExercise.explanation}</p>
+                  </details>
+                </>
+              ) : (
+                <div className="no-exercises">
+                  <p>🎯 Selecciona una operación y dificultad para comenzar</p>
+                  <button onClick={loadExercises} className="start-btn">
+                    🚀 Comenzar entrenamiento
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className="exercise-list">
+              <h3>📋 Lista de Ejercicios</h3>
+              <div className="exercise-items">
+                {exercises.map((ex, idx) => (
+                  <div
+                    key={ex.id}
+                    className={`exercise-item ${idx === currentExerciseIndex ? 'active' : ''} ${completedExercises.has(ex.id) ? 'completed' : ''}`}
+                    onClick={() => setCurrentExerciseIndex(idx)}
+                  >
+                    <span className="item-number">{idx + 1}</span>
+                    <span className="item-problem">{ex.problem}</span>
+                    {completedExercises.has(ex.id) && <span className="check-mark">✓</span>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <style>{`
         .training-center-overlay {
           position: fixed;
           top: 0;
@@ -712,6 +727,6 @@ export const TrainingCenter = ({ onExerciseSelect, onClose }: TrainingCenterProp
           }
         }
       `}</style>
-        </div>
-    );
+    </div>
+  );
 };

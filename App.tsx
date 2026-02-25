@@ -21,11 +21,11 @@ import SplashScreen from './components/SplashScreen';
 import LandingPage from './components/LandingPage';
 import LoginPage from './components/LoginPage';
 const MainLayout = React.lazy(() => import('./components/MainLayout').then(m => ({ default: m.MainLayout })));
-const ICFESLayout = React.lazy(() => import('./components/icfes/ICFESLayout').then(m => ({ default: m.ICFESLayout })));
-const ICFESDashboard = React.lazy(() => import('./components/icfes/ICFESDashboard').then(m => ({ default: m.ICFESDashboard })));
-const ExamSimulator = React.lazy(() => import('./components/icfes/ExamSimulator').then(m => ({ default: m.ExamSimulator })));
-const IngestQuestions = React.lazy(() => import('./components/icfes/admin/IngestQuestions').then(m => ({ default: m.IngestQuestions })));
-const ICFESResults = React.lazy(() => import('./components/icfes/ICFESResults').then(m => ({ default: m.ICFESResults })));
+// const ICFESLayout = React.lazy(() => import('./components/icfes/ICFESLayout').then(m => ({ default: m.ICFESLayout })));
+// const ICFESDashboard = React.lazy(() => import('./components/icfes/ICFESDashboard').then(m => ({ default: m.ICFESDashboard })));
+// const ExamSimulator = React.lazy(() => import('./components/icfes/ExamSimulator').then(m => ({ default: m.ExamSimulator })));
+// const IngestQuestions = React.lazy(() => import('./components/icfes/admin/IngestQuestions').then(m => ({ default: m.IngestQuestions })));
+// const ICFESResults = React.lazy(() => import('./components/icfes/ICFESResults').then(m => ({ default: m.ICFESResults })));
 const GoogleClassroomSync = React.lazy(() => import('./components/GoogleClassroom/GoogleClassroomSync').then(m => ({ default: m.GoogleClassroomSync })));
 const AvatarSelection = React.lazy(() => import('./components/Gamification/AvatarSelection').then(m => ({ default: m.AvatarSelection })));
 
@@ -53,7 +53,7 @@ const App: React.FC = () => {  // Authentication State
 
   // View State
   const [currentView, setCurrentView] = useState<ViewState>(ViewState.DASHBOARD);
-  const [appMode, setAppMode] = useState<'ELEMENTARY' | 'ICFES'>('ELEMENTARY');
+  const [appMode, setAppMode] = useState<'ELEMENTARY'>('ELEMENTARY');
   /** Primer ingreso del niño: no tiene avatar elegido; mostrar pantalla de selección. */
   const [showAvatarOnboarding, setShowAvatarOnboarding] = useState(false);
   const [icfesView, setIcfesView] = useState<'DASHBOARD' | 'SIMULATION' | 'INGEST' | 'RESULTS' | 'STUDY'>('DASHBOARD');
@@ -512,40 +512,6 @@ const App: React.FC = () => {  // Authentication State
                               onBack={() => setShowLogin(false)}
                               defaultMode={loginMode}
                             />
-                          ) : appMode === 'ICFES' ? (
-                            <ICFESLayout
-                              onExit={() => {
-                                setAppMode('ELEMENTARY');
-                                setCurrentView(ViewState.DASHBOARD);
-                              }}
-                              currentView={icfesView}
-                              onNavigate={(v: any) => setIcfesView(v)}
-                            >
-                              {icfesView === 'DASHBOARD' && (
-                                <ICFESDashboard
-                                  onStartSim={() => setIcfesView('SIMULATION')}
-                                  onOpenIngest={() => setIcfesView('INGEST')}
-                                />
-                              )}
-                              {icfesView === 'SIMULATION' && (
-                                <ExamSimulator
-                                  onExit={() => setIcfesView('DASHBOARD')}
-                                  onComplete={(results: unknown) => {
-                                    setSimulationResults(results);
-                                    setIcfesView('RESULTS');
-                                  }}
-                                />
-                              )}
-                              {icfesView === 'INGEST' && <IngestQuestions />}
-                              {icfesView === 'RESULTS' && simulationResults && (
-                                <ICFESResults
-                                  results={simulationResults}
-                                  onRetry={() => setIcfesView('SIMULATION')}
-                                  onHome={() => setIcfesView('DASHBOARD')}
-                                />
-                              )}
-                              {icfesView === 'STUDY' && <div className="p-8 text-center text-slate-500">Material de Estudio (Próximamente)</div>}
-                            </ICFESLayout>
                           ) : isAuthenticated && userRole === 'STUDENT' && showAvatarOnboarding ? (
                             <AvatarSelection
                               initialGrade={gradeLevel}

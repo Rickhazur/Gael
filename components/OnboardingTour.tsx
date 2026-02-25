@@ -69,7 +69,7 @@ const TOUR_STEPS: Step[] = [
   {
     view: ViewState.PROGRESS,
     title: "📈 Reportes a Padres",
-    content: "Tus padres reciben un resumen diario por **WhatsApp**.\n\nSaben si estudiaste, si te distrajiste y cómo te sientes (análisis de sentimiento). ¡Mantén tus métricas en verde!",
+    content: "Tus padres reciben un resumen diario por **Email**.\n\nSaben si estudiaste, si te distrajiste y cómo te sientes (análisis de sentimiento). ¡Mantén tus métricas en verde!",
     icon: <Coins className="w-6 h-6 text-white" />
   },
   {

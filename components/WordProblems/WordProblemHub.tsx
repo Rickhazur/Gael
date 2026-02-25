@@ -3,6 +3,8 @@ import { motion } from 'framer-motion';
 import { SocraticWordProblemSolver } from './SocraticWordProblemSolver';
 import { BookOpen, Brain, Target, Trophy, PenTool, ArrowRight } from 'lucide-react';
 import { normalizePastedFractions } from '@/utils/normalizePastedFractions';
+import { MathTutorBoard } from '../MathMaestro/tutor/MathTutorBoard';
+import { parseMathProblem } from '@/services/mathValidator';
 
 interface WordProblem {
   id: string;
@@ -13,10 +15,15 @@ interface WordProblem {
   problem: string;
 }
 
-export const WordProblemHub: React.FC = () => {
+interface WordProblemHubProps {
+  gradeLevel?: number;
+}
+
+export const WordProblemHub: React.FC<WordProblemHubProps> = ({ gradeLevel = 3 }) => {
   const [selectedProblem, setSelectedProblem] = useState<WordProblem | null>(null);
   const [showSolver, setShowSolver] = useState(false);
   const [isCustomMode, setIsCustomMode] = useState(false);
+  const [isMathOpMode, setIsMathOpMode] = useState(false);
   const [customProblemText, setCustomProblemText] = useState('');
 
   const wordProblems: WordProblem[] = [
@@ -86,6 +93,13 @@ export const WordProblemHub: React.FC = () => {
     }
   ];
 
+  // Filter problems based on gradeLevel (simple heuristic for MVP)
+  const filteredProblems = wordProblems.filter(p => {
+    if (gradeLevel <= 2) return p.difficulty === 'easy' && ['enteros', 'proporcionalidad'].includes(p.category);
+    if (gradeLevel === 3 || gradeLevel === 4) return p.difficulty !== 'hard' && !['algebra', 'estadistica'].includes(p.category);
+    return true; // 5th grade and above see everything
+  });
+
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
       case 'easy': return 'bg-green-100 text-green-800 border-green-200';
@@ -132,6 +146,7 @@ export const WordProblemHub: React.FC = () => {
     setShowSolver(false);
     setSelectedProblem(null);
     setIsCustomMode(false);
+    setIsMathOpMode(false);
   };
 
   const handleSolutionComplete = (solution: any) => {
@@ -143,31 +158,39 @@ export const WordProblemHub: React.FC = () => {
 
   if (showSolver && (selectedProblem || isCustomMode)) {
     return (
-      <div className="word-problem-solver-container p-4">
-        <div className="mb-6 flex items-center justify-between">
-          <motion.button
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            onClick={handleBackToHub}
-            className="px-6 py-3 bg-white shadow-xl rounded-2xl text-purple-600 font-black text-xs uppercase tracking-widest border-2 border-purple-100 flex items-center gap-3"
-          >
-            ← Regresar al Centro
-          </motion.button>
+      <div className={isMathOpMode ? "w-full h-full" : "word-problem-solver-container p-4"}>
+        {!isMathOpMode && (
+          <div className="mb-6 flex items-center justify-between">
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleBackToHub}
+              className="px-6 py-3 bg-white shadow-xl rounded-2xl text-purple-600 font-black text-xs uppercase tracking-widest border-2 border-purple-100 flex items-center gap-3"
+            >
+              ← Regresar al Centro
+            </motion.button>
 
-          <div className="text-center">
-            <h2 className="text-2xl font-black text-slate-900 tracking-tight">
-              {isCustomMode ? 'Desafío Personalizado' : selectedProblem?.title}
-            </h2>
-            <p className="text-slate-400 font-medium">Lina te guiará paso a paso</p>
+            <div className="text-center">
+              <h2 className="text-2xl font-black text-slate-900 tracking-tight">
+                {isCustomMode ? 'Desafío Personalizado' : selectedProblem?.title}
+              </h2>
+              <p className="text-slate-400 font-medium">Lina te guiará paso a paso</p>
+            </div>
+
+            <div className="w-32"></div>
           </div>
+        )}
 
-          <div className="w-32"></div>
-        </div>
+        {isMathOpMode ? (
+          <MathTutorBoard initialGrade={gradeLevel} userName="Estudiante" onNavigate={handleBackToHub as any} initialProblem={isCustomMode ? customProblemText : selectedProblem?.problem} />
+        ) : (
+          <SocraticWordProblemSolver
+            problem={isCustomMode ? customProblemText : selectedProblem!.problem}
+            onSolutionComplete={handleSolutionComplete}
+            gradeLevel={gradeLevel}
+          />
+        )}
 
-        <SocraticWordProblemSolver
-          problem={isCustomMode ? customProblemText : selectedProblem!.problem}
-          onSolutionComplete={handleSolutionComplete}
-        />
       </div>
     );
   }
@@ -182,10 +205,10 @@ export const WordProblemHub: React.FC = () => {
       >
         <h1 className="text-4xl font-bold text-purple-600 mb-4 flex items-center justify-center gap-3">
           <Brain className="w-10 h-10" />
-          Centro de Word Problems
+          Centro de Matemáticas
         </h1>
         <p className="text-xl text-gray-600">
-          Resuelve problemas usando el Método Socrático con Lina
+          Resuelve problemas o realiza operaciones matemáticas con Lina
         </p>
 
         <div className="flex justify-center gap-8 mt-6">
@@ -211,8 +234,8 @@ export const WordProblemHub: React.FC = () => {
             <PenTool size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-black text-slate-900">¿Tienes un problema propio?</h3>
-            <p className="text-sm text-slate-400 font-medium">Escribe tu problema y Lina te ayudará a resolverlo.</p>
+            <h3 className="text-xl font-black text-slate-900">¿Qué quieres resolver hoy?</h3>
+            <p className="text-sm text-slate-400 font-medium">Escribe una operación (ej: 25+14) o un problema con texto, y Lina te ayudará a resolverlo paso a paso.</p>
           </div>
         </div>
 
@@ -221,33 +244,40 @@ export const WordProblemHub: React.FC = () => {
             value={customProblemText}
             onChange={(e) => {
               const rawText = e.target.value;
-              // Normalizar instantáneamente las fracciones raras al pegarlas
               const normalized = normalizePastedFractions(rawText);
               setCustomProblemText(normalized);
             }}
-            placeholder="Ej: Juan tenía 10 manzanas, le dio 3 a María y luego compró 5 más..."
+            placeholder="Ej: 25 + 40, o Juan tenía 10 manzanas, le dio 3 a María y luego compró 5 más..."
             className="w-full h-32 p-6 bg-slate-50 rounded-3xl border-2 border-slate-100 text-lg font-medium text-slate-900 focus:border-purple-500 focus:bg-white transition-all outline-none resize-none"
           />
           <motion.button
             whileHover={{ scale: 1.02 }}
             whileTap={{ scale: 0.98 }}
-            disabled={customProblemText.trim().length < 10}
+            disabled={customProblemText.trim().length < 2}
             onClick={() => {
               const normalized = normalizePastedFractions(customProblemText);
               setCustomProblemText(normalized);
               setIsCustomMode(true);
+
+              const isPureMath = parseMathProblem(normalized);
+              if (isPureMath) {
+                setIsMathOpMode(true);
+              } else {
+                setIsMathOpMode(false);
+              }
+
               setShowSolver(true);
             }}
             className="absolute bottom-4 right-4 px-8 py-3 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-50 disabled:grayscale hover:bg-purple-500 transition-all flex items-center gap-2"
           >
-            Analizar Problema <ArrowRight size={16} />
+            Resolver <ArrowRight size={16} />
           </motion.button>
         </div>
       </motion.div>
 
       {/* Problem Grid */}
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {wordProblems.map((problem, index) => (
+        {filteredProblems.map((problem, index) => (
           <motion.div
             key={problem.id}
             initial={{ opacity: 0, y: 20 }}

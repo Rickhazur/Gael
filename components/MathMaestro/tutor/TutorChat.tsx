@@ -87,7 +87,7 @@ const AnimatedWordText = ({ text }: { text: string }) => {
 };
 
 const TutorChatComponent = (
-    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onSetupDragAndDrop, onDrawProportionTable }: TutorChatProps,
+    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onExerciseError, onSetupDragAndDrop, onDrawProportionTable }: TutorChatProps,
     ref: React.ForwardedRef<TutorChatRef>
 ) => {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -504,6 +504,36 @@ const TutorChatComponent = (
                     onExerciseComplete?.(operationType);
                     onPersistProgress?.(operationType);
                 }
+            } else {
+                // Adaptive difficulty: If the AI gave a corrective hint or flagged an error, report it
+                const expl = step.detailedExplanation;
+                const esExpl = typeof expl === 'object' ? expl?.es : expl;
+                const enExpl = typeof expl === 'object' ? expl?.en : expl;
+
+                const stepTextContent = typeof step.text === 'object' ? step.text[language] : (step.text || (typeof step.message === 'object' ? step.message[language] : step.message));
+
+                const isError =
+                    (typeof esExpl === 'string' && esExpl.toLowerCase().includes('correctiva')) ||
+                    (typeof enExpl === 'string' && enExpl.toLowerCase().includes('corrective')) ||
+                    (typeof stepTextContent === 'string' && /(Hmm, no|Casi|no exactamente|wrong|incorrect)/i.test(stepTextContent));
+
+                if (isError) {
+                    const vType = step.visualType || lastVisualState.current?.type;
+                    const op = step.visualData?.operator || lastVisualState.current?.data?.operator;
+                    let operationType = 'other';
+                    if (vType === 'division') operationType = 'division';
+                    else if (vType === 'fraction' || vType === 'fraction_equation' || vType === 'fraction_op') operationType = 'fraction';
+                    else if (vType === 'vertical_op' && op === '×') operationType = 'multiplication';
+                    else if (vType === 'vertical_op' && op === '+') operationType = 'addition';
+                    else if (vType === 'vertical_op' && op === '-') operationType = 'subtraction';
+                    else if (vType === 'geometry' || vType === 'geometry_interactive') operationType = 'geometry';
+                    else if (vType === 'algebra_op') operationType = 'algebra';
+                    else if (vType === 'coordinate_grid') operationType = 'coordinates';
+
+                    if (operationType !== 'other') {
+                        onExerciseError?.(operationType);
+                    }
+                }
             }
         }
     };
@@ -545,23 +575,7 @@ const TutorChatComponent = (
         const normalizedText = normalizePastedFractions(text.trim());
         text = normalizedText;
 
-        // 🧩 REDIRECT WORD PROBLEMS: Si el texto parece problema verbal (o tiene palabras largas),
-        // redirigir al usuario inmediatamente a la sección especial de Problemas Matemáticos con Historia,
-        // sin intentar resolverlo o analizarlo aquí.
-        const looksLikeWordProblem = text.length > 20 && /[a-zA-ZáéíóúñÁÉÍÓÚÑ]{4,}/.test(text) && !text.includes('=');
-        if (looksLikeWordProblem && !isSystemHidden && !isGuidedMode.current) {
-            console.log("🧩 Word problem or text detected – Redirecting to special section");
-            setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
-            const redirectMsg = language === 'es'
-                ? '¡Hola! Parece que me estás escribiendo un problema matemático con historia (o un ejercicio con texto). 📝\n\nEste lugar es la pizarra para **operaciones matemáticas directas** (como 25+14). Para leer y entender problemas con texto paso a paso, por favor usa nuestra sección especial de **"Problemas Matemáticos"** en el mapa 🗺️. ¡Allí te contaré una historia y lo descubriremos juntos!'
-                : 'Hi! It looks like you are writing a word problem or text-based exercise. 📝\n\nThis board is for **direct mathematical operations** (like 25+14). To read and understand story problems step by step, please use our special **"Word Problems"** section on the map 🗺️. I\'ll tell you a story and we will figure it out together over there!';
-
-            await processAIResponse({
-                message: redirectMsg,
-                visualType: 'text_only'
-            });
-            return;
-        }
+        // 🧩 [BLOQUE ELIMINADO]: No redirigir problemas verbales. El usuario quiere que se resuelvan aquí mismo.
 
         // 🛡️ PRIORITY CHECK: If we're in guided mode, let AlgorithmicTutor handle it FIRST
         if (isGuidedMode.current) {
@@ -622,39 +636,30 @@ const TutorChatComponent = (
         currentProblemSteps.current = [];
         currentStepIndex.current = 0;
 
-        // ALGORTHMIC TUTOR CHECK
+        // Detect Grade and Complexity
+        const gradeNum = typeof grade === 'number' ? grade : parseInt(String(grade).replace(/\D/g, '') || '3');
+        const isComplexText = text.length > 25 && /[a-zA-ZáéíóúñÁÉÍÓÚ]/.test(text) && !text.includes('=');
+
         // 🛡️ BYPASS FOR 1ST GRADE STORYTELLING:
         // For Grade 1, we want the AI to generate a 'story_image' and narrative context first.
-        const gradeNum = typeof grade === 'number' ? grade : parseInt(String(grade).replace(/\D/g, '') || '3');
+        // Also bypass for COMPLEX TEXT (word problems) to allow Socratic CPA analysis.
+        const shouldBypassAlgo = (gradeNum <= 1 && !/^\d+\s*[\+\-\*\/]\s*\d+$/.test(text)) || isComplexText;
 
-        let algoRef = null;
-        if (gradeNum > 1) {
-            algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade);
-        } else {
-            console.log("🎨 1st Grade Mode: Bypassing Algorithmic Tutor on input to force Storytelling AI flow.");
-        }
-
-        // 🛡️ FINAL UI GUARD: If Algo returns a simple division/mult for a COMPLEX text, limit it.
-        // BUT allow structured word problems (text_only + wpPhase) so the Socratic flow works.
-        const isComplexText = text.length > 20 && /[a-zA-Z]/.test(text);
-        const isWordProblemResponse = algoRef?.steps?.[0]?.visualType === 'text_only' && algoRef?.steps?.[0]?.visualData?.wpPhase != null;
-        if (algoRef && isComplexText && !isWordProblemResponse) {
-            console.log("⚠️ AlgoTutor tried to intercept context. Blocking.");
-            // Fall through to AI...
-        } else if (algoRef) {
-            console.log("🚀 Direct Algo Tutor Hit", algoRef);
-            isGuidedMode.current = true;
-            currentProblemSteps.current = algoRef.steps as any;
-            currentStepIndex.current = 0;
-            if (!isSystemHidden) {
-                setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
+        if (!shouldBypassAlgo) {
+            const algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade, masteryMode);
+            if (algoRef) {
+                console.log("🚀 Specialized Math Logic Intercepted:", algoRef);
+                isGuidedMode.current = true;
+                currentProblemSteps.current = algoRef.steps as any;
+                currentStepIndex.current = 0;
+                if (!isSystemHidden) {
+                    setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
+                }
+                await processAIResponse(algoRef);
+                return;
             }
-            await processAIResponse(algoRef);
-            return;
         }
 
-        // 🛡️ BYPASS LEGACY GENERATOR FOR 1ST GRADE TOO:
-        // We only want 'instant' vertical steps for 2nd grade+. 1st grade gets the story.
         const steps = (gradeNum > 1) ? generateStepsForProblem(text) : [];
         const problem = parseMathProblem(text);
 
@@ -719,7 +724,7 @@ const TutorChatComponent = (
         ));
         // 🛡️ MATH GUARDIAN: Check if this is a math answer or a new operation
         if (!bypassMathCheck && !imgBase64 && (text.length < 150 || isMathStory || isGuidedMode.current)) {
-            const algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade);
+            const algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade, masteryMode);
             if (algoRef) {
                 console.log("🚀 Algorithmic Tutor Intercepted:", algoRef);
                 isGuidedMode.current = true;

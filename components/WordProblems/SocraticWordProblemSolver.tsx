@@ -6,6 +6,7 @@ import { callDeepSeek } from '@/services/deepseek';
 import { callGeminiSocratic } from '@/services/gemini';
 import { callOpenAI } from '@/services/openai';
 import { Brain, Zap, Loader2, BookOpen, Trophy, CheckCircle2, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
+import { VirtualBlocks } from './VirtualBlocks';
 
 interface SocraticQuestion {
   id: string;
@@ -28,11 +29,13 @@ interface WordProblemData {
 interface SocraticWordProblemSolverProps {
   problem: string;
   onSolutionComplete?: (solution: any) => void;
+  gradeLevel?: number;
 }
 
 export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps> = ({
   problem,
-  onSolutionComplete
+  onSolutionComplete,
+  gradeLevel = 3
 }) => {
   // Utility: Normalize text (remove accents, lowercase)
   const normalize = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
@@ -140,24 +143,37 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
     setIsAnalyzing(true);
     setAnalysisError(null);
     try {
+      const isFraction = problem.includes('/') || problem.toLowerCase().includes('fracción') || problem.toLowerCase().includes('fraccion');
+      const isDecimal = problem.includes('.') || problem.toLowerCase().includes('decimal');
+      const topic = isFraction ? 'Fracciones' : isDecimal ? 'Decimales' : 'Aritmética';
+
       const systemPrompt = `
-          Eres Lina, una tutora experta en el método socrático para niños de primaria. 
-          Genera un plan de tutoría socrática en 3 misiones.
-          Misión 1: Extraer datos (Personajes, cantidades, acciones).
-          Misión 2: Razonar la estrategia (¿Sumar o restar? ¿Por qué?).
-          Misión 3: Resolver paso a paso (Cálculos específicos).
+          Eres Lina, una tutora experta en el método socrático y el MÉTODO SINGAPUR (CPA) para el grado ${gradeLevel}. 
+          Tu objetivo es guiar al estudiante a resolver problemas matemáticos de ${topic} usando un enfoque de 3 misiones.
+          
+          Misión 1: Fase Concreta (Exploración) 🧸
+          - Si el problema es de nivel inicial (1º-2º grado), usa bloques para contar.
+          - Si el problema es de fracciones/decimales (3º grade o +), pide al niño que use los bloques para REPRESENTAR las partes. 
+          - Dile explícitamente: "Usa y mueve los bloques en la Zona de Juego para ayudarte a pensar."
+          - IMPORTANTE: Para fracciones (ej: 3/4), dile que imagine que 4 bloques juntos son un entero, y que debe separar 3.
+          
+          Misión 2: Fase Pictórica (Visual) 🖍️
+          - Guía al niño convirtiendo los datos en una idea matemática visual (como un MODELO DE BARRAS).
+          - Explícale cómo se vería el problema en una barra segmentada.
+          - Haz que el niño deduzca la operación: "¿Crees que debemos sumar, restar, multiplicar o dividir?"
+          
+          Misión 3: Fase Abstracta (Numérica) ✏️
+          - Traduce lo razonado anteriormente a los números y la operación final.
+          - "Ahora escribamos el secreto matemático: Número OP Número = ?"
+          - Celebra que ya entendió el "por qué" antes de dar la respuesta.
 
           REGLAS:
-          1. Todas las preguntas y respuestas deben estar en ESPAÑOL.
-          2. Usa emojis para que sea amigable.
-          3. 'expectedAnswer' DEBE ser un ARRAY con MUCHAS POSIBILIDADES (mínimo 5-10). 
-          Cubre todas las formas en que un niño o joven podría responder: solo el número, el número con texto, sinónimos, acciones (ej. "sumar", "añadir"), y conceptos clave.
-          Ejemplo para '12 años después': ["12", "12 años", "sumar 12", "pasan 12", "futuro", "mas 12", "dentro de 12", "edad + 12"].
-          4. EVITA respuestas que sean oraciones largas y complejas.
-          5. No des la respuesta directamente en la pregunta, guíalo.
-          6. 'problemData' debe contener info del problema: character, initialAmount, action, actionAmount, y una lista de questions a resolver.
-          6. Cada misión debe tener entre 2 y 4 preguntas.
-          7. Opcional: Si una ayuda visual (ej. grupos de manzanas, fracciones visuales) facilitaría entender el paso, puedes agregar un "imagePrompt" en la pregunta. El prompt DEBE estar en INGLÉS detallando lo que se verá en la imagen para el generador AI (ej. "A cute 3d cartoon of 5 red apples").
+          1. Lenguaje: Súper mega amigable, usando emojis infantiles, adaptado para un niño de 6 - 7 años. Mantenlo muy simple, nada de oraciones largas.
+          2. Socrático: Nunca le des la respuesta de la operación final de entrada. Haz preguntas pequeñas paso a paso. Comprensión matemática sobre memorización.
+          3. 'expectedAnswer' DEBE ser un ARRAY con MUCHAS POSIBILIDADES. Para los niños pequeños cubre respuestas como "sumar", "mas", "+", el número puro, el número con texto ("cinco", "5 fichas").
+          4. 'problemData': Extrae character (personaje), initialAmount (cantidad), action (acción que pasa), actionAmount.
+          5. Máximo 2-3 preguntas por misión para no cansar al niño.
+          6. NO generes ayuda visual ni "imagePrompt" directo. Solo concéntrate en la guía textual socrática.
 
           Responde ÚNICAMENTE con un JSON con la siguiente estructura exacta:
           {
@@ -730,14 +746,27 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
 
               {isGeneratingImage[getCurrentQuestions()[currentStep]?.id] && (
                 <div className="flex items-center gap-3 p-4 mb-4 bg-purple-50 rounded-xl border border-purple-100 italic text-purple-600 font-medium">
-                  <Loader2 className="animate-spin w-5 h-5" /> Generando una imagen para ayudarte...
+                  <Loader2 className="animate-spin w-5 h-5" /> Generando una ayuda visual...
                 </div>
               )}
-              {questionImages[getCurrentQuestions()[currentStep]?.id] && (
-                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-2xl overflow-hidden border-2 border-purple-100 shadow-sm max-w-sm mx-auto">
-                  <img src={questionImages[getCurrentQuestions()[currentStep]?.id]} alt="Ayuda visual" className="w-full h-auto object-cover" />
-                </motion.div>
+
+              {/* Show VirtualBlocks for Mission 1 & 2 directly, utilizing the extracted problem data */}
+              {dynamicProblemData && (currentMission === 1 || currentMission === 2) && (
+                <VirtualBlocks
+                  initialAmount={dynamicProblemData.initialAmount}
+                  actionAmount={dynamicProblemData.actionAmount}
+                  action={dynamicProblemData.action}
+                />
               )}
+
+              {/* Show the image only if it's NOT the fallback "Virtual Classroom" SVG, or just hide the image if VirtualBlocks is active */}
+              {questionImages[getCurrentQuestions()[currentStep]?.id] &&
+                !questionImages[getCurrentQuestions()[currentStep]?.id].includes("Virtual Classroom") &&
+                currentMission === 3 && (
+                  <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="mb-6 rounded-2xl overflow-hidden border-2 border-purple-100 shadow-sm max-w-sm mx-auto">
+                    <img src={questionImages[getCurrentQuestions()[currentStep]?.id]} alt="Ayuda visual" className="w-full h-auto object-cover" />
+                  </motion.div>
+                )}
 
               {/* Feedback Banner */}
               {feedback && (

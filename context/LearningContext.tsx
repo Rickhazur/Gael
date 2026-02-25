@@ -3,6 +3,9 @@ import { Language } from '@/types';
 import { TutorReport } from '@/types/tutor';
 import { sampleTutorReports } from '@/lib/olliePersonality_mod';
 import { supabase, saveTutorReport, fetchTutorReports } from '@/services/supabase';
+import { sendWhatsAppTutorReport } from '@/services/whatsappReports';
+import { sendEmailTutorReport } from '@/services/emailReports';
+
 
 
 export type EnglishLevel = 'UNKNOWN' | 'A1' | 'A2' | 'B1' | 'B2';
@@ -181,6 +184,11 @@ export const LearningProvider: React.FC<{ children: ReactNode }> = ({ children }
         // Persist to DB
         if (userId) {
             await saveTutorReport(userId, report);
+            // Trigger WhatsApp Report
+            if (report.source === 'math-tutor' || report.source === 'research-center') {
+                sendWhatsAppTutorReport(userId, report).catch(err => console.error("WS Error:", err));
+                sendEmailTutorReport(userId, report).catch(err => console.error("Email Error:", err));
+            }
         } else {
             // Try to get user again if not set
             const session = await supabase?.auth.getSession();
@@ -188,9 +196,14 @@ export const LearningProvider: React.FC<{ children: ReactNode }> = ({ children }
                 const uid = session.data.session.user.id;
                 setUserId(uid);
                 await saveTutorReport(uid, report);
+                if (report.source === 'math-tutor' || report.source === 'research-center') {
+                    sendWhatsAppTutorReport(uid, report).catch(err => console.error("WS Error:", err));
+                    sendEmailTutorReport(uid, report).catch(err => console.error("Email Error:", err));
+                }
             }
         }
     };
+
 
     const getReportsBySource = (source: "math-tutor" | "research-center") => {
         return reports.find(r => r.source === source);

@@ -1,7 +1,7 @@
 
 import { StepResponse, HintLevel, ErrorType } from './types';
 import { GradeLevel } from '@/types/tutor';
-import { ErrorDetector, HintGenerator, AnswerValidator } from './utils';
+import { ErrorDetector, HintGenerator, AnswerValidator, StateHelper } from './utils';
 import { getCorrectFeedback } from '../../data/feedbackPhrases';
 
 export class AdditionTutor {
@@ -67,31 +67,30 @@ export class AdditionTutor {
         const colNames = ['unidades', 'decenas', 'centenas', 'unidades de mil', 'decenas de mil', 'centenas de mil'];
         const colNamesEn = ['units', 'tens', 'hundreds', 'thousands', 'ten thousands', 'hundred thousands'];
 
-        // INIT - First ask where are the units
-        if (prob.isNew) {
-            const firstDigitCol = cols.find(c => !c.isDot);
+        // Detect phases from history
+        const lastState = StateHelper.getCurrentVisualState(history);
+        const currentPhase = lastState?.phase || (prob.isNew ? 'init' : 'solving');
 
-            // 🎓 GRADE-BASED PEDAGOGY
+        // =========================================================
+        // 🟢 PHASE: INIT (Greeting + Utility + Alignment)
+        // =========================================================
+        if (currentPhase === 'init') {
+            const firstDigitCol = cols.find(c => !c.isDot);
             let introEs = "";
             let introEn = "";
             let speechEs = "";
             let speechEn = "";
 
-            if (grade <= 1) { // 1st Grade: Super simple and visual
-                introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a sumar juntos!\n\n¿Cuánto es **${prob.n1} + ${prob.n2}**? Puedes usar tus dedos o contar objetos. 🍎`;
-                introEn = `Hi! 🌟 I'm **Professor Lina**. Let's add together!\n\nHow much is **${prob.n1} + ${prob.n2}**? You can use your fingers or count objects. 🍎`;
-                speechEs = `¡Hola, mi pequeño genio! Soy la profe Lina y estoy muy feliz de ayudarte. Vamos a ver cuánto nos da ${prob.n1} más ${prob.n2}. Puedes contar con tus deditos o imaginar manzanas. ¿Cuánto crees que es?`;
-                speechEn = `Hi there, little genius! I'm Professor Lina and I'm so happy to help you. Let's see what ${prob.n1} plus ${prob.n2} gives us. You can count with your fingers or imagine apples. What do you think it is?`;
-            } else if (grade === 2) { // 2nd Grade: Warm but slightly more formal
-                introEs = `¡Hola! 👋 Vamos a resolver esta suma.\n\nEmpezamos por los números de la derecha, las **unidades**. ¿Cuánto es **${firstDigitCol?.d1} + ${firstDigitCol?.d2}**?`;
-                introEn = `Hi! 👋 Let's solve this addition.\n\nWe start with the numbers on the right, the **units**. What is **${firstDigitCol?.d1} + ${firstDigitCol?.d2}**?`;
-                speechEs = `¡Hola! Vamos a sumar estos números. Siempre empezamos por la derecha, por las unidades. ¿Cuánto es ${firstDigitCol?.d1} más ${firstDigitCol?.d2}?`;
-                speechEn = `Hi! Let's add these numbers. We always start on the right, with the units. What is ${firstDigitCol?.d1} plus ${firstDigitCol?.d2}?`;
-            } else { // 3rd Grade+: Standard/Advanced
-                introEs = `¡Misión Suma activada! 🚀 Vamos a resolver **${prob.n1} + ${prob.n2}**.\n\nEmpezamos por la derecha, en las **unidades**. ¿Cuánto es **${firstDigitCol?.d1} + ${firstDigitCol?.d2}**?`;
-                introEn = `Addition Mission activated! 🚀 Let's solve **${prob.n1} + ${prob.n2}**.\n\nWe start on the right, in the **units**. What is **${firstDigitCol?.d1} + ${firstDigitCol?.d2}**?`;
-                speechEs = `¡Hola campeón! ¡Lista para esta súper misión de suma! Vamos a sumar ${prob.n1} y ${prob.n2}. ¡Empecemos por la derecha, por las unidades! ¿Cuánto nos da ${firstDigitCol?.d1} más ${firstDigitCol?.d2}?`;
-                speechEn = `Hi champion! I'm so excited for this addition mission! Let's add ${prob.n1} and ${prob.n2}. We always start on the right, with the units! What is ${firstDigitCol?.d1} plus ${firstDigitCol?.d2}?`;
+            if (grade <= 1) {
+                introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a sumar juntos!\n\n¿Sabes por qué es útil sumar? 🍎 Porque nos ayuda a contar nuestras frutas, juguetes y ¡hasta estrellas!\n\nMira la pizarra: puse los números uno debajo del otro para que sea más fácil. ¿Ves cómo están bien sentaditos?`;
+                introEn = `Hi! 🌟 I'm **Professor Lina**. Let's add together!\n\nDo you know why adding is useful? 🍎 It helps us count our fruits, toys, and even stars!\n\nLook at the board: I put the numbers one under the other to make it easy. Do they look ready?`;
+                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a sumar. Sumar es súper útil para contar todas las cosas que nos gustan. Mira cómo acomodé los números en la pizarra. ¿Están bien alineados?`;
+                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to add. Adding is super useful for counting everything we love. Look how I placed the numbers on the board. Are they well aligned?`;
+            } else {
+                introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para esta misión de suma!\n\nSaber sumar es como tener un súper poder ⚡. Nos ayuda en el mercado, con nuestro dinero y en los videojuegos.\n\nPrimero, los escribí bien alineados: **unidades con unidades** y **decenas con decenas**. ¿Los ves listos en el tablero?`;
+                introEn = `Hi! 👋 I'm **Professor Lina**. Ready for this addition mission!\n\nKnowing how to add is like having a superpower ⚡. It helps at the store, with money, and in video games.\n\nFirst, I wrote them well aligned: **units with units** and **tens with tens**. Do they look ready on the board?`;
+                speechEs = `¡Hola! Soy la profe Lina. ¡Qué alegría saludarte! Sumar es un súper poder que te servirá para toda la vida. Mira la pizarra: puse los números uno debajo del otro, unidades con unidades. ¿Ya los viste?`;
+                speechEn = `Hi! I'm Professor Lina. So happy to see you! Adding is a superpower that will serve you for life. Look at the board: I put the numbers one under the other, units with units. Do you see them?`;
             }
 
             return {
@@ -101,11 +100,57 @@ export class AdditionTutor {
                     visualType: "vertical_op",
                     visualData: {
                         operand1: s1, operand2: s2, operator: "+", result: "", carry: "",
-                        highlightDigit: { row: 0, col: 0 } // Standard units col
+                        phase: 'direction_check'
                     },
-                    detailedExplanation: { es: "Inicio de suma", en: "Starting addition" }
+                    detailedExplanation: { es: "Introducción y Alineación", en: "Intro and Alignment" }
                 }]
             } as any;
+        }
+
+        // =========================================================
+        // 🟢 PHASE: DIRECTION CHECK (Where do we start?)
+        // =========================================================
+        if (currentPhase === 'direction_check') {
+            const cleanInput = input.toLowerCase();
+            const startsRight = cleanInput.includes('derecha') || cleanInput.includes('right') || cleanInput.includes('final') || cleanInput.includes('unidades') || cleanInput.includes('units');
+
+            if (startsRight) {
+                const firstDigitCol = cols.find(c => !c.isDot);
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Exacto! 🎯 Siempre empezamos por la **derecha**, por las **unidades**.\n\nAhora sí, ¿cuánto es **${firstDigitCol?.d1} + ${firstDigitCol?.d2}**?`
+                            : `Exactly! 🎯 We always start on the **right**, with the **units**.\n\nNow, how much is **${firstDigitCol?.d1} + ${firstDigitCol?.d2}**?`,
+                        speech: lang === 'es'
+                            ? `¡Eso es! Muy bien. Siempre empezamos por la derecha, por las unidades. Entonces, ¿cuánto es ${firstDigitCol?.d1} más ${firstDigitCol?.d2}?`
+                            : `That's it! Very good. We always start on the right, with the units. So, how much is ${firstDigitCol?.d1} plus ${firstDigitCol?.d2}?`,
+                        visualType: "vertical_op",
+                        visualData: {
+                            operand1: s1, operand2: s2, operator: "+", result: "", carry: "",
+                            highlightDigit: { row: 0, col: 0 },
+                            phase: 'solving'
+                        },
+                        detailedExplanation: { es: "Inicio de cálculos", en: "Starting calculations" }
+                    }]
+                } as any;
+            } else {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Miremos con cuidado! 👀 Para que la suma salga perfecta, ¿empezamos por la **izquierda** o por la **derecha** (las unidades)?`
+                            : `Let's look carefully! 👀 To make the addition perfect, do we start from the **left** or from the **right** (the units)?`,
+                        speech: lang === 'es'
+                            ? `¡Pensemos un poquito! Para no equivocarnos, ¿por dónde empezamos? ¿Por la izquierda o por la derecha?`
+                            : `Let's think for a bit! To avoid mistakes, where do we start? From the left or the right?`,
+                        visualType: "vertical_op",
+                        visualData: {
+                            operand1: s1, operand2: s2, operator: "+", result: "", carry: "",
+                            phase: 'direction_check'
+                        },
+                        detailedExplanation: { es: "Pregunta de dirección", en: "Direction question" }
+                    }]
+                } as any;
+            }
         }
 
         const cleanInput = input.toLowerCase().trim();

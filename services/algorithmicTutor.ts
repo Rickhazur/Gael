@@ -149,7 +149,8 @@ export class AlgorithmicTutor {
         language: 'es' | 'en',
         divisionStyle?: 'latin' | 'us',
         studentName?: string,
-        grade: GradeLevel = 3
+        grade: GradeLevel = 3,
+        masteryMode: boolean = false
     ): StepResponse | null {
         const normalized = AlgorithmicTutor.normalizeInput(currentText);
         let problem = AlgorithmicTutor.detectProblem(normalized, history);
@@ -236,8 +237,8 @@ export class AlgorithmicTutor {
             const allFracs = clean.match(/(\d+)\s*\/\s*(\d+)/g);
             const noSpaces = clean.replace(/\s/g, '');
             const hasPlusOrMinus = (noSpaces.match(/[\+\-]/g) || []).length >= 1;
-            const onlyFracOps = /^[\d\/\+\-]+$/.test(noSpaces);
-            if (allFracs && allFracs.length >= 2 && hasPlusOrMinus && onlyFracOps) {
+            const onlyFracOps = /^[\d\/\+\-\s]+$/.test(clean); // Simplified, less restrictive
+            if (allFracs && allFracs.length >= 2 && hasPlusOrMinus) {
                 const opMatches = clean.match(/[\+\-]/g) || [];
                 if (opMatches.length !== allFracs.length - 1) { /* invalid */ } else {
                     const parsed = allFracs.map(f => {
@@ -313,13 +314,12 @@ export class AlgorithmicTutor {
             }
 
             // 5. WORD PROBLEMS (Context Detection)
-            // DISABLED: Letting the LLM (Socratic Brain) handle word problems for better pedagogical context (Protocol E/F)
-            /*
-            const wordProblemKeywords = /(tienda|hay|total|vende|compra|regala|repart|encontr|cuesta|price|store|bought|has|had|find|found)/i;
+            const wordProblemKeywords = /(tienda|hay|total|vende|compra|regala|repart|encontr|cuesta|price|store|bought|has|had|find|found|litros|km|kilom)/i;
             if (wordProblemKeywords.test(clean) && clean.match(/\d+/)) {
-                return { type: 'wordProblem', text: clean };
+                // Try parsing with structured wp parsers first
+                const wp = parseWordProblem(clean) || parseGenericWordProblem(clean);
+                if (wp) return { ...wp, type: 'wordProblem', isNew: true };
             }
-            */
 
             // 6. GEOMETRY (Perimeter/Area - rectangle)
             const geometryMatch = clean.match(/(perimetro|área|area|perímetro)\b.*?\b(\d+)\s*(?:x|×|por|,|y)\s*(\d+)/i);
@@ -399,33 +399,9 @@ export class AlgorithmicTutor {
         // 1. Check current text (Is New?)
         const lastState = AlgorithmicTutor.getCurrentVisualState(history);
 
-        // 🧩 WORD PROBLEM – misma secuencia para todos: pizarra con highlights y respuesta siempre
-        if (lastState?.wpPhase && lastState?.wpParsed) {
-            return { ...lastState.wpParsed, type: 'wordProblem' as const, isNew: false };
-        }
-        if (text.length > 25 && /[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(text) && !text.includes('=')) {
-            // 1) Tanque: capacidad, mitad, fracción, añadir, faltan
-            if (/litros|capacidad|mitad|faltan|gastaron|añadieron|llovió/i.test(text)) {
-                const wpParsed = parseWordProblem(text);
-                if (wpParsed) return { ...wpParsed, wpType: wpParsed.type, type: 'wordProblem' as const, isNew: true };
-            }
-            // 2) Genérico: suma, resta, multiplicación, división, multi-paso (kg, litros, cajas, repartir, etc.)
-            const generic = parseGenericWordProblem(text);
-            if (generic) return { ...generic, wpType: (generic as any).type, type: 'wordProblem' as const, isNew: true };
-        }
-        // Try parse() for structured patterns (geometry, algebra, coordinates, etc.)
-        // BEFORE the word problem guard, so these don't get incorrectly delegated to AI.
+        // 5. WORD PROBLEM GUARD - Relaxed to fall back to Socratic AI for better storytelling/context
+        // (Moved back to TutorChat to allow AI-powered CPA pedagogy for complex text)
         const currentProblem = parse(text);
-
-        // 🛡️ WORD PROBLEM GUARD – solo delegar al AI si no es problema verbal reconocido
-        // AND parse() didn't find a structured pattern
-        if (!currentProblem && text.length > 25 && /[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(text) && !text.includes('=')) {
-            const isPureMath = /^[\d\s\+\-\*\/\(\)\.]*$/.test(text);
-            if (!isPureMath) {
-                console.log("📝 Detected Context/Word Problem. Delegating to Socratic AI.");
-                return null;
-            }
-        }
 
         if (currentProblem) {
             // DUPLICATE GUARD: If we are already solving this exact problem, don't restart it!

@@ -518,9 +518,9 @@ export function parseMathProblem(problem: string): {
         return { num1: inner, num2: c, operator: outerOp };
     }
 
-    // 1. Multiple addition (e.g. "12.5 + 34.2 + 56.1") - only when no minus
+    // 1. Multiple addition (e.g. "12.5 + 34.2 + 56.1") - only when no minus or slashes (fractions)
     const allNums = problem.match(/\d+(\.\d+)?/g);
-    if (problem.includes('+') && !problem.includes('-') && allNums && allNums.length > 2) {
+    if (problem.includes('+') && !problem.includes('-') && !problem.includes('/') && allNums && allNums.length > 2) {
         const nums = allNums.map(Number);
         return { num1: nums[0], num2: nums[1], operator: '+', operands: nums };
     }
@@ -1169,8 +1169,17 @@ export function generateDivisionSteps(dividend: number, divisor: number): Vertic
 
 // --- 🔢 DECIMAL OPERATIONS (NEW ANIMATED SOCRATIC FLOW) ---
 
-export function generateDecimalSteps(num1: number, num2: number, operator: '+' | '-' | '×' | '÷'): VerticalOpStep[] {
+export function generateDecimalSteps(num1OrArray: number | number[], optionalNum2: number, operator: '+' | '-' | '×' | '÷'): VerticalOpStep[] {
     const steps: VerticalOpStep[] = [];
+    let numbers: number[] = [];
+    if (Array.isArray(num1OrArray)) {
+        numbers = num1OrArray;
+    } else {
+        numbers = [num1OrArray, optionalNum2];
+    }
+    const num1 = numbers[0];
+    const num2 = numbers[1]; // Fallback for binary ops
+
     const s1 = num1.toString();
     const s2 = num2.toString();
     const p1 = s1.split('.');
@@ -1306,23 +1315,25 @@ export function generateDecimalSteps(num1: number, num2: number, operator: '+' |
     }
 
     // STEP 2: UNDERSTAND THE POINT
+    const numListEs = numbers.map(n => `**${n}**`).join(' y ');
+    const numListEn = numbers.map(n => `**${n}**`).join(' and ');
     steps.push({
-        operand1: s1,
-        operand2: s2,
+        operand1: numbers[0].toString(),
+        operand2: (numbers[1] || 0).toString(),
         operator: operator,
         result: '?',
         carry: '',
         columnIndex: 0,
         highlight: 'setup',
         visualType: 'vertical_op',
-        visualData: { operands: [s1, s2], operator, highlight: 'points', correctValue: parseFloat(p1[0] || '0') },
+        visualData: { operands: numbers.map(n => n.toString()), operator, highlight: 'points', correctValue: parseFloat(p1[0] || '0') },
         message: {
-            es: `¡Hola! 👋 Mira estos números: **${s1}** y **${s2}**. El puntico separa los enteros de las "partes pequeñas".\n\n**¿Qué número ves antes del punto en el primero?**`,
-            en: `Hi! 👋 Look at these numbers: **${s1}** and **${s2}**. The little dot separates the whole numbers from the "small parts".\n\n**What number do you see before the dot in the first one?**`
+            es: `¡Hola! 👋 Mira estos números: ${numListEs}. El puntico separa los enteros de las "partes pequeñas".\n\n**¿Qué número ves antes del punto en el primer número (${numbers[0]})?**`,
+            en: `Hi! 👋 Look at these numbers: ${numListEn}. The little dot separates the whole numbers from the "small parts".\n\n**What number do you see before the dot in the first one (${numbers[0]})?**`
         },
         speech: {
             es: `¡Hola! Mira estos números. El puntico separa los enteros de las partes pequeñas. ¿Qué número ves antes del punto en el primero?`,
-            en: `Hi! Look at these numbers. The little dot separates the whole numbers from the small parts. What number do you see before the dot in the first one?`
+            en: `Hi! Look at these numbers. The little dot separates the whole numbers from the "small parts". What number do you see before the dot in the first one?`
         },
         hint: {
             es: `¡Cuidado! El número **después** del punto es el ${p1[1] || '0'}, pero yo te pregunté por el que está **antes** (a la izquierda) del puntico.`,
@@ -1332,15 +1343,15 @@ export function generateDecimalSteps(num1: number, num2: number, operator: '+' |
 
     // STEP 3: ALIGNMENT
     steps.push({
-        operand1: s1,
-        operand2: s2,
+        operand1: numbers[0].toString(),
+        operand2: numbers[1].toString(),
         operator: operator,
         result: '?',
         carry: '',
         columnIndex: 0,
         highlight: 'setup',
         visualType: 'vertical_op',
-        visualData: { operands: [s1, s2], operator, highlight: 'alignment', correctValue: 'sí' },
+        visualData: { operands: numbers.map(n => n.toString()), operator, highlight: 'alignment', correctValue: 'sí' },
         message: {
             es: `¡Muy bien! Ahora, lo más importante es que los puntos estén **alineados**, como en un ascensor 🛗.\n\nHe puesto una **guía mágica** en la pizarra para ayudarte. **¿Están los punticos uno debajo del otro sobre la línea?**`,
             en: `Great! Now, the most important thing is that the dots must be **aligned**, just like in an elevator 🛗.\n\nI've placed a **magic guide line** on the board to help you. **Are the dots one below the other on the line?**`
@@ -1352,40 +1363,42 @@ export function generateDecimalSteps(num1: number, num2: number, operator: '+' |
     });
 
     // PRE-CALCULATION LOGIC: Padding with Zeros
-    const dec1 = s1.includes('.') ? s1.split('.')[1].length : 0;
-    const dec2 = s2.includes('.') ? s2.split('.')[1].length : 0;
-    const maxDec = Math.max(dec1, dec2);
-    const n1Padded = num1.toFixed(maxDec);
-    const n2Padded = num2.toFixed(maxDec);
+    const decCounts = numbers.map(n => {
+        const s = n.toString();
+        return s.includes('.') ? s.split('.')[1].length : 0;
+    });
+    const maxDec = Math.max(...decCounts);
+    const nPadded = numbers.map(n => n.toFixed(maxDec));
 
     // STEP 4: PADDING WITH ZEROS
-    if (dec1 !== dec2) {
+    const needsPadding = decCounts.some(d => d !== maxDec);
+    if (needsPadding && operator === '+') {
         steps.push({
-            operand1: n1Padded,
-            operand2: n2Padded,
+            operand1: nPadded[0],
+            operand2: nPadded[1],
             operator: operator,
             result: '?',
             carry: '',
             columnIndex: 0,
             highlight: 'setup',
             visualType: 'vertical_op',
-            visualData: { operands: [n1Padded, n2Padded], operator, highlight: 'padding', correctValue: maxDec },
+            visualData: { operands: nPadded, operator, highlight: 'padding', correctValue: maxDec },
             message: {
-                es: `¡Mira! Agregamos un **cerito** al final para que los dos tengan la misma cantidad de números después del punto. Así es más fácil de ordenar.\n\n**¿Cuántos números hay después del punto ahora?**`,
-                en: `Look! We added a **small zero** at the end so both have the same number of digits after the dot. This makes it easier to order.\n\n**How many numbers are after the dot now?**`
+                es: `¡Mira! Agregamos ceritos al final para que todos tengan la misma cantidad de números después del punto. Así es más fácil de ordenar.\n\n**¿Cuántos números hay después del punto ahora en todos?**`,
+                en: `Look! We added zeros at the end so everyone has the same number of digits after the dot. This makes it easier to order.\n\n**How many numbers are after the dot now in all of them?**`
             },
             speech: {
-                es: `¡Mira! Agregamos un cerito al final para que sea más fácil. ¿Cuántos números hay después del punto ahora?`,
-                en: `Look! We added a small zero at the end to make it easier. How many numbers are after the dot now?`
+                es: `¡Mira! Agregamos ceritos al final para que sea más fácil. ¿Cuántos números hay después del punto ahora?`,
+                en: `Look! We added small zeros at the end to make it easier. How many numbers are after the dot now?`
             }
         });
     }
 
     // CALCULATION (As integers)
-    const int1 = Math.round(num1 * Math.pow(10, maxDec));
-    const int2 = Math.round(num2 * Math.pow(10, maxDec));
+    const factor = Math.pow(10, maxDec);
+    const intNumbers = numbers.map(n => Math.round(n * factor));
 
-    let calcSteps = operator === '+' ? generateAdditionSteps(int1, int2) : generateSubtractionSteps(int1, int2);
+    let calcSteps = operator === '+' ? generateAdditionSteps(intNumbers) : generateSubtractionSteps(intNumbers[0], intNumbers[1]);
 
     // Filter out the initial setup steps from calcSteps to avoid duplication
     calcSteps = calcSteps.filter(s => s.highlight !== 'setup');
@@ -1394,22 +1407,20 @@ export function generateDecimalSteps(num1: number, num2: number, operator: '+' |
     const toDecimalStr = (s: string) => {
         if (!s || s === '?' || isNaN(Number(s))) return s;
         const val = Number(s);
-        const decVal = val / Math.pow(10, maxDec);
+        const decVal = val / factor;
         return decVal.toFixed(maxDec);
     };
 
     // MAP CALCULATION STEPS
     calcSteps.forEach((s, idx) => {
-        const isLastCalcStep = idx === calcSteps.length - 1;
-
         steps.push({
             ...s,
-            operand1: n1Padded,
-            operand2: n2Padded,
+            operand1: nPadded[0],
+            operand2: nPadded[1],
             result: toDecimalStr(s.result),
             visualType: 'vertical_op',
             visualData: {
-                operands: [n1Padded, n2Padded],
+                operands: nPadded,
                 operator,
                 result: toDecimalStr(s.result),
                 carry: s.carry,
@@ -1424,15 +1435,15 @@ export function generateDecimalSteps(num1: number, num2: number, operator: '+' |
     // STEP 6: DROP THE POINT (Reinforcement)
     const finalRes = toDecimalStr(calcSteps[calcSteps.length - 1].result);
     steps.push({
-        operand1: n1Padded,
-        operand2: n2Padded,
+        operand1: nPadded[0],
+        operand2: nPadded[1],
         operator: operator,
         result: finalRes,
         carry: '',
         columnIndex: 0,
         highlight: 'point_drop',
         visualType: 'vertical_op',
-        visualData: { operands: [n1Padded, n2Padded], operator, result: finalRes, highlight: 'decimal_point' },
+        visualData: { operands: nPadded, operator, result: finalRes, highlight: 'decimal_point' },
         message: {
             es: `¡Y el paso final! El punto baja **derechito** hasta el resultado. ¡No se mueve de su lugar! 🛗\n\n**¿Ves cómo quedó justo debajo de los otros?**`,
             en: `And the final step! The dot drops **straight down** to the result. It doesn't move! 🛗\n\n**Do you see how it stayed right under the others?**`
@@ -1445,22 +1456,22 @@ export function generateDecimalSteps(num1: number, num2: number, operator: '+' |
 
     // STEP 7: VERIFICATION
     steps.push({
-        operand1: n1Padded,
-        operand2: n2Padded,
+        operand1: nPadded[0],
+        operand2: nPadded[1],
         operator: operator,
         result: finalRes,
         carry: '',
         columnIndex: 0,
         highlight: 'done',
         visualType: 'vertical_op',
-        visualData: { operands: [n1Padded, n2Padded], operator, result: finalRes, highlight: 'done' },
+        visualData: { operands: nPadded, operator, result: finalRes, highlight: 'done' },
         message: {
-            es: `¡Excelente trabajo! 🎉 Sumamos ${num1} y ${num2} y nos dio **${finalRes}**. Como sumamos, el número es más grande. ¡Tiene mucho sentido!`,
-            en: `Excellent work! 🎉 We added ${num1} and ${num2} and got **${finalRes}**. Since we added, the number is bigger. It makes total sense!`
+            es: `¡Excelente trabajo! 🎉 El resultado final es **${finalRes}**. ¡Lo hiciste genial! 💪`,
+            en: `Excellent work! 🎉 The final result is **${finalRes}**. You did great! 💪`
         },
         speech: {
-            es: `¡Excelente trabajo! Sumamos y el número es más grande. ¡Tiene sentido!`,
-            en: `Excellent work! We added and the number is bigger. It makes sense!`
+            es: `¡Excelente trabajo! El resultado es ${finalRes}. ¡Muy bien!`,
+            en: `Excellent work! The result is ${finalRes}. Well done!`
         }
     });
 
@@ -2125,7 +2136,7 @@ export function generateStepsForProblem(problemText: string, grade?: number): Ve
 
     // 5. DECIMALS & INTEGERS
     if (Number(p.num1) % 1 !== 0 || Number(p.num2) % 1 !== 0 || problemText.includes('.')) {
-        return generateDecimalSteps(p.num1, p.num2, p.operator);
+        return generateDecimalSteps(p.operands || [p.num1, p.num2], 0, p.operator);
     }
     if (p.operator === '+') return generateAdditionSteps(p.operands || [p.num1, p.num2]);
     if (p.operator === '-') return generateSubtractionSteps(p.num1, p.num2);

@@ -62,7 +62,7 @@ export const AVATARS: AvatarBase[] = [
     { id: 'g4_pixel', name: 'Pixel Paladin 🎮', description: 'Defensor del reino de píxels.', grade: 4, imageUrl: '/avatars/g4_pixel.png', color: '#A9A9A9', personality: 'Leal' },
     { id: 'g4_street', name: 'Street Stylist 👟', description: 'Marca tendencia urbana.', grade: 4, imageUrl: '/avatars/g4_street.png', color: '#FF69B4', personality: 'Creativa' },
     { id: 'g4_tech', name: 'Tech Savvy 💻', description: 'Experto en gadgets inteligentes.', grade: 4, imageUrl: '/avatars/g4_tech.png', color: '#FFA500', personality: 'Inteligente' },
-    { id: 'g4_anime', name: 'Anime Ace ⚔️', description: 'Espadachina tradicional moderna.', grade: 4, imageUrl: '/avatars/g4_anime.png', color: '#FFC0CB', personality: 'Disciplinada' },
+    { id: 'g4_anime', name: 'Anime Ace ⚔️', description: 'Espadachina tradicional moderna.', grade: 4, imageUrl: '/avatars/g4_anime.png', color: '#FFC0CB', personality: 'Disciplunada' },
     { id: 'g4_gamer', name: 'Gamer Guru 🕹️', description: 'Capitán de e-sports.', grade: 4, imageUrl: '/avatars/g4_gamer.png', color: '#FF4500', personality: 'Competitivo' },
 
     // --- QUINTO (5th Grade) - 3D Simple Collection ---

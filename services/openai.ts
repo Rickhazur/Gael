@@ -68,7 +68,6 @@ export async function callOpenAI(
 
 export async function generateOpenAIImage(prompt: string): Promise<string | null> {
     if (!API_KEY) {
-        console.warn("Falta la clave de OpenAI para generar imágenes.");
         return null;
     }
 

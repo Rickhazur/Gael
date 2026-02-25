@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Search, UserPlus, Filter, MoreHorizontal, Trash2, Edit2, CheckCircle, XCircle } from 'lucide-react';
 import { getAllStudents, updateStudentLevel, deleteStudentProfile, adminCreateUser, updateUserStatus } from '../../services/supabase';
+import { AVAILABLE_GRADES } from '@/constants';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Student } from '@/types';
@@ -155,7 +156,7 @@ const StudentManagement: React.FC = () => {
                                 onChange={e => setFormData({ ...formData, gradeLevel: parseInt(e.target.value) })}
                                 className="w-full p-2 border border-stone-200 rounded-lg text-sm"
                             >
-                                {[1, 2, 3, 4, 5, 6, 7].map(g => (
+                                {AVAILABLE_GRADES.map(g => (
                                     <option key={g} value={g}>Grado {g}°</option>
                                 ))}
                             </select>
@@ -177,7 +178,7 @@ const StudentManagement: React.FC = () => {
                                 value={formData.guardianPhone}
                                 onChange={e => setFormData({ ...formData, guardianPhone: e.target.value })}
                                 className="w-full p-2 border border-stone-200 rounded-lg text-sm"
-                                placeholder="Para notificaciones WhatsApp"
+                                placeholder="Para notificaciones Email"
                             />
                         </div>
 

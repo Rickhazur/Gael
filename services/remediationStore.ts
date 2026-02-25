@@ -17,6 +17,8 @@ const TOPIC_WORD_MAP: Record<string, string[]> = {
     'general_math': ['st_pencil', 'st_note', 'st_rule', 'st_erase'],
     'science_animals': ['dog', 'cat', 'bird', 'lion', 'elephant', 'tiger', 'monkey'],
     'science_space': ['sun', 'moon', 'star', 'rocket_s', 'planet', 'tele2'],
+    'science_ecosystem': ['tree', 'river', 'forest', 'animal', 'water', 'sun', 'plant', 'bug', 'leaf'],
+    'science': ['tree', 'water', 'sun', 'plant', 'animal', 'star']
 };
 
 export const remediationStore = {

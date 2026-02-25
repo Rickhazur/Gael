@@ -28,6 +28,7 @@ export interface TutorChatProps {
     isDemo?: boolean;
     onExerciseComplete?: (operationType: string) => void;
     onPersistProgress?: (operationType: string) => void;
+    onExerciseError?: (operationType: string) => void;
     onSetupDragAndDrop?: (bgUrl: string, items: { id: string, imgUrl: string, count: number }[]) => void;
     onDrawProportionTable?: (a1: string, b1: string, a2: string, b2: string, unitA: string, unitB: string, highlight?: string) => void;
 }

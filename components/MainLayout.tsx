@@ -130,7 +130,7 @@ import { SubjectProgressDashboard } from '@/components/GoogleClassroom/SubjectPr
 import { HallOfFame } from '@/components/Gamification/HallOfFame';
 
 import Progress from '@/components/Progress';
-
+import Settings from '@/components/Settings';
 import Flashcards from '@/components/Flashcards';
 
 import { SubscriptionPage } from '@/components/Subscription/SubscriptionPage';
@@ -510,13 +510,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 {currentView === ViewState.AI_CONSULTANT && <SmartTutorPrimary onNavigate={setCurrentView} gradeLevel={gradeLevel} setGradeLevel={setGradeLevel} />}
 
                 {currentView === ViewState.MATH_TUTOR && (
-
-                    <Suspense fallback={<ComponentLoader />}>
-
-                        <MathTutor gradeLevel={gradeLevel} userName={userName} userId={userId} onNavigate={setCurrentView} />
-
-                    </Suspense>
-
+                    <div className="w-full h-full">
+                        <WordProblemHub />
+                    </div>
                 )}
 
                 {currentView === ViewState.RESEARCH_CENTER && (
@@ -597,7 +593,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
                 {currentView === ViewState.WORD_PROBLEMS && (
                     <div className="w-full h-full">
-                        <WordProblemHub />
+                        <WordProblemHub gradeLevel={gradeLevel} />
                     </div>
                 )}
 
@@ -746,6 +742,22 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 )}
 
 
+
+                {currentView === ViewState.SETTINGS && (
+                    <Settings
+                        userId={userId}
+                        userName={userName}
+                        userRole={userRole}
+                        onUpdateUser={(name) => {
+                            // In a real app we'd update context/state, here we can just refresh or trust the sync
+                            window.location.reload();
+                        }}
+                        onLogout={handleLogout}
+                        language={language as any}
+                        onLanguageChange={setLanguage}
+                        isPrimary={userRole === 'STUDENT'}
+                    />
+                )}
 
                 {/* Admin Views */}
 

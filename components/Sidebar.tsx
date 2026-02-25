@@ -54,7 +54,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       exitSim: 'Salir Broma',
       connection: 'CONECTADO',
       remedial: 'Entrenamiento Especial',
-      mathTutor: 'Profe de Mate',
+      mathTutor: 'Centro de Matemáticas',
       research: 'Centro de Investigación',
       buddyLearn: 'Centro de Idiomas',
       parentDashboard: 'Panel de Padres',
@@ -80,7 +80,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       exitSim: 'Exit Prank',
       connection: 'ONLINE',
       remedial: 'Special Training',
-      mathTutor: 'Math Tutor',
+      mathTutor: 'Math Center',
       research: 'Research Center',
       buddyLearn: 'Language Center',
       parentDashboard: 'Parent Panel',
@@ -102,16 +102,13 @@ const Sidebar: React.FC<SidebarProps> = ({
     // { id: ViewState.AI_CONSULTANT, label: labels.consultant, icon: Bot }, // Removed as per request (redundant)
     { id: ViewState.ARENA, label: labels.social, icon: Swords },
     { id: ViewState.REWARDS, label: labels.rewards, icon: ShoppingBag },
-    { id: ViewState.MATH_TUTOR, label: labels.mathTutor, icon: Brain },
+    { id: ViewState.WORD_PROBLEMS, label: labels.mathTutor, icon: Brain }, // Replaces old MATH_TUTOR
     { id: ViewState.RESEARCH_CENTER, label: labels.research, icon: Search },
     { id: ViewState.FLASHCARDS, label: labels.flashcards, icon: Layers },
     { id: ViewState.BUDDY_LEARN, label: labels.buddyLearn, icon: Globe },
     { id: ViewState.NOTEBOOK_LIBRARY, label: labels.notebooks, icon: BookOpen },
     { id: ViewState.SPARK_CHAT, label: (labels as any).spark, icon: Mic },
-    { id: ViewState.WORD_PROBLEMS, label: (labels as any).wordProblems, icon: CircleHelp },
     { id: ViewState.NOVA_BANK, label: (labels as any).novaBank, icon: CreditCard },
-    // { id: ViewState.WORD_PROBLEMS_DEMO, label: (labels as any).wordProblemsDemo, icon: CircleHelp }, // Hidden demo
-    // { id: ViewState.MATH_LAB, label: (labels as any).mathLab, icon: PenTool }, // Merged into MathTutor
     { id: ViewState.PROGRESS, label: labels.progress, icon: UserCheck },
   ];
 
