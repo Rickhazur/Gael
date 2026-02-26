@@ -32,4 +32,5 @@ export interface TutorChatProps {
     onSetupDragAndDrop?: (bgUrl: string, items: { id: string, imgUrl: string, count: number }[]) => void;
     onDrawProportionTable?: (a1: string, b1: string, a2: string, b2: string, unitA: string, unitB: string, highlight?: string) => void;
     onDrawConcreteFractions?: (visualData: any) => void;
+    onDrawConcreteMath?: (n1: number, n2: number, operator: '+' | '-', itemEmoji?: string) => void;
 }

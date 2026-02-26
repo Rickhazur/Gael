@@ -94,6 +94,9 @@ export interface VisualState {
     b2?: string;
     unitA?: string;
     unitB?: string;
+    n1?: number;
+    n2?: number;
+    itemEmoji?: string;
 }
 
 export interface Step {

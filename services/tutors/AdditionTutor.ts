@@ -100,10 +100,13 @@ export class AdditionTutor {
                 steps: [{
                     text: lang === 'es' ? introEs : introEn,
                     speech: lang === 'es' ? speechEs : speechEn,
-                    visualType: "vertical_op",
+                    visualType: (grade <= 1 || isSmallSum) ? "concrete_math" : "vertical_op",
                     visualData: {
                         operand1: s1, operand2: s2, operator: "+", result: "", carry: "",
                         phase: 'direction_check',
+                        n1: parseInt(s1),
+                        n2: parseInt(s2),
+                        itemEmoji: "🔵",
                         helpers: useHelpers ? [
                             { content: "🍎".repeat(parseInt(s1)), row: 0 },
                             { content: "🍎".repeat(parseInt(s2)), row: 1 }

@@ -27,6 +27,7 @@ import MathPhoenix from '../games/MathPhoenix/MathPhoenix';
 import { MathTutorEnhancements } from '../MathTutorEnhancements';
 import { generateExercises, type MathExercise, type MathOperation } from '../../../services/exerciseGenerator';
 import { parseMathProblem } from '@/services/mathValidator';
+import { SmartVisualArithmetic } from './SmartVisualArithmetic';
 import { usePetContext } from '@/context/PetContext';
 import { ViewState } from '@/types';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
@@ -265,6 +266,12 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate,
         action: string;
         itemEmoji?: string;
         secondaryEmoji?: string;
+    } | null>(null);
+    const [concreteMathData, setConcreteMathData] = useState<{
+        n1: number;
+        n2: number;
+        operator: '+' | '-';
+        itemEmoji?: string;
     } | null>(null);
 
     // Robustly handle grade input to prevent crashes
@@ -1212,6 +1219,22 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                                                 </p>
                                             </div>
                                         </div>
+                                    ) : concreteMathData ? (
+                                        <div className="relative w-full">
+                                            <button
+                                                onClick={() => setConcreteMathData(null)}
+                                                className="absolute top-4 right-4 z-50 bg-white/80 hover:bg-white text-slate-600 p-2 rounded-full shadow-md transition-all hover:scale-110"
+                                            >
+                                                ✕
+                                            </button>
+                                            <SmartVisualArithmetic
+                                                n1={concreteMathData.n1}
+                                                n2={concreteMathData.n2}
+                                                operator={concreteMathData.operator}
+                                                itemEmoji={concreteMathData.itemEmoji}
+                                                language={effectiveLanguage}
+                                            />
+                                        </div>
                                     ) : (
                                         <div style={{ pointerEvents: toolMode === 'hand' ? 'none' : 'auto' }}>
                                             <CleanWhiteboard ref={whiteboardRef} />
@@ -1504,6 +1527,10 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                             } else {
                                 setConcreteData(null);
                             }
+                        }}
+                        onDrawConcreteMath={(n1, n2, op, emoji) => {
+                            setConcreteData(null);
+                            setConcreteMathData({ n1, n2, operator: op, itemEmoji: emoji });
                         }}
                         onDrawDataPlot={(d) => whiteboardRef.current?.drawDataPlot(d)}
                         onDrawVerticalOp={(n1, n2, res, op, carry, highlight, borrows, helpers, visualData) => {

@@ -198,10 +198,13 @@ export class SubtractionTutor {
                 steps: [{
                     text: lang === 'es' ? introEs : introEn,
                     speech: lang === 'es' ? speechEs : speechEn,
-                    visualType: "vertical_op",
+                    visualType: grade <= 1 ? "concrete_math" : "vertical_op",
                     visualData: {
                         operand1: s1, operand2: s2, operator: "-", result: "",
-                        phase: 'direction_check'
+                        phase: 'direction_check',
+                        n1: parseInt(s1),
+                        n2: parseInt(s2),
+                        itemEmoji: "🔵"
                     },
                     detailedExplanation: { es: "Introducción y Alineación", en: "Intro and Alignment" }
                 }]

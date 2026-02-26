@@ -87,7 +87,7 @@ const AnimatedWordText = ({ text }: { text: string }) => {
 };
 
 const TutorChatComponent = (
-    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onExerciseError, onSetupDragAndDrop, onDrawProportionTable, onDrawConcreteFractions }: TutorChatProps,
+    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onExerciseError, onSetupDragAndDrop, onDrawProportionTable, onDrawConcreteFractions, onDrawConcreteMath }: TutorChatProps,
     ref: React.ForwardedRef<TutorChatRef>
 ) => {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -437,6 +437,9 @@ const TutorChatComponent = (
                 onDrawDecomposition(v.n1, v.f1, v.n2, v.f2);
             } else if (vType === 'concrete_fractions' && onDrawConcreteFractions) {
                 onDrawConcreteFractions(step.visualData);
+            } else if (vType === 'concrete_math' && onDrawConcreteMath) {
+                const v = step.visualData;
+                onDrawConcreteMath(v.n1 || 0, v.n2 || 0, v.operator || '+', v.itemEmoji);
             } else if (vType === 'text_only' && onDrawText) {
                 const rawText = (step.visualData?.text ?? step.text ?? (typeof step.message === 'object' ? step.message?.[language] : step.message) ?? '').toString();
                 const normalizedText = normalizePastedFractions(rawText).trim();
