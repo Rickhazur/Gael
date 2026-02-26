@@ -7,6 +7,7 @@ import { TutorChat, TutorChatRef } from './TutorChat';
 import { CleanWhiteboard, WhiteboardRef } from './CleanWhiteboard';
 import { Interactive3DViewer } from '@/components/3D/Interactive3DViewer';
 import { GeometryInteractive } from '../GeometryInteractive';
+import { VirtualBlocks } from '@/components/WordProblems/VirtualBlocks';
 import { getModelById } from '@/components/3D/models-library';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -258,6 +259,13 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate,
     } | null>(null);
     const [showGame, setShowGame] = useState(false);
     const [selectedGame, setSelectedGame] = useState<'runner' | 'phoenix' | null>(null);
+    const [concreteData, setConcreteData] = useState<{
+        initialAmount: number | string;
+        actionAmount: number | string;
+        action: string;
+        itemEmoji?: string;
+        secondaryEmoji?: string;
+    } | null>(null);
 
     // Robustly handle grade input to prevent crashes
     const [contextMessage, setContextMessage] = useState<string | null>(null);
@@ -604,7 +612,12 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate,
             whiteboardRef.current?.drawDivisionStep(dividend, divisor, '', '', '', undefined, divisionStyle);
         } else if (addMatch) {
             const [_, n1, n2] = addMatch;
-            whiteboardRef.current?.drawVerticalOp(n1, n2, '', '+', '', undefined);
+            const useHelpers = (grade <= 1 || (parseInt(n1) < 10 && parseInt(n2) < 10 && n1.indexOf('.') === -1));
+            const helpers = useHelpers ? [
+                { content: "🍎".repeat(parseInt(n1)), row: 0, col: 0 },
+                { content: "🍎".repeat(parseInt(n2)), row: 1, col: 0 }
+            ] : undefined;
+            whiteboardRef.current?.drawVerticalOp(n1, n2, '', '+', '', undefined, undefined, helpers);
         } else if (subMatch) {
             const [_, n1, n2] = subMatch;
             whiteboardRef.current?.drawVerticalOp(n1, n2, '', '-', '', undefined);
@@ -1171,6 +1184,34 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                                                 language={effectiveLanguage}
                                             />
                                         </div>
+                                    ) : concreteData ? (
+                                        <div className="relative w-full p-4 bg-white/50 backdrop-blur-sm rounded-[2rem] border-2 border-dashed border-purple-300 shadow-inner min-h-[400px]">
+                                            <div className="flex items-center justify-between mb-4 px-4">
+                                                <h3 className="text-xl font-black text-purple-600 font-comic uppercase tracking-wider">
+                                                    {effectiveLanguage === 'es' ? 'Fase Concreta: ¡Explora con bloques!' : 'Concrete Phase: Explore with blocks!'}
+                                                </h3>
+                                                <button
+                                                    onClick={() => setConcreteData(null)}
+                                                    className="bg-purple-100 hover:bg-purple-200 text-purple-600 p-2 rounded-xl transition-colors"
+                                                >
+                                                    ✕ {effectiveLanguage === 'es' ? 'Cerrar Lab' : 'Close Lab'}
+                                                </button>
+                                            </div>
+                                            <VirtualBlocks
+                                                initialAmount={concreteData.initialAmount}
+                                                actionAmount={concreteData.actionAmount}
+                                                action={concreteData.action}
+                                                itemEmoji={concreteData.itemEmoji}
+                                                secondaryEmoji={concreteData.secondaryEmoji}
+                                            />
+                                            <div className="p-4 bg-purple-50 rounded-2xl border border-purple-100 mt-4">
+                                                <p className="text-sm font-bold text-slate-700 leading-relaxed italic">
+                                                    {effectiveLanguage === 'es'
+                                                        ? "💡 Arrastra los bloques para entender el problema. Cuando estés listo, dile a Nova lo que descubriste."
+                                                        : "💡 Drag the blocks to understand the problem. When you're ready, tell Nova what you discovered."}
+                                                </p>
+                                            </div>
+                                        </div>
                                     ) : (
                                         <div style={{ pointerEvents: toolMode === 'hand' ? 'none' : 'auto' }}>
                                             <CleanWhiteboard ref={whiteboardRef} />
@@ -1373,6 +1414,7 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                         onShowDivisionSelector={() => setShowStylePicker(true)}
                         onSendToBoard={(img) => whiteboardRef.current?.drawImage(img)}
                         onDrawText={(text, highlights) => {
+                            setConcreteData(null);
                             const normalized = normalizePastedFractions(text ?? '').trim();
                             if (!normalized) return;
                             requestAnimationFrame(() => {
@@ -1381,6 +1423,7 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                             });
                         }}
                         onDrawDivisionStep={(div, divisor, q, p, r, highlight, style, col, visualData) => {
+                            setConcreteData(null);
                             setPendingDivision({ div, divisor, q, p, r, highlight, columnIndex: col, visualData });
                             whiteboardRef.current?.drawDivisionStep(div, divisor, q, p, r, highlight, style, col, visualData);
                             updateContextFromVisualData(visualData);
@@ -1437,12 +1480,30 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
                                 setGeometryInteractive(null);
                                 whiteboardRef.current?.drawGeometry(s, p);
                             }
+                            setConcreteData(null);
                         }}
                         onDrawFraction={(n, d, t) => {
+                            setConcreteData(null);
                             requestAnimationFrame(() => whiteboardRef.current?.drawFraction(n, d, t));
                         }}
                         onDrawFractionEquation={(vd) => {
+                            setConcreteData(null);
                             requestAnimationFrame(() => whiteboardRef.current?.drawFractionEquation(vd));
+                        }}
+                        onDrawConcreteFractions={(vd: any) => {
+                            if (vd) {
+                                setConcreteData({
+                                    initialAmount: vd.num1 || 1,
+                                    actionAmount: vd.num2 || 1,
+                                    action: vd.operator || '+',
+                                    itemEmoji: vd.itemEmoji || '🟦',
+                                    secondaryEmoji: vd.secondaryEmoji || '🟥'
+                                });
+                                setGeometry3D(null);
+                                setGeometryInteractive(null);
+                            } else {
+                                setConcreteData(null);
+                            }
                         }}
                         onDrawDataPlot={(d) => whiteboardRef.current?.drawDataPlot(d)}
                         onDrawVerticalOp={(n1, n2, res, op, carry, highlight, borrows, helpers, visualData) => {

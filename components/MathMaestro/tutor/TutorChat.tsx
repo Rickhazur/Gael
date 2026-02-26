@@ -87,7 +87,7 @@ const AnimatedWordText = ({ text }: { text: string }) => {
 };
 
 const TutorChatComponent = (
-    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onExerciseError, onSetupDragAndDrop, onDrawProportionTable }: TutorChatProps,
+    { language, grade = 3, curriculum = 'ib-pyp', studentName, tutor = 'lina', initialTask, onSendToBoard, onDrawDivisionStep, onDrawGeometry, onDrawFraction, onDrawFractionEquation, onDrawDataPlot, onDrawVerticalOp, onDrawBase10Blocks, onDrawDecomposition, onDrawAlgebra, onDrawCoordinateGrid, onDrawMultiplicationGroups, onTriggerCelebration, divisionStyle, onShowDivisionSelector, onDrawText, onDrawImage, masteryMode, isDemo, onExerciseComplete, onPersistProgress, onExerciseError, onSetupDragAndDrop, onDrawProportionTable, onDrawConcreteFractions }: TutorChatProps,
     ref: React.ForwardedRef<TutorChatRef>
 ) => {
     const [messages, setMessages] = useState<Message[]>([]);
@@ -430,6 +430,13 @@ const TutorChatComponent = (
                     v.unitB || "B",
                     v.highlight
                 );
+            } else if (vType === 'base10_blocks' && onDrawBase10Blocks) {
+                onDrawBase10Blocks(step.visualData);
+            } else if (vType === 'decomposition' && onDrawDecomposition) {
+                const v = step.visualData;
+                onDrawDecomposition(v.n1, v.f1, v.n2, v.f2);
+            } else if (vType === 'concrete_fractions' && onDrawConcreteFractions) {
+                onDrawConcreteFractions(step.visualData);
             } else if (vType === 'text_only' && onDrawText) {
                 const rawText = (step.visualData?.text ?? step.text ?? (typeof step.message === 'object' ? step.message?.[language] : step.message) ?? '').toString();
                 const normalizedText = normalizePastedFractions(rawText).trim();
@@ -638,12 +645,13 @@ const TutorChatComponent = (
 
         // Detect Grade and Complexity
         const gradeNum = typeof grade === 'number' ? grade : parseInt(String(grade).replace(/\D/g, '') || '3');
-        const isComplexText = text.length > 25 && /[a-zA-ZáéíóúñÁÉÍÓÚ]/.test(text) && !text.includes('=');
 
-        // 🛡️ BYPASS FOR 1ST GRADE STORYTELLING:
-        // For Grade 1, we want the AI to generate a 'story_image' and narrative context first.
-        // Also bypass for COMPLEX TEXT (word problems) to allow Socratic CPA analysis.
-        const shouldBypassAlgo = (gradeNum <= 1 && !/^\d+\s*[\+\-\*\/]\s*\d+$/.test(text)) || isComplexText;
+        // Relaxed complexity check: Only bypass if it's REALLY long and doesn't look like a direct math question
+        const mathKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|mas|vínculos|vínculo/i;
+        const isMathExpression = /[\d\/\+\-\*÷x\(\)=]/.test(text) || (mathKeywords.test(text) && /\d+/.test(text));
+        const isComplexText = text.length > 60 && /[a-zA-ZáéíóúñÁÉÍÓÚ]/.test(text) && !text.includes('=') && !mathKeywords.test(text);
+
+        const shouldBypassAlgo = isComplexText && !isMathExpression;
 
         if (!shouldBypassAlgo) {
             const algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade, masteryMode);
@@ -660,7 +668,7 @@ const TutorChatComponent = (
             }
         }
 
-        const steps = (gradeNum > 1) ? generateStepsForProblem(text) : [];
+        const steps = generateStepsForProblem(text);
         const problem = parseMathProblem(text);
 
         // División: Invitamos al niño a elegir su estilo favorito (Americano o Colombiano/Tradicional)
@@ -797,10 +805,10 @@ const TutorChatComponent = (
             // 🛡️ FALLBACK: Si la IA no devolvió pasos ni mensaje (ej. problema de fracciones mal parseado), la profe no se queda muda
             const hasContent = response?.message || (response?.steps && response.steps.length > 0) || (response?.visualType);
             if (!hasContent) {
-                if (text.length > 30 && /[a-zA-Záéíóúñ]/.test(text)) {
+                if (lastVisualState.current?.type === 'vertical_op' || lastVisualState.current?.type === 'division') {
                     addMessage('nova', language === 'es'
-                        ? '🧩 **Problema en la pizarra**\n\nVamos a leerlo juntos. ¿Qué datos te dan? ¿Qué te piden que calcules?'
-                        : '🧩 **Problem on the board**\n\nLet\'s read it together. What information do they give you? What do they ask you to find?');
+                        ? '¡Sigamos adelante! 🚀 Mira la operación en la pizarra, ¿cuál crees que es el siguiente paso?'
+                        : 'Let’s keep going! 🚀 Look at the operation on the board, what do you think is the next step?');
                 } else {
                     addMessage('nova', language === 'es'
                         ? 'Hmmm... la pizarra está un poco confusa. 🤔 ¿Puedes darme más detalles o escribir un ejercicio para resolver juntos?'
@@ -941,7 +949,7 @@ const TutorChatComponent = (
         const gradeNum = typeof grade === 'number' ? grade : parseInt(String(grade).replace(/\D/g, '') || '3');
         if (gradeNum <= 1 && (taskTitle.includes("Abierta") || taskTitle.includes("Open"))) {
             const storyGreetings = [
-                `¡Hola ${firstName}! 🌟 Soy la Profe Lina, ¡tu cuenta-cuentos de números! 📖✨\n\n¿Sabías que los números son personajes mágicos? 🔢🪄 Cada vez que resolvemos un problema, ¡es como una aventura!\n\nDime un número o escríbelo en la pizarra... y te contaré su historia. 🐰🎈 ¡O di **continuar** y te cuento la primera aventura! 🚀`,
+                `¡Hola ${firstName}! 🌟 Soy la Profe Lina, ¡tu cuenta-cuentos de números! 📖✨\n\n¿Sabías que los números son personajes mágicos? 🔢🪄 Cada vez que resolvemos un problema, ¡es como una aventura!\n\nDime un number o escríbelo en la pizarra... y te contaré su historia. 🐰🎈 ¡O di **continuar** y te cuento la primera aventura! 🚀`,
                 `¡${firstName}! 🎉 ¡Bienvenido al mundo mágico de los números! ✨\n\nSoy la Profe Lina y hoy te voy a contar historias increíbles donde TÚ eres el héroe 🦸‍♂️🌈\n\n¡Escribe un número en la pizarra o di **continuar** para empezar la aventura! 🚀🎈`,
                 `¡Hooola ${firstName}! 👋🌈 ¡Qué alegría verte!\n\nSoy la Profe Lina, ¡y tengo una historia INCREÍBLE que contarte! 📚⭐\n\n¿Estás listo para la aventura? ¡Escribe algo en la pizarra o di **continuar**! 🐰🎉`
             ];

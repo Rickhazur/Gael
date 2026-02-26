@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { SocraticWordProblemSolver } from './SocraticWordProblemSolver';
-import { BookOpen, Brain, Target, Trophy, PenTool, ArrowRight } from 'lucide-react';
+import { Search, Brain, Target, BookOpen, ArrowRight, Grid, Layout, PenTool } from 'lucide-react';
 import { normalizePastedFractions } from '@/utils/normalizePastedFractions';
 import { MathTutorBoard } from '../MathMaestro/tutor/MathTutorBoard';
 import { parseMathProblem } from '@/services/mathValidator';
@@ -138,7 +138,27 @@ export const WordProblemHub: React.FC<WordProblemHubProps> = ({ gradeLevel = 3 }
   };
 
   const handleProblemSelect = (problem: WordProblem) => {
-    setSelectedProblem(problem);
+    // 🧠 INTELLIGENT ROUTING
+    // If it looks like a direct operation or is "Grade 1" (which the user stressed before),
+    // we prioritize the Interactive Whiteboard (MathTutorBoard).
+    const mathKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|menos|\+|\-|\*|\/|x|÷/i;
+    const hasLargeNumbers = /\d{3,}/.test(problem.problem); // 100 or more
+
+    // Check if it's primarily an operation (few words or matches simple pattern)
+    const isOperationHeavy = problem.category.includes('operaciones') ||
+      (hasLargeNumbers && mathKeywords.test(problem.problem)) ||
+      (problem.problem.length < 60 && mathKeywords.test(problem.problem));
+
+    if (gradeLevel <= 1 || isOperationHeavy) {
+      // Direct to Interactive Whiteboard
+      setIsCustomMode(true);
+      setIsMathOpMode(true);
+      setCustomProblemText(problem.problem);
+    } else {
+      // Use Socratic Word Problem Solver
+      setSelectedProblem(problem);
+      setIsMathOpMode(false);
+    }
     setShowSolver(true);
   };
 
@@ -239,7 +259,7 @@ export const WordProblemHub: React.FC<WordProblemHubProps> = ({ gradeLevel = 3 }
           </div>
         </div>
 
-        <div className="relative group">
+        <div className="flex flex-col md:flex-row gap-4">
           <textarea
             value={customProblemText}
             onChange={(e) => {
@@ -247,31 +267,37 @@ export const WordProblemHub: React.FC<WordProblemHubProps> = ({ gradeLevel = 3 }
               const normalized = normalizePastedFractions(rawText);
               setCustomProblemText(normalized);
             }}
-            placeholder="Ej: 25 + 40, o Juan tenía 10 manzanas, le dio 3 a María y luego compró 5 más..."
+            placeholder="Ej: 25 + 40, o Juan tenía 10 manzanas, le dio 3 a María..."
             className="w-full h-32 p-6 bg-slate-50 rounded-3xl border-2 border-slate-100 text-lg font-medium text-slate-900 focus:border-purple-500 focus:bg-white transition-all outline-none resize-none"
           />
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            disabled={customProblemText.trim().length < 2}
-            onClick={() => {
-              const normalized = normalizePastedFractions(customProblemText);
-              setCustomProblemText(normalized);
-              setIsCustomMode(true);
-
-              const isPureMath = parseMathProblem(normalized);
-              if (isPureMath) {
-                setIsMathOpMode(true);
-              } else {
+          <div className="flex flex-col gap-3 justify-center">
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={customProblemText.trim().length < 2}
+              onClick={() => {
+                setIsCustomMode(true);
                 setIsMathOpMode(false);
-              }
-
-              setShowSolver(true);
-            }}
-            className="absolute bottom-4 right-4 px-8 py-3 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-50 disabled:grayscale hover:bg-purple-500 transition-all flex items-center gap-2"
-          >
-            Resolver <ArrowRight size={16} />
-          </motion.button>
+                setShowSolver(true);
+              }}
+              className="px-8 py-3 bg-purple-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-50 hover:bg-purple-500 transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              Guía Socrática <BookOpen size={16} />
+            </motion.button>
+            <motion.button
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+              disabled={customProblemText.trim().length < 2}
+              onClick={() => {
+                setIsCustomMode(true);
+                setIsMathOpMode(true);
+                setShowSolver(true);
+              }}
+              className="px-8 py-3 bg-blue-600 text-white rounded-2xl font-black text-xs uppercase tracking-widest shadow-xl disabled:opacity-50 hover:bg-blue-500 transition-all flex items-center gap-2 whitespace-nowrap"
+            >
+              Pizarra (Tutor) <PenTool size={16} />
+            </motion.button>
+          </div>
         </div>
       </motion.div>
 
@@ -292,7 +318,7 @@ export const WordProblemHub: React.FC<WordProblemHubProps> = ({ gradeLevel = 3 }
               <div className="text-3xl">
                 {getCategoryIcon(problem.category)}
               </div>
-              <div className={`px-3 py-1 rounded-full text-xs font-medium border ${getDifficultyColor(problem.difficulty)}`}>
+              <div className={`px - 3 py - 1 rounded - full text - xs font - medium border ${getDifficultyColor(problem.difficulty)} `}>
                 {problem.difficulty === 'easy' ? 'Fácil' : problem.difficulty === 'medium' ? 'Medio' : 'Difícil'}
               </div>
             </div>

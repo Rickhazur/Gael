@@ -43,6 +43,7 @@ interface GamificationContextType extends GamificationState {
     pendingCelebration: { points: number; message: string } | null;
     clearCelebration: () => void;
     toggleEquip: (item: string) => void;
+    earnCoinsInBank: (amount: number, reason: string) => Promise<boolean>;
 }
 
 const LEVEL_THRESHOLDS = [0, 100, 300, 600, 1000, 1500, 2100, 2800, 3600, 4500, 5500];
@@ -87,8 +88,8 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
         let unsubscribeEconomy: (() => void) | undefined;
         let unsubscribeLearning: (() => void) | undefined;
 
-        const syncWithSupabase = async () => {
-            if (!supabase) {
+        const syncWithSupabase = async (sessionUser: any) => {
+            if (!sessionUser) {
                 const saved = localStorage.getItem('nova_gamification');
                 if (saved) {
                     try {
@@ -100,52 +101,45 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 }
                 return;
             }
-            const { data: { session } } = await supabase.auth.getSession();
 
-            if (session?.user) {
-                const userId = session.user.id;
-                // Source of truth: load coins and XP from Supabase so parent rewards persist after logout
-                const [economy, progress] = await Promise.all([
-                    getUserEconomy(userId),
-                    getLearningProgress(userId)
-                ]);
-                const coins = economy?.coins ?? 0;
-                const savingsBalance = economy?.savings_balance ?? 0;
-                const totalXp = progress?.total_xp ?? 0;
-                const level = totalXp < 100 ? 1 : Math.min(11, Math.floor(totalXp / 1000) + 1);
+            const userId = sessionUser.id;
+            // Source of truth: load coins and XP from Supabase so parent rewards persist after logout
+            const [economy, progress] = await Promise.all([
+                getUserEconomy(userId),
+                getLearningProgress(userId)
+            ]);
+            const coins = economy?.coins ?? 0;
+            const savingsBalance = economy?.savings_balance ?? 0;
+            const totalXp = progress?.total_xp ?? 0;
+            const level = totalXp < 100 ? 1 : Math.min(11, Math.floor(totalXp / 1000) + 1);
 
-                setState(prev => ({
-                    ...prev,
-                    coins,
-                    savingsBalance,
-                    xp: totalXp,
-                    level
-                }));
-                // Persist to localStorage so pilot/offline fallback stays in sync
-                localStorage.setItem('nova_gamification', JSON.stringify({
-                    coins,
-                    savingsBalance,
-                    xp: totalXp,
-                    level,
-                    creditDebt: state.creditDebt,
-                    creditLimit: state.creditLimit
-                }));
+            setState(prev => ({
+                ...prev,
+                coins,
+                savingsBalance,
+                xp: totalXp,
+                level
+            }));
 
-                // Subscribe to Economy Changes (Real-time from Parent updates)
-                unsubscribeEconomy = subscribeToEconomy(userId, (newEconomy) => {
-                    console.log("Realtime Economy Update:", newEconomy);
-                    const newCoins = newEconomy.coins;
-                    const newSavings = newEconomy.savings_balance;
+            // Persist to localStorage so pilot/offline fallback stays in sync
+            localStorage.setItem('nova_gamification', JSON.stringify({
+                coins,
+                savingsBalance,
+                xp: totalXp,
+                level,
+                creditDebt: state.creditDebt,
+                creditLimit: state.creditLimit
+            }));
 
-                    setState(prev => ({
-                        ...prev,
-                        coins: newCoins,
-                        savingsBalance: newSavings
-                    }));
+            // Subscribe to Economy Changes (Real-time from Parent updates)
+            unsubscribeEconomy = subscribeToEconomy(userId, (newEconomy) => {
+                console.log("Realtime Economy Update:", newEconomy);
+                const newCoins = newEconomy.coins;
+                const newSavings = newEconomy.savings_balance;
 
-                    // Show toast if coins OR savings increased
-                    if (newCoins > state.coins || newSavings > state.savingsBalance) {
-                        // Since fetch isn't atomic with state, we trust the realtime paylod
+                setState(prev => {
+                    // Check if actually increased (to avoid noise)
+                    if (newCoins > prev.coins || newSavings > prev.savingsBalance) {
                         toast({
                             title: "¡Recibiste Monedas! 🪙",
                             description: "¡Has ganado una recompensa!",
@@ -153,54 +147,60 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                         });
                         confetti({ particleCount: 50, spread: 60, origin: { y: 0.8 } });
                     }
+
+                    return { ...prev, coins: newCoins, savingsBalance: newSavings };
                 });
+            });
 
-                // Subscribe to Learning (XP) Changes
-                unsubscribeLearning = subscribeToLearning(userId, (newProgress) => {
-                    if (newProgress && typeof newProgress.total_xp === 'number') {
-                        setState(prev => {
-                            const oldXP = prev.xp;
-                            const newXP = newProgress.total_xp;
+            // Subscribe to Learning (XP) Changes
+            unsubscribeLearning = subscribeToLearning(userId, (newProgress) => {
+                if (newProgress && typeof newProgress.total_xp === 'number') {
+                    setState(prev => {
+                        const oldXP = prev.xp;
+                        const newXP = newProgress.total_xp;
+                        const newLevel = Math.floor(newXP / 1000) + 1;
 
-                            // Calculate level from XP (simple / 1000 + 1 logic or threshold check)
-                            // Re-using local XP logic for consistency if complex, or just storing XP
-                            // For display, we just update XP. Level logic is usually derived or stored.
-                            // Assuming simple derived level here for display sync:
-                            const newLevel = Math.floor(newXP / 1000) + 1;
+                        if (newXP > oldXP) {
+                            toast({
+                                title: "¡Ganaste Experiencia! ⚡",
+                                description: `+${newXP - oldXP} XP`,
+                                className: "bg-blue-100 border-2 border-blue-500 text-blue-900"
+                            });
+                        }
 
-                            if (newXP > oldXP) {
-                                toast({
-                                    title: "¡Ganaste Experiencia! ⚡",
-                                    description: `+${newXP - oldXP} XP`,
-                                    className: "bg-blue-100 border-2 border-blue-500 text-blue-900"
-                                });
-                            }
-
-                            return { ...prev, xp: newXP, level: newLevel };
-                        });
-                    }
-                });
-            } else {
-                // No session (pilot or offline): use localStorage so premios/state persist
-                const saved = localStorage.getItem('nova_gamification');
-                if (saved) {
-                    try {
-                        const parsed = JSON.parse(saved);
-                        setState(prev => ({ ...prev, ...parsed }));
-                    } catch (e) {
-                        console.error("Failed to load gamification from localStorage", e);
-                    }
+                        return { ...prev, xp: newXP, level: newLevel };
+                    });
                 }
-            }
+            });
         };
 
-        if (supabase) syncWithSupabase();
+        // Initialize state
+        if (supabase) {
+            supabase.auth.getSession().then(({ data: { session } }) => {
+                syncWithSupabase(session?.user);
+            });
 
-        return () => {
-            if (unsubscribeEconomy) unsubscribeEconomy();
-            if (unsubscribeLearning) unsubscribeLearning();
-        };
-    }, []); // Run once on mount
+            // Listen for login/logout to re-subscribe
+            const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+                if (event === 'SIGNED_IN' || event === 'INITIAL_SESSION') {
+                    syncWithSupabase(session?.user);
+                } else if (event === 'SIGNED_OUT') {
+                    if (unsubscribeEconomy) unsubscribeEconomy();
+                    if (unsubscribeLearning) unsubscribeLearning();
+                    // Optional: reset state to default or load local
+                    syncWithSupabase(null);
+                }
+            });
+
+            return () => {
+                subscription.unsubscribe();
+                if (unsubscribeEconomy) unsubscribeEconomy();
+                if (unsubscribeLearning) unsubscribeLearning();
+            };
+        } else {
+            syncWithSupabase(null);
+        }
+    }, []); // Only run on mount, but uses internal listener for auth
 
     // When pilot logs in, App sets nova_gamification and dispatches this event so we sync without refresh
     useEffect(() => {
@@ -335,6 +335,28 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                     adminAwardCoins(session.user.id, -amount),
                     consignToBank(session.user.id, amount)
                 ]);
+            }
+        }
+        return true;
+    };
+
+    const earnCoinsInBank = async (amount: number, reason: string) => {
+        // Optimistic
+        setState(prev => ({
+            ...prev,
+            savingsBalance: prev.savingsBalance + amount
+        }));
+
+        toast({
+            title: `+${amount} Monedas en el Banco! 🏦`,
+            description: reason,
+            className: "bg-emerald-100 border-2 border-emerald-500 font-fredoka text-emerald-900"
+        });
+
+        if (supabase) {
+            const { data: { session } } = await supabase.auth.getSession();
+            if (session?.user) {
+                await consignToBank(session.user.id, amount);
             }
         }
         return true;
@@ -518,7 +540,8 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
             getLevelInfo,
             pendingCelebration,
             clearCelebration,
-            toggleEquip
+            toggleEquip,
+            earnCoinsInBank
         }}>
             {children}
         </GamificationContext.Provider>

@@ -440,18 +440,18 @@ export function ParentDashboard({ parentId, language }: ParentDashboardProps) {
             const xpSuccess = await adminAwardXP(activeStudent.id, xpAmount);
 
             if (coinsSuccess && xpSuccess) {
-                toast.success(`¡Depósito exitoso! ${amt} monedas ahora están en el banco y en efectivo.`);
+                toast.success(`¡Depósito exitoso! ${amt} monedas enviadas a la nube.`);
                 setTimeout(() => loadStudents(), 800);
             } else {
                 // Soft Fail / Offline Mode
                 console.warn("Backend sync failed, using local state.");
-                toast.success(`¡Depósito registrado! (Guardado Offline)`, {
-                    description: "Se sincronizará cuando la conexión se restablezca."
+                toast.warning(`¡Depósito guardado localmente!`, {
+                    description: "Tu conexión con la nube falló. El niño verá los cambios cuando el sistema sincronice."
                 });
             }
         } catch (error) {
-            console.error(error);
-            // Keep optimistic update
+            console.error("Critical award error:", error);
+            toast.error("Ocurrió un error al procesar el premio.");
         }
     };
 
@@ -488,14 +488,16 @@ export function ParentDashboard({ parentId, language }: ParentDashboardProps) {
             const xpSuccess = await adminAwardXP(activeStudent.id, xpAmount);
 
             if (coinsSuccess && xpSuccess) {
-                toast.success(`¡Has enviado ${amt} monedas (Banco y Efectivo) por "${reason}"!`);
+                toast.success(`¡Has enviado ${amt} monedas perfectamente!`);
                 setTimeout(() => loadStudents(), 800);
             } else {
-                toast.success(`¡Depósito realizado! (Pendiente de nube)`);
+                toast.warning(`¡Premio guardado localmente!`, {
+                    description: "Se sincronizará con la nube automáticamente al detectar internet."
+                });
             }
         } catch (error) {
-            console.error(error);
-            // Even on error, we keep the optimistic update so user is happy
+            console.error("Critical award error", error);
+            toast.error("Falla en el envío del premio.");
         }
     };
 

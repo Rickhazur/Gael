@@ -558,8 +558,43 @@ export const updateStudentMenuConfig = async (visibleItems: string[]) => false;
 
 export const getUserEconomy = async (uid: string) => {
   if (!supabase) return { coins: 0, savings_balance: 0 };
-  const { data, error } = await supabase.from("economy").select("coins, savings_balance").eq("user_id", uid).single();
-  if (error || !data) return { coins: 0, savings_balance: 0 };
+
+  // Use maybeSingle to avoid errors on missing records
+  const { data, error } = await supabase
+    .from("economy")
+    .select("coins, savings_balance")
+    .eq("user_id", uid)
+    .maybeSingle();
+
+  if (error) {
+    console.error("Error fetching economy:", error.message);
+    return { coins: 0, savings_balance: 0 };
+  }
+
+  // If record is missing, initialize it (important for new users)
+  if (!data) {
+    console.log("Initializing economy for user:", uid);
+    try {
+      const { data: newData, error: insertError } = await supabase
+        .from("economy")
+        .insert({
+          user_id: uid,
+          coins: 0, // Now empty wallet
+          savings_balance: 200, // Now 200 in bank from day 1
+          last_updated: new Date().toISOString()
+        })
+        .select()
+        .maybeSingle();
+
+      if (!insertError && newData) {
+        return newData as { coins: number; savings_balance: number };
+      }
+    } catch (e) {
+      console.warn("Failed to initialize economy record:", e);
+    }
+    return { coins: 0, savings_balance: 200 };
+  }
+
   return data as { coins: number; savings_balance: number };
 };
 
@@ -856,51 +891,67 @@ export const awardCoinsDual = async (studentId: string, amount: number) => {
   if (studentId === TEST_PILOT_STUDENT_ID) return true;
   if (!supabase) return false;
 
-  // 1. Try single dual RPC first (Atomic & High Performance)
+  console.log(`💎 Awarding Dual Coins: ${amount} to ${studentId}`);
+
+  // 1. Try single dual RPC first (Atomic, High Performance & SECURITY DEFINER)
   try {
     const { data, error } = await supabase.rpc('award_dual_coins_secure', {
       p_student_id: studentId,
       p_amount: amount
     });
-    if (!error && data === true) return true;
+    if (!error && data === true) {
+      console.log("✅ award_dual_coins_secure RPC Success");
+      return true;
+    }
+    if (error) console.error("❌ award_dual_coins_secure RPC error:", error.message, error.hint);
   } catch (e) {
-    console.warn("RPC award_dual_coins_secure failed, trying sequential logic", e);
+    console.warn("⚠️ RPC award_dual_coins_secure exception:", e);
   }
 
   // 2. Sequential Fallback using individual RPCs
-  // (Order matters: award coins first as it's more likely to have the INSERT logic)
+  console.log("🔄 Attempting sequential RPC fallback for dual award...");
   const coinsSuccess = await adminAwardCoins(studentId, amount);
   const bankSuccess = await consignToBank(studentId, amount);
 
-  if (coinsSuccess && bankSuccess) return true;
+  if (coinsSuccess && bankSuccess) {
+    console.log("✅ Sequential Fallback Success");
+    return true;
+  }
 
-  // 3. Last Resort: Combined direct Upsert (Robust fallback if RPCs are missing/broken)
+  // 3. Last Resort: Proactive Upsert that creates the record if missing
+  console.log("🩹 Last Resort: Proactive Upsert for economy...");
   try {
-    const { data: current } = await supabase
+    const { data: current, error: fetchError } = await supabase
       .from("economy")
       .select("coins, savings_balance")
       .eq("user_id", studentId)
       .maybeSingle();
 
-    const newCoins = (current?.coins || 0) + (coinsSuccess ? 0 : amount);
-    const newSavings = (current?.savings_balance || 0) + (bankSuccess ? 0 : amount);
+    if (fetchError) console.error("❌ Fetch current economy error:", fetchError.message);
 
-    if (!coinsSuccess || !bankSuccess) {
-      const { error } = await supabase
-        .from("economy")
-        .upsert({
-          user_id: studentId,
-          coins: newCoins,
-          savings_balance: newSavings,
-          last_updated: new Date().toISOString()
-        });
-      return !error;
+    const newCoins = (current?.coins || 0) + amount;
+    const newSavings = (current?.savings_balance || 0) + amount;
+
+    const { error: upsertError } = await supabase
+      .from("economy")
+      .upsert({
+        user_id: studentId,
+        coins: newCoins,
+        savings_balance: newSavings,
+        last_updated: new Date().toISOString()
+      });
+
+    if (upsertError) {
+      console.error("❌ Last Resort Upsert Failed:", upsertError.message, upsertError.details);
+      return false;
     }
-  } catch (e) {
-    console.error("Critical economy update failure:", e);
-  }
 
-  return coinsSuccess || bankSuccess; // At least partial success is better than nothing in UI
+    console.log("✅ Last Resort Upsert Success");
+    return true;
+  } catch (e) {
+    console.error("❌ Critical economy update failure:", e);
+    return false;
+  }
 };
 
 export const adminAwardXP = async (studentId: string, amount: number) => {
@@ -909,19 +960,29 @@ export const adminAwardXP = async (studentId: string, amount: number) => {
 
   if (!supabase) return false;
 
+  console.log(`⚡ Awarding XP: ${amount} to ${studentId}`);
+
   // 1. Try Secure RPC first
   try {
     const { data: rpcData, error: rpcError } = await supabase.rpc('award_xp_secure', {
       p_student_id: studentId,
       p_amount: amount
     });
-    if (!rpcError && rpcData === true) return true;
+    if (!rpcError && rpcData === true) {
+      console.log("✅ award_xp_secure RPC Success");
+      return true;
+    }
+    if (rpcError) console.error("❌ award_xp_secure RPC error:", rpcError.message);
   } catch (e) {
-    console.warn("RPC invocation failed", e);
+    console.warn("⚠️ RPC invocation failed", e);
   }
 
   // 2. Fallback: Robust Upsert with Defaults
-  const { data: current } = await supabase.from("learning_progress").select("*").eq("user_id", studentId).maybeSingle();
+  console.log("🩹 Last Resort: Proactive Upsert for XP...");
+  const { data: current, error: fetchError } = await supabase.from("learning_progress").select("*").eq("user_id", studentId).maybeSingle();
+
+  if (fetchError) console.error("❌ Fetch current XP error:", fetchError.message);
+
   const newTotal = (current?.total_xp || 0) + amount;
 
   // Preserve existing progress or initialize defaults
@@ -939,9 +1000,11 @@ export const adminAwardXP = async (studentId: string, amount: number) => {
     });
 
   if (error) {
-    console.error('Fallback XP Error:', error.message, error.details);
+    console.error('❌ Fallback XP Error:', error.message, error.details);
     return false;
   }
+
+  console.log("✅ Last Resort XP Success");
   return true;
 };
 

@@ -30,7 +30,6 @@ export const MobileBottomNav: React.FC<MobileNavProps> = ({ currentView, onNavig
         { id: ViewState.ARTS_TUTOR, icon: Palette, label: 'Arte' },
         { id: ViewState.REWARDS, icon: ShoppingBag, label: 'Tienda' },
         { id: ViewState.NOTEBOOK_LIBRARY, icon: Layers, label: 'Cuadernos' },
-
     ];
 
     return (

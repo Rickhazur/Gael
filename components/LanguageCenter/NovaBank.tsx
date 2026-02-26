@@ -56,7 +56,8 @@ export const NovaBank: React.FC = () => {
     const {
         novaCoins, earnCoins, spendCoins,
         savingsBalance, addCoinsToBank, withdrawCoinsFromBank,
-        creditDebt, creditLimit, repayDebt
+        creditDebt, creditLimit, repayDebt, earnCoinsInBank,
+        level, xp
     } = useGamification();
     const { playClick, playSuccess, playHover } = useNovaSound();
 
@@ -110,6 +111,17 @@ export const NovaBank: React.FC = () => {
         localStorage.setItem('nova_bank_has_card', hasCard.toString());
         localStorage.setItem('nova_bank_has_credit_card', hasCreditCard.toString());
     }, [transactions, hasCard, hasCreditCard]);
+
+    // Robustness check: If user already has savings balance OR is advanced, they've clearly been here before.
+    useEffect(() => {
+        const isReturningUser = savingsBalance > 0 || novaCoins > 0 || transactions.length > 0 || level > 1 || xp > 50;
+        if (isReturningUser && !hasCard) {
+            console.log("Auto-activating bank card for returning student...");
+            setHasCard(true);
+            setShowOnboarding(false);
+            localStorage.setItem('nova_bank_has_card', 'true');
+        }
+    }, [savingsBalance, novaCoins, transactions, hasCard, level, xp]);
 
     // Migration of wallet coins to savings (handled in context now, or one-time here)
     useEffect(() => {
@@ -268,10 +280,12 @@ export const NovaBank: React.FC = () => {
         setShowOnboarding(false);
         playSuccess();
 
-        // Award Welcome Coins
-        const success = await addCoinsToBank(200);
-        if (success) {
-            addTransaction('income', 200, "Welcome Bonus Coins!", "¡Monedas de Bienvenida!");
+        // Award Welcome Coins ONLY if they don't already have them (prevents duplicates)
+        if (savingsBalance < 200) {
+            const success = await earnCoinsInBank(200, "Welcome Bonus Coins!");
+            if (success) {
+                addTransaction('income', 200, "Welcome Bonus Coins!", "¡Monedas de Bienvenida!");
+            }
         }
 
         speak("Welcome to Nova Bank! Your account is ready. You received 200 welcome coins!", "¡Bienvenido a Nova Bank! Tu cuenta está lista. ¡Recibiste 200 monedas de bienvenida!");

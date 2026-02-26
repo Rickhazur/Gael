@@ -56,7 +56,7 @@ export interface VisualState {
     augmentedCols?: number[];
     divisionStyle?: 'latin' | 'us';
     history?: any[];
-    phase?: 'init' | 'direction_check' | 'solving' | 'find_quotient' | 'multiply' | 'subtract' | 'multiplier1' | 'numerator1' | 'multiplier2' | 'numerator2' | 'intro' | 'align_check' | 'mult_count' | 'mult_solve_int' | 'mult_place_point' | 'basic_fact_solve' | 'decide_decimal' | 'chained_same_denom' | 'ask_divisor' | 'solve_division' | 'ask_flip' | 'mcm_intro' | 'add_sub_result' | 'add_sub_done' | 'div_result' | 'div_done' | 'start' | 'direction' | 'final' | 'done' | 'algebra_start' | 'algebra_step' | 'algebra_final' | 'coords_intro' | 'coords_plot' | 'coords_done';
+    phase?: 'init' | 'direction_check' | 'solving' | 'find_quotient' | 'multiply' | 'subtract' | 'multiplier1' | 'numerator1' | 'multiplier2' | 'numerator2' | 'intro' | 'align_check' | 'mult_count' | 'mult_solve_int' | 'mult_place_point' | 'basic_fact_solve' | 'decide_decimal' | 'chained_same_denom' | 'ask_divisor' | 'solve_division' | 'ask_flip' | 'mcm_intro' | 'concrete_fractions' | 'add_sub_result' | 'add_sub_done' | 'div_result' | 'div_done' | 'start' | 'direction' | 'final' | 'done' | 'algebra_start' | 'algebra_step' | 'algebra_final' | 'coords_intro' | 'coords_plot' | 'coords_done';
     isNew?: boolean;
     tempVal?: any;
     currentPos?: number;
@@ -77,7 +77,7 @@ export interface VisualState {
     nextNum?: number;
     nextDenom?: number;
     nextOp?: string;
-    helpers?: { colIndex: number; value: string }[];
+    helpers?: any[];
     highlightMatch?: boolean;
     originalOp?: any;
     shape?: string;

@@ -412,21 +412,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             ) : (
 
                 <Sidebar
-
                     currentView={currentView}
-
                     onViewChange={setCurrentView}
-
                     onLogout={handleLogout}
-
                     userName={userName}
-
                     userRole={userRole}
-
                     language={language}
-
                     setLanguage={setLanguage}
-
                 />
 
             )}
@@ -456,15 +448,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                     <div className={`${[ViewState.MATH_TUTOR, ViewState.RESEARCH_CENTER, ViewState.BUDDY_LEARN, ViewState.AI_CONSULTANT, ViewState.ARTS_TUTOR, ViewState.SPARK_CHAT, ViewState.WORD_PROBLEMS, ViewState.WORD_PROBLEMS_DEMO, ViewState.LANGUAGE_CENTER, ViewState.SPANISH_TUTOR, ViewState.NOVA_BANK].includes(currentView) ? 'hidden' : 'block'}`}>
 
                         <MobileBottomNav
-
                             currentView={currentView}
-
                             onNavigate={setCurrentView}
-
                             onLogout={handleLogout}
-
                             userRole={userRole}
-
                         />
 
                     </div>
@@ -510,9 +497,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 {currentView === ViewState.AI_CONSULTANT && <SmartTutorPrimary onNavigate={setCurrentView} gradeLevel={gradeLevel} setGradeLevel={setGradeLevel} />}
 
                 {currentView === ViewState.MATH_TUTOR && (
-                    <div className="w-full h-full">
-                        <WordProblemHub />
-                    </div>
+                    <Suspense fallback={<ComponentLoader />}>
+                        <MathTutor gradeLevel={gradeLevel} userName={userName} userId={userId} onNavigate={setCurrentView} />
+                    </Suspense>
                 )}
 
                 {currentView === ViewState.RESEARCH_CENTER && (

@@ -196,15 +196,15 @@ export class WordProblemTutor {
                         }],
                     };
                 }
-                if (saidFirst || input.trim().length > 0) {
+                if (saidFirst) {
                     const highlightsConfirmed = highlightsWithConfirmed(prob.highlights, 1);
                     const segundoLabel = prob.highlights && prob.highlights[1] ? (lang === 'es' ? `el **segundo** (${prob.highlights[1].text})` : `the **second** (${prob.highlights[1].text})`) : (lang === 'es' ? 'el segundo dato en rojo' : 'the second piece of data in red');
                     return {
                         steps: [{
                             text: lang === 'es'
-                                ? `✔️ **Muy bien.** El primer dato es **${f1Str}** de ${unit}. (Mira: ya lo marqué en dorado en el tablero).\n\n👉 Ahora **miremos el segundo dato.** ¿Cuál es? (Es ${segundoLabel})`
-                                : `✔️ **Good.** The first piece of data is **${f1Str}** of ${unit}. (Look: I marked it in gold on the board).\n\n👉 Now **let's look at the second piece of data.** What is it? (It's ${segundoLabel})`,
-                            speech: lang === 'es' ? 'Muy bien, el primer dato es ' + f1Str + '. Ahora miremos el segundo dato. ¿Cuál es?' : 'Good, the first piece of data is ' + f1Str + '. Now let\'s look at the second. What is it?',
+                                ? `✔️ **¡Excelente!** El primer dato es **${f1Str}** de ${unit}. (Mira: ya lo marqué en dorado en el tablero).\n\n👉 Ahora **miremos el segundo dato.** ¿Cuál es? (Es ${segundoLabel})`
+                                : `✔️ **Excellent!** The first piece of data is **${f1Str}** of ${unit}. (Look: I marked it in gold on the board).\n\n👉 Now **let's look at the second piece of data.** What is it? (It's ${segundoLabel})`,
+                            speech: lang === 'es' ? '¡Muy bien! El primer dato es ' + f1Str + '. Ahora miremos el segundo dato. ¿Cuál es?' : 'Excellent! The first piece of data is ' + f1Str + '. Now let\'s look at the second. What is it?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'dato_2', highlights: highlightsConfirmed }),
                             detailedExplanation: { es: 'Primer dato correcto, pedir segundo', en: 'First datum correct, ask second' },
@@ -239,15 +239,15 @@ export class WordProblemTutor {
                         }],
                     };
                 }
-                if (saidSecond || input.trim().length > 0) {
+                if (saidSecond) {
                     const highlightsConfirmed = highlightsWithConfirmed(prob.highlights, 2);
                     const terceroLabel = prob.highlights && prob.highlights[2] ? (lang === 'es' ? `**qué nos piden** (${prob.highlights[2].text})` : `**what they ask** (${prob.highlights[2].text})`) : (lang === 'es' ? 'qué nos piden' : 'what they ask');
                     return {
                         steps: [{
                             text: lang === 'es'
-                                ? `✔️ **Muy bien.** El segundo dato es **${f2Str}** de ${unit}. (Ya está en dorado en el tablero).\n\n👉 Ahora **miremos el tercer dato**: ¿qué nos piden? (Mira lo que está en rojo: ${terceroLabel})`
-                                : `✔️ **Good.** The second piece of data is **${f2Str}** of ${unit}. (It's marked in gold on the board).\n\n👉 Now **let's look at the third**: what do they ask? (Look at what's in red: ${terceroLabel})`,
-                            speech: lang === 'es' ? 'Muy bien, el segundo dato es ' + f2Str + '. Ahora, ¿qué nos piden?' : 'Good, the second piece of data is ' + f2Str + '. Now, what do they ask?',
+                                ? `✔️ **¡Eso es!** El segundo dato es **${f2Str}** de ${unit}. (Ya está en dorado en el tablero).\n\n👉 Ahora **miremos el tercer dato**: ¿qué nos piden? (Mira lo que está en rojo: ${terceroLabel})`
+                                : `✔️ **That's it!** The second piece of data is **${f2Str}** of ${unit}. (It's marked in gold on the board).\n\n👉 Now **let's look at the third**: what do they ask? (Look at what's in red: ${terceroLabel})`,
+                            speech: lang === 'es' ? '¡Eso es! El segundo dato es ' + f2Str + '. Ahora, ¿qué nos piden?' : 'That\'s it! The second piece of data is ' + f2Str + '. Now, what do they ask?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'dato_3', highlights: highlightsConfirmed }),
                             detailedExplanation: { es: 'Segundo dato correcto, pedir tercero', en: 'Second datum correct, ask third' },
@@ -283,14 +283,14 @@ export class WordProblemTutor {
                         }],
                     };
                 }
-                if (saidTotal || input.trim().length > 0) {
+                if (saidTotal) {
                     const highlightsConfirmed = highlightsWithConfirmed(prob.highlights, 3);
                     return {
                         steps: [{
                             text: lang === 'es'
-                                ? `✔️ **Muy bien.** Nos piden el **total**. (Ya está en dorado en el tablero).\n\nAhora sí: **¿De qué habla la historia?** (En una frase)`
-                                : `✔️ **Good.** They ask for the **total**. (It's marked in gold on the board).\n\nNow: **What is the story about?** (In one sentence)`,
-                            speech: lang === 'es' ? 'Muy bien, nos piden el total. ¿De qué habla la historia?' : 'Good, they ask for the total. What is the story about?',
+                                ? `✔️ **¡Perfecto!** Nos piden el **total**. (Ya está en dorado en el tablero).\n\nAhora sí: **¿De qué habla la historia?** (En una frase)`
+                                : `✔️ **Perfect!** They ask for the **total**. (It's marked in gold on the board).\n\nNow: **What is the story about?** (In one sentence)`,
+                            speech: lang === 'es' ? '¡Perfecto! Nos piden el total. ¿De qué habla la historia?' : 'Perfect! They ask for the total. What is the story about?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_1', highlights: highlightsConfirmed }),
                             detailedExplanation: { es: 'Tercer dato correcto, pasar a historia', en: 'Third datum correct, move to story' },
@@ -314,54 +314,68 @@ export class WordProblemTutor {
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 Pista: Habla de algo que se reparte o se junta (como ${unit}). ¿De quién o de qué habla la historia?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 Hint: It's about something being shared or put together (like ${unit}). Who or what is the story about?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'Habla de ' + unit + '. Si no sabes, di no sé y te lo explico.' : 'It\'s about ' + unit + '. If you don\'t know, say I don\'t know and I\'ll explain.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_1' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                return {
-                    steps: [{
-                        text: lang === 'es' ? `¡Bien! 👌\n\n¿Sucedió una sola vez o en **dos momentos o partes**?` : `Good! 👌\n\nDid it happen once or in **two different times or parts**?`,
-                        speech: lang === 'es' ? '¡Bien! ¿Sucedió una sola vez o en dos momentos o partes?' : 'Good! Did it happen once or in two different times or parts?',
-                        visualType: 'text_only',
-                        visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_2' }),
-                        detailedExplanation: { es: 'Paso 2: Una vez o dos momentos', en: 'Step 2: Once or two times' },
-                    }],
-                };
+                // For open-ended questions like this, any non-empty input that isn't "don't know" is considered an attempt to answer.
+                // We allow it to advance to the next socratic step.
+                if (input.trim().length > 0) {
+                    return {
+                        steps: [{
+                            text: lang === 'es' ? `¡Bien pensado! 👌\n\n¿Sucedió una sola vez o en **dos momentos o partes**?` : `Well thought! 👌\n\nDid it happen once or in **two different times or parts**?`,
+                            speech: lang === 'es' ? '¡Bien pensado! ¿Sucedió una sola vez o en dos momentos o partes?' : 'Well thought! Did it happen once or in two different times or parts?',
+                            visualType: 'text_only',
+                            visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_2' }),
+                            detailedExplanation: { es: 'Paso 2: Una vez o dos momentos', en: 'Step 2: Once or two times' },
+                        }],
+                    };
+                }
+                // If input is empty and not 'don't know', re-prompt
+                return { steps: [{ text: lang === 'es' ? `¿De qué habla la historia? Intenta resumirlo en una frase.\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `What is the story about? Try to summarize it in one sentence.\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? '¿De qué habla la historia? Si no sabes, di no sé.' : 'What is the story about? If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_1' }), detailedExplanation: { es: 'Re-preguntar historia', en: 'Re-ask story' } }] };
             }
             if (phase === 'socratic_2') {
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 Mira el problema: hay dos cantidades distintas de **${unit}**. ¿Fue una sola vez o en dos partes?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 Look at the problem: there are two different amounts of **${unit}**. Once or in two parts?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'Hay dos partes. Si no sabes, di no sé.' : 'There are two parts. If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_2' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                return {
-                    steps: [{
-                        text: lang === 'es' ? `Exacto. ¿**Cuáles** son esas dos partes o momentos?` : `Right. **What** are those two parts or times?`,
-                        speech: lang === 'es' ? 'Exacto. ¿Cuáles son esas dos partes?' : 'Right. What are those two parts?',
-                        visualType: 'text_only',
-                        visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_3' }),
-                        detailedExplanation: { es: 'Paso 3: Cuáles son los dos momentos', en: 'Step 3: What are the two times' },
-                    }],
-                };
+                if (input.toLowerCase().includes('dos') || input.toLowerCase().includes('two') || input.toLowerCase().includes('2') || input.toLowerCase().includes('parte') || input.toLowerCase().includes('momento')) {
+                    return {
+                        steps: [{
+                            text: lang === 'es' ? `Exacto. ¿**Cuáles** son esas dos partes o momentos?` : `Right. **What** are those two parts or times?`,
+                            speech: lang === 'es' ? 'Exacto. ¿Cuáles son esas dos partes?' : 'Right. What are those two parts?',
+                            visualType: 'text_only',
+                            visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_3' }),
+                            detailedExplanation: { es: 'Paso 3: Cuáles son los dos momentos', en: 'Step 3: What are the two times' },
+                        }],
+                    };
+                }
+                return { steps: [{ text: lang === 'es' ? `¿Sucedió una sola vez o en **dos momentos o partes**? (Mira las dos cantidades que te dan).\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `Did it happen once or in **two different times or parts**? (Look at the two quantities given).\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? '¿Una o dos partes? Si no sabes, di no sé.' : 'One or two parts? If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_2' }), detailedExplanation: { es: 'Re-preguntar dos momentos', en: 'Re-ask two times' } }] };
             }
             if (phase === 'socratic_3') {
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 Mira lo que está en rojo o púrpura. Por ejemplo: "**María**" y "**su hermano**" (o mañana y tarde). ¿Cuáles son esas dos partes?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 Look at what's in red or purple. For example: "**María**" and "**her brother**" (or morning and afternoon). What are those two parts?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'Son dos partes. Si no sabes, di no sé.' : 'They are two parts. If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_3' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                return {
-                    steps: [{
-                        text: lang === 'es' ? `Muy bien 👍\n\nAhora, dime: ¿**qué cantidad** se menciona primero?` : `Good 👍\n\nNow, tell me: **what amount** is mentioned first?`,
-                        speech: lang === 'es' ? 'Muy bien. ¿Qué cantidad se menciona primero?' : 'Good. What amount is mentioned first?',
-                        visualType: 'text_only',
-                        visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_4' }),
-                        detailedExplanation: { es: 'Paso 4: Cantidad inicial', en: 'Step 4: Initial amount' },
-                    }],
-                };
+                // For open-ended questions like this, any non-empty input that isn't "don't know" is considered an attempt to answer.
+                // We allow it to advance to the next socratic step.
+                if (input.trim().length > 0) {
+                    return {
+                        steps: [{
+                            text: lang === 'es' ? `Muy bien 👍\n\nAhora, dime: ¿**qué cantidad** se menciona primero?` : `Good 👍\n\nNow, tell me: **what amount** is mentioned first?`,
+                            speech: lang === 'es' ? 'Muy bien. ¿Qué cantidad se menciona primero?' : 'Good. What amount is mentioned first?',
+                            visualType: 'text_only',
+                            visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_4' }),
+                            detailedExplanation: { es: 'Paso 4: Cantidad inicial', en: 'Step 4: Initial amount' },
+                        }],
+                    };
+                }
+                return { steps: [{ text: lang === 'es' ? `¿Cuáles son esas dos partes o momentos? (Mira el problema, te da dos cantidades).\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `What are those two parts or times? (Look at the problem, it gives you two quantities).\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? '¿Cuáles son esas dos partes? Si no sabes, di no sé.' : 'What are those two parts? If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_3' }), detailedExplanation: { es: 'Re-preguntar dos partes', en: 'Re-ask two parts' } }] };
             }
             if (phase === 'socratic_4') {
                 const saidMorning = matchesSocratic(input, 'morning', frac1, frac2) || (parseFloatInput(input) != null && parseFloatInput(input) === frac1.num);
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 Busca en el problema un número con una **raya** (fracción). Dice algo como "**${f1Str}**". ¿Cuál es esa primera cantidad?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 Look for a number with a **slash** (fraction). It says something like "**${f1Str}**". What is that first amount?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'La primera es ' + f1Str + '. Si no sabes, di no sé.' : 'The first one is ' + f1Str + '. If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_4' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                if (saidMorning || input.trim().length > 0) {
+                if (saidMorning) {
                     return {
                         steps: [{
-                            text: lang === 'es' ? `Perfecto. ¿Y **la segunda**?` : `Perfect. And **the second**?`,
-                            speech: lang === 'es' ? 'Perfecto. ¿Y la segunda?' : 'Perfect. And the second?',
+                            text: lang === 'es' ? `¡Así se hace! 😊 ¿Y **la segunda**?` : `That's it! 😊 And **the second**?`,
+                            speech: lang === 'es' ? '¡Así se hace! ¿Y la segunda?' : 'That\'s it! And the second?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_5' }),
                             detailedExplanation: { es: 'Paso 5: Cantidad siguiente', en: 'Step 5: Next amount' },
@@ -376,11 +390,11 @@ export class WordProblemTutor {
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 La segunda fracción que aparece es "**${f2Str}**". ¿Qué cantidad es la segunda?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 The second fraction that appears is "**${f2Str}**". What is the second amount?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'La segunda es ' + f2Str + '. Si no sabes, di no sé.' : 'The second one is ' + f2Str + '. If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_5' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                if (saidAfternoon || input.trim().length > 0) {
+                if (saidAfternoon) {
                     return {
                         steps: [{
-                            text: lang === 'es' ? `Genial 😊\n\nAhora piensa en la **pregunta final**: ¿Nos piden **comparar**, **quitar** o **juntar** estas partes?` : `Great 😊\n\nNow think about the **final question**: Do they ask us to **compare**, **take away**, or **put together** these parts?`,
-                            speech: lang === 'es' ? 'Genial. ¿Nos piden comparar, quitar o juntar estas partes?' : 'Great. Do they ask us to compare, take away, or put together these parts?',
+                            text: lang === 'es' ? `¡Genial! 🌟\n\nAhora piensa en la **pregunta final**: ¿Nos piden **comparar**, **quitar** o **juntar** estas partes?` : `Great! 🌟\n\nNow think about the **final question**: Do they ask us to **compare**, **take away**, or **put together** these parts?`,
+                            speech: lang === 'es' ? '¡Genial! Ahora piensa en la pregunta final: ¿Nos piden comparar, quitar o juntar estas partes?' : 'Great! Now think about the final question: Do they ask us to compare, take away, or put together these parts?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_6' }),
                             detailedExplanation: { es: 'Paso 6: Comparar, quitar o juntar', en: 'Step 6: Compare, subtract, or add' },
@@ -393,11 +407,11 @@ export class WordProblemTutor {
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 La pregunta dice "¿Cuánto **en total**?" Cuando hablamos de **total**, ¿estamos comparando, quitando o **juntando**?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 The question says "How much **in total**?" When we say **total**, are we comparing, taking away, or **putting together**?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'En total es juntar. Si no sabes, di no sé.' : 'In total means put together. If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_6' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                if (matchesSocratic(input, 'compare', frac1, frac2) || input.trim().length > 0) {
+                if (matchesSocratic(input, 'compare', frac1, frac2) || input.toLowerCase().includes('juntar') || input.toLowerCase().includes('together') || input.toLowerCase().includes('sumar') || input.toLowerCase().includes('add')) {
                     return {
                         steps: [{
-                            text: lang === 'es' ? `Exacto 💡\n\nCuando **juntamos** cantidades, ¿qué operación usamos?` : `Right 💡\n\nWhen we **put together** amounts, what operation do we use?`,
-                            speech: lang === 'es' ? 'Exacto. Cuando juntamos cantidades, ¿qué operación usamos?' : 'Right. When we put together amounts, what operation do we use?',
+                            text: lang === 'es' ? `¡Exacto! 💡\n\nCuando **juntamos** cantidades, ¿qué operación usamos?` : `Exactly! 💡\n\nWhen we **put together** amounts, what operation do we use?`,
+                            speech: lang === 'es' ? '¡Exacto! Cuando juntamos cantidades, ¿qué operación usamos?' : 'Exactly! When we put together amounts, what operation do we use?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_7' }),
                             detailedExplanation: { es: 'Paso 7: Operación (sumar)', en: 'Step 7: Operation (add)' },
@@ -410,11 +424,11 @@ export class WordProblemTutor {
                 if (isDontKnow(input)) {
                     return { steps: [{ text: lang === 'es' ? `💡 Juntar es **sumar**. ¿Qué operación usamos cuando juntamos?\n\nSi no sabes, di **no sé** y te lo explico. Así seguimos.` : `💡 Putting together is **adding**. What operation do we use?\n\nIf you don't know, say **I don't know** and I'll explain. Then we continue.`, speech: lang === 'es' ? 'Juntar es sumar. Si no sabes, di no sé.' : 'Putting together is adding. If you don\'t know, say I don\'t know.', visualType: 'text_only', visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_7' }), detailedExplanation: { es: 'Pista', en: 'Hint' } }] };
                 }
-                if (matchesSocratic(input, 'op', frac1, frac2) || input.trim().length > 0) {
+                if (matchesSocratic(input, 'op', frac1, frac2) || input.toLowerCase().includes('suma') || input.toLowerCase().includes('add')) {
                     return {
                         steps: [{
-                            text: lang === 'es' ? `Muy bien. Entonces, ¿**qué operación** escribirías? (Puedes escribir ${f1Str} + ${f2Str})` : `Good. So **what operation** would you write? (You can write ${f1Str} + ${f2Str})`,
-                            speech: lang === 'es' ? 'Muy bien. ¿Qué operación escribirías?' : 'Good. What operation would you write?',
+                            text: lang === 'es' ? `¡Muy bien! 🔥\n\nEntonces, ¿**qué operación** escribirías? (Puedes escribir ${f1Str} + ${f2Str} o simplemente di "suma")` : `Well done! 🔥\n\nSo **what operation** would you write? (You can write ${f1Str} + ${f2Str} or just say "addition")`,
+                            speech: lang === 'es' ? '¡Muy bien! ¿Qué operación escribirías?' : 'Well done! What operation would you write?',
                             visualType: 'text_only',
                             visualData: visualDataWithProblem(prob, lastState, { wpPhase: 'socratic_8' }),
                             detailedExplanation: { es: 'Paso 8: Escribir la operación', en: 'Step 8: Write the operation' },
@@ -548,6 +562,18 @@ export class WordProblemTutor {
             if (currentPhase === 'dato_1') {
                 if (userNum === b || userNum === h || userNum === r) {
                     currentPhase = hasPerimeter ? 'perimeter' : (hasArea ? 'area' : 'done');
+                } else if (input.trim().length > 0 && !isDontKnow(input)) {
+                    // WRONG DATA IDENTIFICATION in Geometry
+                    return {
+                        steps: [{
+                            text: lang === 'es'
+                                ? `Mmm, casi. 🤔 Mira el problema: dice que mide **${b}** y **${h}**. ¿Cuál de esos números vas a anotar primero?`
+                                : `Hmm, close. 🤔 Look at the problem: it says it measures **${b}** and **${h}**. Which of those numbers will you write down first?`,
+                            speech: lang === 'es' ? 'Identifica una de las medidas del problema.' : 'Identify one of the measurements from the problem.',
+                            visualType: 'geometry',
+                            visualData: { ...visualDataWithProblem(prob, lastState, { wpPhase: 'dato_1' }), shape, labels: [lang === 'es' ? 'largo = ?' : 'length = ?', lang === 'es' ? 'ancho = ?' : 'width = ?'] }
+                        }]
+                    };
                 } else {
                     return {
                         steps: [{

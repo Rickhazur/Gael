@@ -76,7 +76,7 @@ export class DivisionTutor {
         }
 
         if (phase === 'intro') {
-            if (isBasicFact || grade <= 2) {
+            if (isBasicFact) {
                 // If it's a basic fact, we transition to basic_fact_solve
                 return {
                     steps: [{
@@ -107,14 +107,29 @@ export class DivisionTutor {
             const sizeWordEs = isGrandisimo ? 'grandísimo' : 'grande';
             const sizeWordEn = isGrandisimo ? 'huge' : 'large';
 
+            let breakdownEs = "";
+            let breakdownEn = "";
+            let breakdownSpeechEs = "";
+            let breakdownSpeechEn = "";
+
+            if (take === 1) {
+                breakdownEs = `¡Misión de División Larga! 🚀\n\nComo el ${dividend} es un número ${sizeWordEs}, lo dividiremos por partes.\n\nPrimero miramos el **${part}**. Piensa: ¿Cuántas veces cabe el **${divisor}** en el **${part}**?`;
+                breakdownEn = `Long Division Mission! 🚀\n\nSince ${dividend} is a ${sizeWordEn} number, we'll do it step by step.\n\nWe take **${part}**. How many times does **${divisor}** fit in **${part}** without going over?`;
+                breakdownSpeechEs = `¡Misión División Activada! 🚀 El número ${dividend} es ${sizeWordEs}, ¡pero no te asustes que lo haremos por partes! Tomemos el ${part}. ¿Cuántas veces nos cabe el ${divisor} ahí adentro? Miremos bien...`;
+                breakdownSpeechEn = `Long Division Mission! 🚀 The number ${dividend} is ${sizeWordEn}, but don't worry, we'll do it bit by bit, champ! Let's take ${part}. How many times does ${divisor} fit in there? Let's see...`;
+            } else {
+                // Explain skip logic
+                const skipped = dividendStr.substring(0, take - 1);
+                breakdownEs = `¡Misión de División Larga! 🚀\n\nComo el ${divisor} es más grande que el **${skipped}**, necesitamos tomar una cifra más. ¡Vamos con el **${part}**!\n\nPiensa: ¿Cuántas veces cabe el **${divisor}** en el **${part}**?`;
+                breakdownEn = `Long Division Mission! 🚀\n\nSince ${divisor} is larger than **${skipped}**, we need to take one more digit. Let's go with **${part}**!\n\nThink: How many times does **${divisor}** fit in **${part}**?`;
+                breakdownSpeechEs = `¡Vamos con el primer paso! Como el ${divisor} no cabe en el ${skipped}, vamos a tomar tres cifras: el ${part}. ¿Ya lo viste? Ahora, ¿cuántas veces nos cabe el ${divisor} en el ${part}?`;
+                breakdownSpeechEn = `Let's start the first step! Since ${divisor} doesn't fit in ${skipped}, we'll take three digits: ${part}. See it? Now, how many times does ${divisor} fit in ${part}?`;
+            }
+
             return {
                 steps: [{
-                    text: lang === 'es'
-                        ? `¡Misión de División Larga! 🚀\n\nComo el ${dividend} es un número ${sizeWordEs}, lo dividiremos por partes.\n\nPrimero miramos el **${part}**. Piensa: ¿Cuántas veces cabe el **${divisor}** en el **${part}**?`
-                        : `Long Division Mission! 🚀\n\nSince ${dividend} is a ${sizeWordEn} number, we'll do it step by step.\n\nWe take **${part}**. How many times does **${divisor}** fit in **${part}** without going over?`,
-                    speech: lang === 'es'
-                        ? `¡Misión División Activada! 🚀 El número ${dividend} es ${sizeWordEs}, ¡pero no te asustes que lo haremos por partes! Tomemos el ${part}. ¿Cuántas veces nos cabe el ${divisor} ahí adentro? Miremos bien...`
-                        : `Long Division Mission! 🚀 The number ${dividend} is ${sizeWordEn}, but don't worry, we'll do it bit by bit, champ! Let's take ${part}. How many times does ${divisor} fit in there? Let's see...`,
+                    text: lang === 'es' ? breakdownEs : breakdownEn,
+                    speech: lang === 'es' ? breakdownSpeechEs : breakdownSpeechEn,
                     visualType: "division",
                     visualData: {
                         dividend: dividendStr, divisor: divisorStr, quotient: "", divisionStyle: style,

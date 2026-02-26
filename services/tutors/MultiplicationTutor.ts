@@ -451,6 +451,16 @@ export class MultiplicationTutor {
             return { steps: solveSteps };
         }
 
-        return null; // Fallback to handle non-numeric inputs
+        // Nunca quedarse callada durante la operación
+        return {
+            steps: [{
+                text: lang === 'es'
+                    ? `¡No te distraigas! 🚀 Estamos en medio de la multiplicación.\n\n${lastState?.context || 'Mira el tablero y sigamos con el siguiente paso.'}`
+                    : `Don't get distracted! 🚀 We're in the middle of the multiplication.\n\n${lastState?.context || 'Look at the board and let\'s continue with the next step.'}`,
+                speech: lang === 'es' ? '¡Oye! No te me distraigas. Sigamos con la multiplicación.' : 'Hey! Don\'t get distracted. Let\'s continue with the multiplication.',
+                visualType: "vertical_op",
+                visualData: lastState || { operand1: n1Str, operand2: n2Str, operator: "×" }
+            }]
+        };
     }
 }

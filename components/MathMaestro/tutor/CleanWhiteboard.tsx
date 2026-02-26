@@ -1951,6 +1951,21 @@ export const CleanWhiteboard = forwardRef<WhiteboardRef, any>((props, ref) => {
                     }
                 }
 
+                // 🎨 HELPERS (Emojis/Objects for Grade 1)
+                const helpersToDraw = helpers || visualData?.helpers || [];
+                if (helpersToDraw.length > 0) {
+                    ctx.save();
+                    ctx.font = `${baseFontSize * 0.6}px sans-serif`;
+                    helpersToDraw.forEach((h: any) => {
+                        const rowIdx = h.row ?? 0;
+                        const colIdx = h.col ?? 0;
+                        const helperY = startY + (rowIdx * rowHeight);
+                        const helperX = gridX + 130 + (colIdx * 50);
+                        ctx.fillText(h.content || "", helperX, helperY);
+                    });
+                    ctx.restore();
+                }
+
                 ctx.restore(); // Restore scale/translate
                 updateParticles(Date.now());
                 animationRef.current = requestAnimationFrame(animate);

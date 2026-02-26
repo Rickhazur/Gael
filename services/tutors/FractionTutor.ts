@@ -250,7 +250,7 @@ export class FractionTutor {
                         speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} Dividimos por ${userDivisor} y nos queda ${newN} sobre ${newD}.` : `${getCorrectFeedback(lang, studentName)} We divide by ${userDivisor} and get ${newN} over ${newD}.`,
                         visualType: "fraction_equation",
                         visualData: { num1: String(n1), den1: String(d1), operator: '→', result: `${newN}/${newD}`, multiplier: userDivisor, highlight: 'done' } as any,
-                        detailedExplanation: { es: "Divisor correcto", en: "Correct divisor" }
+                        detailedExplanation: { es: "Divisor correcto", en: "Factor de división correcto" }
                     }]
                 };
             } else if (!isNaN(userDivisor)) {
@@ -536,7 +536,7 @@ export class FractionTutor {
                 const finalRes = `${lastState.productNum}/${expectDen}`;
                 return {
                     steps: [{
-                        text: lang === 'es' ? `¡Fantástico! 🎩✨ El resultado es **${finalRes}**.\n\nAhora pensemos: ¿Es **propia** (arriba menor) o **impropia** (arriba mayor)?` : `Fantastic! 🎩✨ Result: **${finalRes}**.\n\nNow: Is it **proper** (top smaller) or **improper** (top bigger)?`,
+                        text: lang === 'es' ? `¡Fantástico! 🎩✨ El resultado es **${finalRes}**.\n\nNow: ¿Es **propia** (arriba menor) o **impropia** (arriba mayor)?` : `Fantastic! 🎩✨ Result: **${finalRes}**.\n\nNow: Is it **proper** (top smaller) or **improper** (top bigger)?`,
                         speech: lang === 'es'
                             ? `¡Fantástico! Resultado ${finalRes}. ¿Es propia o impropia?`
                             : `Fantastic! Result ${finalRes}. Is it proper or improper?`,
@@ -586,6 +586,32 @@ export class FractionTutor {
     }
 
     private static handleAddSubtraction(input: string, prob: any, lang: 'es' | 'en', history: any[], lastState: any, studentName?: string): StepResponse | null {
+        // --- PRE-CALCULATE VARIABLES ---
+        let n1: number, d1: number, n2: number, d2: number, op: string;
+        let effectiveRemaining: { n: number; d: number; op?: string }[] | undefined;
+
+        if (lastState?.originalOp) {
+            const o = lastState.originalOp;
+            n1 = parseInt(String(o.n1));
+            d1 = parseInt(String(o.d1));
+            n2 = parseInt(String(o.n2));
+            d2 = parseInt(String(o.d2));
+            op = o.operator || '+';
+            effectiveRemaining = o.extraFracs || o.remaining;
+        } else {
+            n1 = parseInt(lastState?.num1 || prob?.n1);
+            d1 = parseInt(lastState?.den1 || prob?.d1);
+            n2 = parseInt(lastState?.num2 || prob?.n2);
+            d2 = parseInt(lastState?.den2 || prob?.d2);
+            op = lastState?.operator || prob?.op || '+';
+            effectiveRemaining = prob?.remaining;
+        }
+
+        const isHomogeneous = !isNaN(d1) && !isNaN(d2) && d1 === d2;
+
+        // --- PHASE ROUTING ---
+
+        // 1. Chained Answer (Same Denom)
         if (prob?.isChainedAnswer && lastState?.phase === 'chained_same_denom') {
             const expected = lastState.expectedSum;
             if (AnswerValidator.validate(input, expected).isCorrect) {
@@ -597,56 +623,16 @@ export class FractionTutor {
                         text: lang === 'es'
                             ? `¡Perfecto! 🎉 Resultado: **${finalRes}**.\n\nRepaso flash: ⚡\n🟢 **Propia**: Numerador < Denominador.\n🔴 **Impropia**: Numerador ≥ Denominador.\n\n¿Esta fracción es **propia** o **impropia**?`
                             : `Perfect! 🎉 Result: **${finalRes}**.\n\nFlash review: ⚡\n🟢 **Proper**: Num < Den.\n🔴 **Improper**: Num ≥ Den.\n\nIs this one **proper** or **improper**?`,
-                        speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} Resultado ${finalRes}. ¿Es propia o impropia?` : `${getCorrectFeedback(lang, studentName)} Result ${finalRes}. Proper or improper?`,
+                        speech: lang === 'es' ? `¡Bien hecho! El resultado es ${finalRes}. ¿Es propia o impropia?` : `Well done! The result is ${finalRes}. Is it proper or improper?`,
                         visualType: "fraction_op",
-                        visualData: { num1: String(lastState.resultNumerator), den1: String(den), num2: String(lastState.nextNum), den2: String(lastState.nextDenom), operator: lastState.nextOp || '+', result: finalRes, highlight: "done", isDone: false, phase: 'result_analysis_start', finalNum: resN, finalDen: den } as any,
+                        visualData: { ...lastState, result: finalRes, highlight: "done", isDone: false, phase: 'result_analysis_start', finalNum: resN, finalDen: den } as any,
                         detailedExplanation: { es: "Completado", en: "Completed" }
                     }]
                 };
             }
         }
 
-        let n1: number, d1: number, n2: number, d2: number, op: string;
-        let effectiveRemaining: { n: number; d: number; op?: string }[] | undefined;
-        if (prob?.isChainedAnswer && prob?.lastState?.originalOp) {
-            const o = prob.lastState.originalOp;
-            n1 = parseInt(String(o.n1));
-            d1 = parseInt(String(o.d1));
-            n2 = parseInt(String(o.n2));
-            d2 = parseInt(String(o.d2));
-            op = o.operator || '+';
-            effectiveRemaining = prob.lastState.remaining;
-            prob = { ...prob, isNew: true, n1: String(n1), d1: String(d1), n2: String(n2), d2: String(d2), op, remaining: effectiveRemaining };
-        } else {
-            const orig = lastState?.originalOp || prob?.lastState?.originalOp;
-            n1 = parseInt(orig?.n1 || lastState?.num1 || prob?.n1);
-            d1 = parseInt(orig?.d1 || lastState?.den1 || prob?.d1);
-            n2 = parseInt(orig?.n2 || lastState?.num2 || prob?.n2);
-            d2 = parseInt(orig?.d2 || lastState?.den2 || prob?.d2);
-            op = lastState?.operator || orig?.operator || prob?.op || '+';
-            effectiveRemaining = prob?.remaining || orig?.remaining;
-        }
-        const isHomogeneous = !isNaN(d1) && !isNaN(d2) && d1 === d2;
-
-        // Después de ver la explicación del MCM, mostrar las tablas
-        if (lastState?.phase === 'mcm_intro') {
-            FractionTutor.setMCMExplanationSeen();
-            const multiples1 = Array.from({ length: 10 }, (_, i) => d1 * (i + 1));
-            const multiples2 = Array.from({ length: 10 }, (_, i) => d2 * (i + 1));
-            const lcm = StateHelper.lcm(d1, d2);
-            return {
-                steps: [{
-                    text: lang === 'es'
-                        ? `Los denominadores son diferentes (**${d1}** y **${d2}**). 🧐\n\nBusquemos el **MCM**. ¿Cuál es el primer número que se repite en ambas tablas de abajo?`
-                        : `The denominators are different (**${d1}** and **${d2}**). 🧐\n\nLet's find the **LCM**. Which is the first number that repeats in both tables below?`,
-                    speech: lang === 'es' ? `Denominadores diferentes. Busca el MCM.` : `Different denominators. Find the LCM.`,
-                    visualType: "fraction",
-                    visualData: { type: "lcm_list", num1: String(n1), den1: String(d1), num2: String(n2), den2: String(d2), operator: op, lists: [{ base: d1, items: multiples1 }, { base: d2, items: multiples2 }], match: lcm, highlightMatch: false, originalOp: { n1, d1, n2, d2, operator: op } } as any,
-                    detailedExplanation: { es: "Búsqueda de MCM", en: "LCM search" }
-                }]
-            };
-        }
-
+        // 2. New Problem Intro
         if (prob.isNew) {
             if (isHomogeneous) {
                 return {
@@ -654,339 +640,274 @@ export class FractionTutor {
                         text: lang === 'es'
                             ? `¡Muy bien! Los denominadores son iguales (**${d1}**). 🤩\n\nSolo **${op === '+' ? 'sumas' : 'restas'} los números de arriba** y mantienes el mismo denominador abajo. ¿Cuánto da?`
                             : `Very well! The denominators are the same (**${d1}**). 🤩\n\nJust **${op === '+' ? 'add' : 'subtract'} the numbers on top** and keep the same denominator. What is it?`,
-                        speech: lang === 'es' ? `Denominadores iguales. Opera los de arriba.` : `Same denominators. Operate the top numbers.`,
+                        speech: lang === 'es' ? `Denominadores iguales. Opera los de arriba.` : `Same denominators. Opera los de arriba.`,
                         visualType: "fraction_op",
                         visualData: { num1: String(n1), den1: String(d1), num2: String(n2), den2: String(d2), operator: op, highlight: "num" },
                         detailedExplanation: { es: "Fracciones homogéneas", en: "Homogeneous fractions" }
                     }]
                 };
             } else {
-                const hasSeenMCM = FractionTutor.hasSeenMCMExplanation();
-                if (!hasSeenMCM) {
-                    // Primera vez: explicación clara del MCM para el niño + imagen en la pizarra
-                    const r = effectiveRemaining;
-                    const allDenomsMcm = r?.length ? [d1, d2, ...r.map((x: { d: number }) => x.d)] : [d1, d2];
-                    const is3Denoms = allDenomsMcm.length >= 3;
-                    const d3 = r?.[0]?.d;
-                    const dtStr = allDenomsMcm.join(', ');
-                    const mcmIntroTextEs = is3Denoms
-                        ? `¡Hola! 👋 Como los denominadores son diferentes (**${dtStr}**), no podemos sumar o restar así nomás. Necesitamos un **número amigo** que aparezca en las tres tablas.\n\n**Ese número amigo se llama MCM (Mínimo Común Múltiplo).** Es el **primer número que se repite** cuando contamos de ${d1} en ${d1}, de ${d2} en ${d2} y de ${d3} en ${d3}. Mira la pizarra: ahí verás cómo los saltos de ${d1}, ${d2} y ${d3} **se encuentran** en el mismo número. ¡Ese es el MCM!\n\nCuando quieras ver las tablas y buscar el MCM tú mismo, escribe **continuar** (o cualquier mensaje).`
-                        : `¡Hola! 👋 Como los denominadores son diferentes (**${d1}** y **${d2}**), no podemos sumar o restar así nomás. Necesitamos un **número amigo** que aparezca en las dos tablas.\n\n**Ese número amigo se llama MCM (Mínimo Común Múltiplo).** Es el **primer número que se repite** cuando contamos de ${d1} en ${d1} y de ${d2} en ${d2}. Mira la pizarra: ahí verás cómo los saltos de ${d1} y los de ${d2} **se encuentran** en el mismo número. ¡Ese es el MCM!\n\nCuando quieras ver las tablas y buscar el MCM tú mismo, escribe **continuar** (o cualquier mensaje).`;
-                    const mcmIntroTextEn = is3Denoms
-                        ? `Hi! 👋 Since the denominators are different (**${dtStr}**), we can't add or subtract yet. We need a **friend number** that appears in all three tables.\n\n**That friend is the LCM (Lowest Common Multiple).** It's the **first number that appears** when we count by ${d1}s, by ${d2}s, and by ${d3}s. Look at the board: you'll see how the ${d1}-, ${d2}- and ${d3}-jumps **meet** at the same number. That's the LCM!\n\nWhen you're ready to see the tables and find the LCM yourself, type **continue** (or any message).`
-                        : `Hi! 👋 Since the denominators are different (**${d1}** and **${d2}**), we can't add or subtract yet. We need a **friend number** that appears in both times tables.\n\n**That friend is the LCM (Lowest Common Multiple).** It's the **first number that appears** when we count by ${d1}s and by ${d2}s. Look at the board: you'll see how the ${d1}-jumps and the ${d2}-jumps **meet** at the same number. That's the LCM!\n\nWhen you're ready to see the tables and find the LCM yourself, type **continue** (or any message).`;
-                    const mcmIntroSpeechEs = is3Denoms
-                        ? `Como los denominadores son diferentes, necesitamos el MCM. Es el primer número en el que se encuentran los saltos de ${d1}, ${d2} y ${d3}. Mira la pizarra.`
-                        : `Como los denominadores son diferentes, necesitamos el Mínimo Común Múltiplo. Es el primer número en el que se encuentran los saltos de ${d1} y los de ${d2}. Mira la pizarra. Cuando quieras seguir, escribe continuar.`;
-                    const mcmIntroSpeechEn = is3Denoms
-                        ? `Since the denominators are different, we need the LCM. It's the first number where the ${d1}-, ${d2}- and ${d3}-jumps meet. Look at the board.`
-                        : `Since the denominators are different, we need the Lowest Common Multiple. It's the first number where the ${d1}-jumps and the ${d2}-jumps meet. Look at the board. When you're ready, type continue.`;
-                    return {
-                        steps: [{
-                            text: lang === 'es' ? mcmIntroTextEs : mcmIntroTextEn,
-                            speech: lang === 'es' ? mcmIntroSpeechEs : mcmIntroSpeechEn,
-                            visualType: "fraction",
-                            visualData: { type: "mcm_intro", phase: "mcm_intro", den1: d1, den2: d2, allDenoms: allDenomsMcm, num1: String(n1), num2: String(n2), operator: op, originalOp: { n1, d1, n2, d2, operator: op, extraFracs: prob?.remaining } } as any,
-                            detailedExplanation: { es: "Qué es el MCM", en: "What is LCM" }
-                        }]
-                    };
-                }
-                // Ya vio la explicación: que consulte el cuaderno y luego las tablas
-                const remaining = effectiveRemaining;
-                const allDenoms = remaining?.length ? [d1, d2, ...remaining.map((r: { d: number }) => r.d)] : [d1, d2];
-                const lcm = allDenoms.length > 2 ? StateHelper.lcmOfMany(allDenoms) : StateHelper.lcm(d1, d2);
-                const lists = allDenoms.map(den => ({
+                // Return LCM List immediately (The "Dos Listos" method)
+                const allDenomsMcm = effectiveRemaining?.length ? [d1, d2, ...effectiveRemaining.map((x: any) => x.d)] : [d1, d2];
+                const lcm = allDenomsMcm.length > 2 ? StateHelper.lcmOfMany(allDenomsMcm) : StateHelper.lcm(d1, d2);
+                const lists = allDenomsMcm.map(den => ({
                     base: den,
                     items: Array.from({ length: 10 }, (_, i) => den * (i + 1))
                 }));
-                const extraFracs = remaining?.map(r => ({ n: r.n, d: r.d })) || [];
+
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `Los denominadores son diferentes (**${allDenoms.join('**, **')}**). 📓 **Consulta tu cuaderno de matemáticas** para repasar qué es el MCM si lo necesitas.\n\nBusquemos el **MCM**. ¿Cuál es el primer número que se repite en todas las tablas de abajo?`
-                            : `The denominators are different (**${allDenoms.join('**, **')}**). 📓 **Check your math notebook** to review what the LCM is if you need to.\n\nLet's find the **LCM**. Which is the first number that repeats in all tables below?`,
-                        speech: lang === 'es' ? `Consulta tu cuaderno de matemáticas para repasar el MCM. Denominadores diferentes. Busca el MCM.` : `Check your math notebook to review the LCM. Different denominators. Find the LCM.`,
+                            ? `¡Hola! 👋 Como los denominadores son diferentes (**${allDenomsMcm.join(', ')}**), necesitamos encontrar el **mínimo común múltiplo (MCM)** para que sean iguales.\n\nHe puesto las tablas de multiplicar de los denominadores en la pizarra. 👇\n\n**¿Cuál es el primer número que aparece en todas las tablas?**`
+                            : `Hi! 👋 Since the denominators are different (**${allDenomsMcm.join(', ')}**), we need the **lowest common multiple (LCM)** to make them equal.\n\nI've put the multiplication tables on the board. 👇\n\n**What's the first number that appears in all tables?**`,
+                        speech: lang === 'es'
+                            ? `Hola. Como los denominadores son diferentes, busquemos el mínimo común múltiplo en las tablas. ¿Cuál es el primer número que se repite?`
+                            : `Since the denominators are different, let's find the LCM in the tables. Which number repeats first?`,
                         visualType: "fraction",
-                        // IMPORTANTE: lists vacío para NO mostrar tablas, pero manteniendo type="lcm_list" para que la lógica continúe
                         visualData: {
                             type: "lcm_list",
                             num1: String(n1), den1: String(d1), num2: String(n2), den2: String(d2),
                             operator: op,
-                            lists: [], // Ocultar tablas visualmente
+                            lists: lists,
                             match: lcm,
                             highlightMatch: false,
-                            originalOp: { n1, d1, n2, d2, operator: op, extraFracs },
-                            extraFracs
+                            originalOp: { n1, d1, n2, d2, operator: op, extraFracs: effectiveRemaining }
                         } as any,
-                        detailedExplanation: { es: "Búsqueda de MCM", en: "LCM search" }
+                        detailedExplanation: { es: "Búsqueda directa de MCM", en: "Direct LCM search" }
                     }]
                 };
             }
         }
 
+        // 3. MCM List
+        if (lastState?.phase === 'mcm_intro' || (lastState?.type === 'mcm_intro')) {
+            const allDenomsMcm = effectiveRemaining?.length ? [d1, d2, ...effectiveRemaining.map((x: any) => x.d)] : [d1, d2];
+            const lcm = allDenomsMcm.length > 2 ? StateHelper.lcmOfMany(allDenomsMcm) : StateHelper.lcm(d1, d2);
+            const lists = allDenomsMcm.map(den => ({
+                base: den,
+                items: Array.from({ length: 10 }, (_, i) => den * (i + 1))
+            }));
+
+            return {
+                steps: [{
+                    text: lang === 'es'
+                        ? `Busquemos el **MCM**. ¿Cuál es el primer número que se repite en todas las tablas de abajo?`
+                        : `Let's find the **LCM**. Which is the first number that repeats in all tables below?`,
+                    speech: lang === 'es' ? `Busca el MCM en las tablas.` : `Find the LCM in the tables.`,
+                    visualType: "fraction",
+                    visualData: {
+                        type: "lcm_list",
+                        num1: String(n1), den1: String(d1), num2: String(n2), den2: String(d2),
+                        operator: op,
+                        lists: lists,
+                        match: lcm,
+                        highlightMatch: false,
+                        originalOp: { n1, d1, n2, d2, operator: op, extraFracs: effectiveRemaining }
+                    } as any,
+                    detailedExplanation: { es: "Búsqueda de MCM", en: "LCM search" }
+                }]
+            };
+        }
+
+        // 4. LCM Validation
         if (lastState?.type === 'lcm_list' && !lastState.highlightMatch) {
             const lcm = lastState?.match ?? StateHelper.lcm(d1, d2);
-            if (FractionTutor.isDontKnow(input)) {
+            if (this.isDontKnow(input)) {
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `¡Tranquilo! 💙 El **MCM** es el número que acabamos de encontrar: **${lcm}**. Mira las tablas de abajo: es el **primer número que se repite** en la columna del **${d1}** y en la del **${d2}**. ¿Lo ves? Escribe ese número.`
-                            : `No worries! 💙 The **LCM** is the number we just found: **${lcm}**. Look at the tables below: it's the **first number that appears** in both the **${d1}** and **${d2}** columns. See it? Type that number.`,
-                        speech: lang === 'es' ? `El MCM es ${lcm}. Mira las tablas y dime ese número.` : `The LCM is ${lcm}. Look at the tables and tell me that number.`,
-                        visualType: "fraction",
-                        visualData: lastState,
-                        detailedExplanation: { es: "Ayuda MCM - no sé", en: "LCM help - don't know" }
+                            ? `¡Tranquilo! 💙 El **MCM** es **${lcm}**. Es el **primer número que se repite** en las tablas. ¿Lo ves? Escribe ese número.`
+                            : `No worries! 💙 The **LCM** is **${lcm}**. It's the **first number that appears** in the tables. See it? Type that number.`,
+                        speech: lang === 'es' ? `El MCM es ${lcm}.` : `The LCM is ${lcm}.`,
+                        visualType: "fraction", visualData: lastState
                     }]
                 };
             }
-            const validation = AnswerValidator.validate(input, lcm);
-            if (validation.isCorrect) {
-                const safeN1 = n1 ?? 1, safeD1 = d1 ?? 2;
+            if (AnswerValidator.validate(input, lcm).isCorrect) {
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `¡Exacto! El **${lcm}** es nuestro MCM. 🌟\n\nAhora: **¿Por cuánto multiplicamos al ${safeD1} para que dé ${lcm}?** (Queremos que abajo quede ${lcm}).`
-                            : `Exactly! **${lcm}** is our LCM. 🌟\n\nNow: **What do we multiply ${safeD1} by to get ${lcm}?** (We want the bottom to become ${lcm}).`,
-                        speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} MCM es ${lcm}. ¿Por cuánto multiplicamos al ${safeD1} para que dé ${lcm}?` : `${getCorrectFeedback(lang, studentName)} LCM is ${lcm}. What do we multiply ${safeD1} by to get ${lcm}?`,
+                            ? `¡Exacto! El **${lcm}** es nuestro MCM. 🌟\n\nAhora: **¿Por cuánto multiplicamos al ${d1} para que dé ${lcm}?**`
+                            : `Exactly! **${lcm}** is our LCM. 🌟\n\nNow: **What do we multiply ${d1} by to get ${lcm}?**`,
+                        speech: lang === 'es' ? `MCM es ${lcm}. ¿Por cuánto multiplicamos al ${d1}?` : `LCM is ${lcm}. What do we multiply ${d1} by?`,
                         visualType: "fraction_equation",
-                        visualData: { num1: String(safeN1), den1: String(safeD1), operator: '→', result: `?/${lcm}`, highlight: 'den1', phase: 'multiplier1', originalOp: lastState.originalOp ?? { n1: safeN1, d1: safeD1, n2: n2 ?? 1, d2: d2 ?? 2, operator: op }, commonDen: String(lcm) } as any,
-                        detailedExplanation: { es: "Factor de amplificación", en: "Amplification factor" }
+                        visualData: { ...lastState, phase: 'multiplier1', highlight: 'den1', commonDen: String(lcm) } as any
+                    }]
+                };
+            }
+        }
+
+        // 5. Mult 1
+        if (lastState?.phase === 'multiplier1') {
+            const commonDen = parseInt(lastState?.commonDen || "1");
+            const mult = commonDen / d1;
+            if (AnswerValidator.validate(input, mult).isCorrect) {
+                return {
+                    steps: [{
+                        text: lang === 'es' ? `¡Bien! Multiplicamos por **${mult}**. ¿Cuánto es **${n1} × ${mult}** arriba?` : `Good! Multiply by **${mult}**. What's **${n1} × ${mult}** on top?`,
+                        speech: lang === 'es' ? `Multiplica arriba por ${mult}.` : `Multiply top by ${mult}.`,
+                        visualType: "fraction_equation",
+                        visualData: { ...lastState, phase: 'numerator1', multiplier: mult, highlight: 'num1' }
                     }]
                 };
             } else {
                 return {
                     steps: [{
-                        text: lang === 'es' ? `Mmm, ese no es. Mira las tablas de abajo.` : `Hmm, that's not it. Look at the tables.`,
-                        visualType: "fraction", visualData: lastState, speech: lang === 'es' ? "Mira las tablas." : "Look at the tables.",
-                        detailedExplanation: { es: "Error MCM", en: "LCM error" }
+                        text: lang === 'es'
+                            ? `¡Vamos! 💪 Estamos buscando por qué número hay que multiplicar al **${d1}** para llegar a **${commonDen}**.\n\nPiensa: **${d1} × ? = ${commonDen}**`
+                            : `Let's go! 💪 We are looking for the number to multiply **${d1}** by to get **${commonDen}**.\n\nThink: **${d1} × ? = ${commonDen}**`,
+                        speech: lang === 'es' ? `¿Por cuánto multiplicamos al ${d1} para que nos dé ${commonDen}?` : `What do we multiply ${d1} by to get ${commonDen}?`,
+                        visualType: "fraction_equation",
+                        visualData: lastState
                     }]
                 };
             }
         }
 
-        if (lastState?.phase === 'multiplier1') {
-            const commonDen = parseInt(lastState?.commonDen || "1");
-            const mult = commonDen / d1;
-            if (FractionTutor.isDontKnow(input)) {
-                const safeD1 = d1 ?? 2;
-                return {
-                    steps: [{
-                        text: lang === 'es'
-                            ? `¡Te ayudo! 🧩 Queremos que **abajo** quede **${commonDen}** (el MCM). Ahora el denominador es **${safeD1}**. ¿${safeD1} por cuánto **da ${commonDen}**? Pista: mira la tabla del ${safeD1}.`
-                            : `I'll help! 🧩 We want the **bottom** to become **${commonDen}** (the LCM). Right now the denominator is **${safeD1}**. What times ${safeD1} **equals ${commonDen}**? Hint: look at the ${safeD1} times table.`,
-                        speech: lang === 'es' ? `${safeD1} por cuánto da ${commonDen}. Mira la tabla.` : `What times ${safeD1} equals ${commonDen}. Look at the table.`,
-                        visualType: "fraction_equation",
-                        visualData: { ...lastState, num1: String(n1 ?? 1), den1: String(safeD1), operator: '→', result: `?/${commonDen}`, highlight: 'den1', phase: 'multiplier1', originalOp: lastState.originalOp, commonDen: String(commonDen) },
-                        detailedExplanation: { es: "Ayuda multiplicador - no sé", en: "Multiplier help - don't know" }
-                    }]
-                };
-            }
-            if (AnswerValidator.validate(input, mult).isCorrect) {
-                return {
-                    steps: [{
-                        text: lang === 'es'
-                            ? `¡Correcto! Multiplicamos por **${mult}**. 💫\n\nRegla de oro: Lo mismo arriba. ¿Cuánto es **${n1} × ${mult}**?`
-                            : `Correct! We multiply by **${mult}**. 💫\n\nGolden rule: Same on top. What is **${n1} × ${mult}**?`,
-                        speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} Ahora multiplica arriba por ${mult}.` : `${getCorrectFeedback(lang, studentName)} Now multiply top by ${mult}.`,
-                        visualType: "fraction_equation",
-                        visualData: { ...lastState, phase: 'numerator1', multiplier: mult, highlight: 'num1', num1: String(n1 ?? 1), den1: String(d1 ?? 2), result: lastState.result || `?/${commonDen}` },
-                        detailedExplanation: { es: "Regla de oro", en: "Golden rule" }
-                    }]
-                };
-            }
-        }
-
+        // 6. Num 1
         if (lastState?.phase === 'numerator1') {
             const mult = lastState?.multiplier || 1;
             const expectedN1 = n1 * mult;
-            if (FractionTutor.isDontKnow(input)) {
-                return {
-                    steps: [{
-                        text: lang === 'es'
-                            ? `¡Sin problema! 💡 Acabamos de decir que multiplicamos por **${mult}**. Arriba tenemos **${n1}**. Entonces: **${n1} × ${mult}** = ?`
-                            : `No problem! 💡 We just said we multiply by **${mult}**. On top we have **${n1}**. So: **${n1} × ${mult}** = ?`,
-                        speech: lang === 'es' ? `${n1} por ${mult}. ¿Cuánto da?` : `${n1} times ${mult}. What does it equal?`,
-                        visualType: "fraction_equation",
-                        visualData: { ...lastState, phase: 'numerator1', multiplier: mult, highlight: 'num1', num1: String(n1 ?? 1), den1: String(d1 ?? 2), originalOp: lastState.originalOp },
-                        detailedExplanation: { es: "Ayuda numerador - no sé", en: "Numerator help - don't know" }
-                    }]
-                };
-            }
             if (AnswerValidator.validate(input, expectedN1).isCorrect) {
                 const lcm = parseInt(lastState?.commonDen || "1");
-                const nextD2 = parseInt(lastState?.originalOp?.d2 ?? "1");
-                const nextN2 = parseInt(lastState?.originalOp?.n2 ?? 0);
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `¡Listo! Ya tenemos **${expectedN1}/${lcm}**.\n\nAhora la segunda fracción: **¿Por cuánto multiplicamos al ${nextD2} para que dé ${lcm}?** (Para que abajo quede ${lcm}).`
-                            : `Done! We have **${expectedN1}/${lcm}**.\n\nNow the second fraction: **What do we multiply ${nextD2} by to get ${lcm}?** (So the bottom becomes ${lcm}).`,
-                        speech: lang === 'es' ? `Ya tenemos la primera. ¿Por cuánto multiplicamos al ${nextD2} para que dé ${lcm}?` : `We have the first. What do we multiply ${nextD2} by to get ${lcm}?`,
+                            ? `¡Listo! Ya tenemos **${expectedN1}/${lcm}**.\n\nAhora la segunda: **¿Por cuánto multiplicamos al ${d2} para que dé ${lcm}?**`
+                            : `Done! We have **${expectedN1}/${lcm}**.\n\nNow the second: **What do we multiply ${d2} by to get ${lcm}?**`,
+                        speech: lang === 'es' ? `Segunda fracción: ¿Por cuánto multiplicamos al ${d2} para que dé ${lcm}?` : `Second fraction: What do we multiply ${d2} by to get ${lcm}?`,
                         visualType: "fraction_equation",
-                        visualData: { num1: String(nextN2), den1: String(nextD2), operator: '→', result: `?/${lcm}`, commonDen: String(lcm), newNum1: String(expectedN1), phase: 'multiplier2', originalOp: lastState.originalOp ?? { n1, d1, n2: nextN2, d2: nextD2, operator: op }, highlight: 'den1' } as any,
-                        detailedExplanation: { es: "Segunda fracción", en: "Second fraction" }
+                        visualData: { ...lastState, num1: String(n2), den1: String(d2), newNum1: String(expectedN1), phase: 'multiplier2', highlight: 'den1' } as any
+                    }]
+                };
+            } else {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Casi! No olvides multiplicar arriba también por **${mult}**.\n\n¿Cuánto es **${n1} × ${mult}**?`
+                            : `Close! Don't forget to multiply the top by **${mult}** as well.\n\nWhat is **${n1} × ${mult}**?`,
+                        speech: lang === 'es' ? `¿Cuánto es ${n1} por ${mult}?` : `What is ${n1} times ${mult}?`,
+                        visualType: "fraction_equation",
+                        visualData: lastState
                     }]
                 };
             }
         }
 
+        // 7. Mult 2
         if (lastState?.phase === 'multiplier2') {
             const commonDen = parseInt(lastState?.commonDen || "1");
             const mult = commonDen / d2;
-            if (FractionTutor.isDontKnow(input)) {
-                const safeD2 = d2 ?? 2;
-                return {
-                    steps: [{
-                        text: lang === 'es'
-                            ? `¡Te ayudo! 🧩 Queremos que **abajo** quede **${commonDen}**. El denominador de la segunda fracción es **${safeD2}**. ¿${safeD2} por cuánto **da ${commonDen}**?`
-                            : `I'll help! 🧩 We want the **bottom** to be **${commonDen}**. The second fraction's denominator is **${safeD2}**. What times ${safeD2} **equals ${commonDen}**?`,
-                        speech: lang === 'es' ? `${safeD2} por cuánto da ${commonDen}.` : `What times ${safeD2} equals ${commonDen}.`,
-                        visualType: "fraction_equation",
-                        visualData: { ...lastState, num1: String(n2 ?? 1), den1: String(safeD2), operator: '→', result: `?/${commonDen}`, highlight: 'den1', phase: 'multiplier2', originalOp: lastState.originalOp, commonDen: String(commonDen) },
-                        detailedExplanation: { es: "Ayuda multiplicador 2 - no sé", en: "Multiplier 2 help - don't know" }
-                    }]
-                };
-            }
             if (AnswerValidator.validate(input, mult).isCorrect) {
                 return {
                     steps: [{
-                        text: lang === 'es' ? `¡Eso! Multiplicamos por **${mult}**. ¿Cuánto es **${n2} × ${mult}** arriba?` : `That's it! We multiply by **${mult}**. What's **${n2} × ${mult}** on top?`,
-                        speech: lang === 'es' ? `Ahora arriba: ${n2} por ${mult}.` : `Now on top: ${n2} times ${mult}.`,
+                        text: lang === 'es' ? `¡Eso! Multiplicamos por **${mult}**. ¿Cuánto es **${n2} × ${mult}** arriba?` : `That's it! Multiply by **${mult}**. What's **${n2} × ${mult}** on top?`,
+                        speech: lang === 'es' ? `Ahora arriba: ${n2} por ${mult}.` : `Now top: ${n2} times ${mult}.`,
                         visualType: "fraction_equation",
-                        visualData: { ...lastState, phase: 'numerator2', multiplier: mult, highlight: 'num1', num1: String(n2 ?? 1), den1: String(d2 ?? 2), result: lastState.result || `?/${commonDen}` },
-                        detailedExplanation: { es: "Numerador 2", en: "Numerator 2" }
+                        visualData: { ...lastState, phase: 'numerator2', multiplier: mult, highlight: 'num1' }
+                    }]
+                };
+            } else {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Tú puedes! 💪 Piensa por cuánto multiplicamos al **${d2}** para llegar a **${commonDen}**.\n\n**${d2} × ? = ${commonDen}**`
+                            : `You can do it! 💪 Think: what do we multiply **${d2}** by to reach **${commonDen}**.\n\n**${d2} × ? = ${commonDen}**`,
+                        speech: lang === 'es' ? `¿Por cuánto multiplicamos al ${d2} para que nos dé ${commonDen}?` : `What do we multiply ${d2} by to get ${commonDen}?`,
+                        visualType: "fraction_equation",
+                        visualData: lastState
                     }]
                 };
             }
         }
 
+        // 8. Num 2
         if (lastState?.phase === 'numerator2') {
             const mult = lastState?.multiplier || 1;
             const expectedN2 = n2 * mult;
             if (AnswerValidator.validate(input, expectedN2).isCorrect) {
                 const n1_c = parseInt(lastState?.newNum1 || "0");
                 const den = parseInt(lastState?.commonDen || "1");
-                const realOp = lastState?.originalOp?.operator || '+';
                 return {
                     steps: [{
                         text: lang === 'es'
-                            ? `¡Increíble! Ya son iguales abajo:\n**${n1_c}/${den} ${realOp} ${expectedN2}/${den}**\n\n¿Cuál es el resultado final?`
-                            : `Incredible! Now they are the same below:\n**${n1_c}/${den} ${realOp} ${expectedN2}/${den}**\n\nWhat's the final result?`,
-                        speech: lang === 'es' ? `Ya casi. Opera los números de arriba.` : `Almost there. Operate the top numbers.`,
+                            ? `¡Increíble! Ya son iguales:\n**${n1_c}/${den} ${op} ${expectedN2}/${den}**\n\n¿Cuál es el resultado final?`
+                            : `Incredible! Now they are equal:\n**${n1_c}/${den} ${op} ${expectedN2}/${den}**\n\nWhat's the final result?`,
+                        speech: lang === 'es' ? `Ya son iguales. Haz la operación final.` : `Now equal. Final operation.`,
                         visualType: "fraction_op",
-                        visualData: { num1: String(n1_c), den1: String(den), num2: String(expectedN2), den2: String(den), operator: realOp, highlight: 'num', commonDen: String(den), originalOp: lastState.originalOp } as any,
-                        detailedExplanation: { es: "Suma final", en: "Final sum" }
+                        visualData: { num1: String(n1_c), den1: String(den), num2: String(expectedN2), den2: String(den), operator: op, highlight: 'num', commonDen: String(den), originalOp: lastState.originalOp } as any
+                    }]
+                };
+            } else {
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Casi! Multiplica el de arriba también por **${mult}**.\n\n¿Cuánto es **${n2} × ${mult}**?`
+                            : `Close! Multiply the top by **${mult}** as well.\n\nWhat is **${n2} × ${mult}**?`,
+                        speech: lang === 'es' ? `¿Cuánto es ${n2} por ${mult}?` : `What is ${n2} times ${mult}?`,
+                        visualType: "fraction_equation",
+                        visualData: lastState
                     }]
                 };
             }
         }
 
-        const finalN1 = lastState?.num1 ? parseInt(lastState.num1) : n1;
-        const finalN2 = lastState?.num2 ? parseInt(lastState.num2) : n2;
-        const currentDen = lastState?.commonDen ? parseInt(lastState.commonDen) : d1;
-        const expectedResN = op === '+' ? finalN1 + finalN2 : finalN1 - finalN2;
+        // 9. Final Sum Validation
+        const resN = op === '+' ? n1 + n2 : n1 - n2;
+        const denV = d1; // Logic assumes d1=d2 at this point
 
         let isCorrect = false;
-        let isNumeric = false;
-        const cleanInput = input.trim().toLowerCase();
+        const cleanInput = input.trim().toLowerCase().replace(/\s/g, '');
         if (cleanInput.includes('/')) {
             const parts = cleanInput.split('/');
-            const uN = parseInt(parts[0]);
-            const uD = parseInt(parts[1]);
-            if (!isNaN(uN) && !isNaN(uD)) {
-                isNumeric = true;
-                if (uN === expectedResN && uD === currentDen) isCorrect = true;
-            }
+            isCorrect = (parseInt(parts[0]) === resN && parseInt(parts[1]) === denV);
         } else {
-            const validation = AnswerValidator.validate(input, expectedResN);
-            isNumeric = validation.isNumericInput;
-            isCorrect = validation.isCorrect;
+            isCorrect = AnswerValidator.validate(input, resN).isCorrect;
         }
 
         if (isCorrect) {
-            const finalRes = `${expectedResN}/${currentDen}`;
-            const remaining = effectiveRemaining;
-            if (remaining?.length && currentDen && expectedResN !== undefined) {
-                const next = remaining[0] as { n: number; d: number; op?: string };
+            const finalRes = `${resN}/${denV}`;
+            // Handle Chained
+            if (effectiveRemaining?.length) {
+                const next = effectiveRemaining[0];
                 const nextOp = next.op || '+';
-                const expectedChained = nextOp === '-' ? expectedResN - next.n : expectedResN + next.n;
-                if (next.d === currentDen) {
-                    return {
-                        steps: [{
-                            text: lang === 'es'
-                                ? `¡Excelente! **${n1}/${d1} ${op} ${n2}/${d2} = ${finalRes}**. Ahora **${finalRes} ${nextOp} ${next.n}/${next.d}**. Mismo denominador. ¿Cuánto es **${expectedResN} ${nextOp === '-' ? '−' : '+'} ${next.n}**?`
-                                : `Excellent! **${n1}/${d1} ${op} ${n2}/${d2} = ${finalRes}**. Now **${finalRes} ${nextOp} ${next.n}/${next.d}**. Same denominator. What is **${expectedResN} ${nextOp} ${next.n}**?`,
-                            speech: lang === 'es' ? (nextOp === '-' ? `Muy bien. Ahora resta: ${expectedResN} menos ${next.n}.` : `Muy bien. Ahora suma ${expectedResN} más ${next.n}.`) : (nextOp === '-' ? `Good. Now subtract ${expectedResN} minus ${next.n}.` : `Good. Now add ${expectedResN} plus ${next.n}.`),
-                            visualType: "fraction_op",
-                            visualData: {
-                                num1: String(expectedResN), den1: String(currentDen), num2: String(next.n), den2: String(next.d),
-                                operator: nextOp, highlight: 'num',
-                                phase: 'chained_same_denom',
-                                expectedSum: expectedChained,
-                                resultNumerator: expectedResN, resultDenom: currentDen, nextNum: next.n, nextDenom: next.d, nextOp
-                            },
-                            detailedExplanation: { es: "Encadenar fracciones", en: "Chained fractions" }
-                        }]
-                    };
-                }
-                if (next.d !== currentDen) {
-                    const resNum = expectedResN;
-                    const resDen = currentDen;
-                    const allDenomsNext = [resDen, next.d];
-                    const opSym = nextOp === '-' ? '−' : '+';
-                    return {
-                        steps: [{
-                            text: lang === 'es'
-                                ? `¡Muy bien! **${n1}/${d1} ${op} ${n2}/${d2} = ${finalRes}**. Ahora **${finalRes} ${opSym} ${next.n}/${next.d}**. Los denominadores son diferentes. Busquemos el MCM de **${resDen}** y **${next.d}**. Escribe **continuar** para ver la pizarra.`
-                                : `Well done! **${n1}/${d1} ${op} ${n2}/${d2} = ${finalRes}**. Now **${finalRes} ${opSym} ${next.n}/${next.d}**. Denominators are different. Let's find the LCM of **${resDen}** and **${next.d}**. Type **continue** to see the board.`,
-                            speech: lang === 'es' ? `Ahora ${finalRes} ${nextOp === '-' ? 'menos' : 'más'} ${next.n}/${next.d}. Buscamos el MCM.` : `Now ${finalRes} ${nextOp} ${next.n}/${next.d}. Find the LCM.`,
-                            visualType: "fraction",
-                            visualData: {
-                                type: "mcm_intro",
-                                phase: "mcm_intro",
-                                den1: resDen,
-                                den2: next.d,
-                                allDenoms: allDenomsNext,
-                                num1: String(resNum),
-                                num2: String(next.n),
-                                operator: nextOp,
-                                originalOp: { n1: resNum, d1: resDen, n2: next.n, d2: next.d, operator: nextOp },
-                                remaining: remaining.slice(1)
-                            } as any,
-                            detailedExplanation: { es: "Siguiente par de fracciones", en: "Next fraction pair" }
-                        }]
-                    };
-                }
+                return {
+                    steps: [{
+                        text: lang === 'es'
+                            ? `¡Perfecto! **${finalRes}**. Ahora sigue **${finalRes} ${nextOp} ${next.n}/${next.d}**.`
+                            : `Perfect! **${finalRes}**. Now next is **${finalRes} ${nextOp} ${next.n}/${next.d}**.`,
+                        speech: lang === 'es' ? `Perfecto. Ahora sigue con ${next.n}/${next.d}.` : `Perfect. Now continue with ${next.n}/${next.d}.`,
+                        visualType: "fraction_op",
+                        visualData: {
+                            num1: String(resN), den1: String(denV), num2: String(next.n), den2: String(next.d),
+                            operator: nextOp, phase: 'chained_same_denom',
+                            resultNumerator: resN, resultDenom: denV, nextNum: next.n, nextDenom: next.d, nextOp,
+                            originalOp: { ...lastState.originalOp, n1: resN, d1: denV, n2: next.n, d2: next.d, operator: nextOp, extraFracs: effectiveRemaining.slice(1) }
+                        } as any
+                    }]
+                };
             }
+            // Not chained, do analysis
             return {
                 steps: [{
-                    text: lang === 'es' ? `¡Fantástico! 🎉 El resultado es **${finalRes}**.\n\nAhora, fase final de análisis 🕵️:\n\n🟢 **Propia**: Arriba < Abajo.\n🔴 **Impropia**: Arriba ≥ Abajo.\n\n¿Cómo clasificas tu resultado **${finalRes}**?` : `Fantastic! 🎉 Result: **${finalRes}**.\n\nFinal analysis 🕵️:\n\n🟢 **Proper**: Top < Bottom.\n🔴 **Improper**: Top ≥ Bottom.\n\nHow do you classify **${finalRes}**?`,
-                    speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} Resultado ${finalRes}. ¿Es propia o impropia?` : `${getCorrectFeedback(lang, studentName)} Result ${finalRes}. Proper or improper?`,
+                    text: lang === 'es' ? `¡Fantástico! 🎉 El resultado es **${finalRes}**. ¿Es propia o impropia?` : `Fantastic! 🎉 Result: **${finalRes}**. Proper or improper?`,
+                    speech: lang === 'es' ? `Resultado ${finalRes}. ¿Propia o impropia?` : `Result ${finalRes}. Proper or improper?`,
                     visualType: "fraction_op",
-                    visualData: { num1: String(finalN1), den1: String(currentDen), num2: String(finalN2), den2: String(currentDen), operator: op, result: finalRes, highlight: "done", isDone: false, phase: 'result_analysis_start', finalNum: expectedResN, finalDen: currentDen } as any,
-                    detailedExplanation: { es: "Completado", en: "Completed" }
+                    visualData: { ...lastState, result: finalRes, highlight: 'done', isDone: false, phase: 'result_analysis_start', finalNum: resN, finalDen: denV } as any
                 }]
             };
-        } else if (isNumeric) {
+        } else {
+            // Reprompt for final sum if not correct and in this scope
             return {
                 steps: [{
-                    text: lang === 'es' ? `Casi... ¿Cuánto es **${finalN1} ${op} ${finalN2}**?` : `Close... what is **${finalN1} ${op} ${finalN2}**?`,
+                    text: lang === 'es'
+                        ? `¡No te rindas! 🤖 Opera los números de arriba: **${n1}/${d1} ${op} ${n2}/${d1}**.\n\n¿Cuál es el resultado?`
+                        : `Don't give up! 🤖 Just operate the numbers on top: **${n1}/${d1} ${op} ${n2}/${d1}**.\n\nWhat is the result?`,
+                    speech: lang === 'es' ? `Opera los de arriba y mantén el denominador.` : `Operate the top numbers and keep the denominator.`,
                     visualType: "fraction_op",
-                    visualData: lastState,
-                    speech: "Revisa la cuenta.",
-                    detailedExplanation: { es: "Error final", en: "Final error" }
+                    visualData: lastState
                 }]
             };
-        } else if (lastState) {
-            return {
-                steps: [{
-                    text: lang === 'es' ? `¡Sigue adelante! 🚀 ¿Cuál es el resultado de la operación en los numeradores?` : `Keep going! 🚀 What is the result of the operation on the numerators?`,
-                    speech: lang === 'es' ? "¿Cuánto da?" : "What is the result?",
-                    visualType: "fraction",
-                    visualData: lastState,
-                    detailedExplanation: { es: "Persistencia suma final", en: "Final sum persistence" }
-                }]
-            }
         }
 
         return null;

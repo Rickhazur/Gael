@@ -154,6 +154,7 @@ export class AlgorithmicTutor {
     ): StepResponse | null {
         const normalized = AlgorithmicTutor.normalizeInput(currentText);
         let problem = AlgorithmicTutor.detectProblem(normalized, history);
+
         if (!problem) {
             const lastState = AlgorithmicTutor.getCurrentVisualState(history);
             if (lastState?.phase === 'chained_same_denom') {
@@ -264,25 +265,35 @@ export class AlgorithmicTutor {
                     };
                 }
             }
-            const fracMatch = clean.match(/(\d+)\s*\/\s*(\d+)\s*([\+\-])\s*(\d+)\s*\/\s*(\d+)/);
+            // 6.7 FRACTIONS (3/5 + 2/3, 1/2 - 1/4)
+            // Enhanced regex to catch if they say "cuánto es 3/5 + 2/3"
+            const fracMatch = clean.match(/(\d+)\s*\/\s*(\d+)\s*([\+\-\*\/])\s*(\d+)\s*\/\s*(\d+)/);
             if (fracMatch) {
                 return { type: 'fraction', isNew: true, n1: fracMatch[1], d1: fracMatch[2], op: fracMatch[3], n2: fracMatch[4], d2: fracMatch[5] };
             }
 
             // 3. STANDARD OPS (Division, Mult, Sub, Add)
-            const divMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*(\/|÷|entre|dividido)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*(\/|÷|entre|dividido)\s*(-?\d+(?:\.\d+)?)/i);
+            const divRegex = /(-?\d+(?:\.\d+)?)\s*(\/|÷|entre|dividido|dividir|divide|repartir)\s*(-?\d+(?:\.\d+)?)/i;
+            const divVerbRegex = /(?:dividir|divide|repartir|reparte)\s+(-?\d+(?:\.\d+)?)\s*(?:entre|en|among|into|by)?\s*(-?\d+(?:\.\d+)?)/i;
+            const divMatch = clean.match(divRegex) || clean.match(divVerbRegex);
             if (divMatch) {
-                const isDecimal = divMatch[1].includes('.') || divMatch[3].includes('.');
-                const isNegative = divMatch[1].startsWith('-') || divMatch[3].startsWith('-');
+                const n1 = divMatch[1];
+                const n2 = divMatch[2] || divMatch[3];
+                const isDecimal = n1.includes('.') || n2.includes('.');
+                const isNegative = n1.startsWith('-') || n2.startsWith('-');
                 const type = isNegative ? 'integer' : 'division';
-                return { isNew: true, type, dividend: divMatch[1], divisor: divMatch[3], isDecimal };
+                return { isNew: true, type, dividend: n1, divisor: n2, isDecimal };
             }
 
-            const mulMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*(x|\*|×|por)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*(x|\*|×|por)\s*(-?\d+(?:\.\d+)?)/i);
+            const mulRegex = /(-?\d+(?:\.\d+)?)\s*(x|\*|×|por|multiplicar|multiply|veces)\s*(-?\d+(?:\.\d+)?)/i;
+            const mulVerbRegex = /(?:multiplicar|multiply|multiplica)\s+(-?\d+(?:\.\d+)?)\s*(?:por|x|times)?\s*(-?\d+(?:\.\d+)?)/i;
+            const mulMatch = clean.match(mulRegex) || clean.match(mulVerbRegex);
             if (mulMatch) {
-                const isNegative = mulMatch[1].startsWith('-') || mulMatch[3].startsWith('-');
+                const n1 = mulMatch[1];
+                const n2 = mulMatch[2] || mulMatch[3];
+                const isNegative = n1.startsWith('-') || n2.startsWith('-');
                 const type = isNegative ? 'integer' : 'multiplication';
-                return { isNew: true, type, n1: mulMatch[1], n2: mulMatch[3], operator: '×', isDecimal: mulMatch[1].includes('.') || mulMatch[3].includes('.') };
+                return { isNew: true, type, n1: n1, n2: n2, operator: '×', isDecimal: n1.includes('.') || n2.includes('.') };
             }
 
             // Resume context for "dividir" or "repartir"
@@ -293,18 +304,26 @@ export class AlgorithmicTutor {
                 }
             }
 
-            const subMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*([\-\−\–]|menos)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*([\-\−\–]|menos)\s*(-?\d+(?:\.\d+)?)/i);
+            const subRegex = /(-?\d+(?:\.\d+)?)\s*([\-\−\–]|menos|restar|subtract|quita|perdió)\s*(-?\d+(?:\.\d+)?)/i;
+            const subVerbRegex = /(?:restar|resta|subtract|quita)\s+(-?\d+(?:\.\d+)?)\s*(?:a|menos|from|minus)?\s*(-?\d+(?:\.\d+)?)/i;
+            const subMatch = clean.match(subRegex) || clean.match(subVerbRegex);
             if (subMatch) {
-                const isNegative = subMatch[1].startsWith('-') || subMatch[3].startsWith('-');
+                const n1 = subMatch[1];
+                const n2 = subMatch[2] || subMatch[3];
+                const isNegative = n1.startsWith('-') || n2.startsWith('-');
                 const type = isNegative ? 'integer' : 'subtraction';
-                return { isNew: true, type, n1: subMatch[1], n2: subMatch[3], isDecimal: subMatch[1].includes('.') || subMatch[3].includes('.'), operator: '-' };
+                return { isNew: true, type, n1: n1, n2: n2, isDecimal: n1.includes('.') || n2.includes('.'), operator: '-' };
             }
 
-            const addMatch = clean.match(/^(-?\d+(?:\.\d+)?)\s*(\+|más|mas)\s*(-?\d+(?:\.\d+)?)$/) || clean.match(/(-?\d+(?:\.\d+)?)\s*(\+|más|mas)\s*(-?\d+(?:\.\d+)?)/i);
+            const addRegex = /(-?\d+(?:\.\d+)?)\s*(\+|más|mas|sumar|add|y|plus|total)\s*(-?\d+(?:\.\d+)?)/i;
+            const addVerbRegex = /(?:sumar|suma|add|añadir)\s+(-?\d+(?:\.\d+)?)\s*(?:con|mas|más|y|plus|and)?\s*(-?\d+(?:\.\d+)?)/i;
+            const addMatch = clean.match(addRegex) || clean.match(addVerbRegex);
             if (addMatch) {
-                const isNegative = addMatch[1].startsWith('-') || addMatch[3].startsWith('-');
+                const n1 = addMatch[1];
+                const n2 = addMatch[2] || addMatch[3];
+                const isNegative = n1.startsWith('-') || n2.startsWith('-');
                 const type = isNegative ? 'integer' : 'addition';
-                return { isNew: true, type, n1: addMatch[1], n2: addMatch[3], isDecimal: addMatch[1].includes('.') || addMatch[3].includes('.'), operator: '+' };
+                return { isNew: true, type, n1: n1, n2: n2, isDecimal: n1.includes('.') || n2.includes('.'), operator: '+' };
             }
 
             // 4. LCM
@@ -391,6 +410,23 @@ export class AlgorithmicTutor {
             const coordMatch = clean.match(/\((-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\)/);
             if (coordMatch) {
                 return { type: 'coordinates', x: coordMatch[1], y: coordMatch[2], isNew: true };
+            }
+
+            // 9. GREEDY FALLBACK (For word-heavy operations like "1234. Luego sumar 1234")
+            const nums = clean.match(/\d+(\.\d+)?/g)?.map(Number);
+            if (nums && nums.length >= 2) {
+                if (/(sumar|más|mas|y|total|add|plus)/i.test(clean)) {
+                    return { isNew: true, type: 'addition', n1: String(nums[0]), n2: String(nums[1]), operator: '+' };
+                }
+                if (/(restar|menos|subtract|quita|perdió)/i.test(clean)) {
+                    return { isNew: true, type: 'subtraction', n1: String(nums[0]), n2: String(nums[1]), operator: '-' };
+                }
+                if (/(multiplicar|multiply|por|veces|times)/i.test(clean)) {
+                    return { isNew: true, type: 'multiplication', n1: String(nums[0]), n2: String(nums[1]), operator: '×' };
+                }
+                if (/(dividir|divide|entre|repartir)/i.test(clean)) {
+                    return { isNew: true, type: 'division', dividend: String(nums[0]), divisor: String(nums[1]) };
+                }
             }
 
             return null;

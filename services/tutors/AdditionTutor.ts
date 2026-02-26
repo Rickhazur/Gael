@@ -81,16 +81,19 @@ export class AdditionTutor {
             let speechEs = "";
             let speechEn = "";
 
-            if (grade <= 1) {
-                introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a sumar juntos!\n\n¿Sabes por qué es útil sumar? 🍎 Porque nos ayuda a contar nuestras frutas, juguetes y ¡hasta estrellas!\n\nMira la pizarra: puse los números uno debajo del otro para que sea más fácil. ¿Ves cómo están bien sentaditos?`;
-                introEn = `Hi! 🌟 I'm **Professor Lina**. Let's add together!\n\nDo you know why adding is useful? 🍎 It helps us count our fruits, toys, and even stars!\n\nLook at the board: I put the numbers one under the other to make it easy. Do they look ready?`;
-                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a sumar. Sumar es súper útil para contar todas las cosas que nos gustan. Mira cómo acomodé los números en la pizarra. ¿Están bien alineados?`;
-                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to add. Adding is super useful for counting everything we love. Look how I placed the numbers on the board. Are they well aligned?`;
+            const isSmallSum = parseInt(s1) < 10 && parseInt(s2) < 10;
+            const useHelpers = grade <= 1 || isSmallSum;
+
+            if (grade <= 1 || isSmallSum) {
+                introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a descubrir el poder de los números!\n\n¿Sabes? Sumar es como juntar tesoros 💎. Si tienes **${s1}** y te dan **${s2}**, ¡mira lo que pasa en la pizarra!\n\nHe puesto unos objetos para ayudarte a contar. ¿Los ves?`;
+                introEn = `Hi! 🌟 I'm **Professor Lina**. Let's discover the power of numbers!\n\nYou know? Adding is like gathering treasures 💎. If you have **${s1}** and you get **${s2}**, look what happens on the board!\n\nI put some objects to help you count. Do you see them?`;
+                speechEs = `¡Hola! Soy la profe Lina. Qué alegría. Vamos a sumar. Sumar es como juntar tesoros. Mira los objetos que puse en la pizarra para ayudarte a contar. ¿Ya los viste?`;
+                speechEn = `Hi! I'm Professor Lina. So happy to see you. Let's add. Adding is like gathering treasures. Look at the objects I put on the board to help you count. Do you see them?`;
             } else {
-                introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para esta misión de suma!\n\nSaber sumar es como tener un súper poder ⚡. Nos ayuda en el mercado, con nuestro dinero y en los videojuegos.\n\nPrimero, los escribí bien alineados: **unidades con unidades** y **decenas con decenas**. ¿Los ves listos en el tablero?`;
-                introEn = `Hi! 👋 I'm **Professor Lina**. Ready for this addition mission!\n\nKnowing how to add is like having a superpower ⚡. It helps at the store, with money, and in video games.\n\nFirst, I wrote them well aligned: **units with units** and **tens with tens**. Do they look ready on the board?`;
-                speechEs = `¡Hola! Soy la profe Lina. ¡Qué alegría saludarte! Sumar es un súper poder que te servirá para toda la vida. Mira la pizarra: puse los números uno debajo del otro, unidades con unidades. ¿Ya los viste?`;
-                speechEn = `Hi! I'm Professor Lina. So happy to see you! Adding is a superpower that will serve you for life. Look at the board: I put the numbers one under the other, units with units. Do you see them?`;
+                introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para esta misión de suma!\n\nSaber sumar es como tener un súper poder ⚡. Nos ayuda en el mercado, con nuestro dinero y en los videojuegos.\n\nPrimero, los escribí bien alineados: **unidades con unidades**. ¿Los ves listos en el tablero?`;
+                introEn = `Hi! 👋 I'm **Professor Lina**. Ready for this addition mission!\n\nKnowing how to add is like having a superpower ⚡. It helps at the store, with money, and in video games.\n\nFirst, I wrote them well aligned: **units with units**. Do they look ready on the board?`;
+                speechEs = `¡Hola! Soy la profe Lina. ¡Qué alegría saludarte! Sumar es un súper poder que te servirá para toda la vida. Mira la pizarra: puse los números uno debajo del otro. ¿Ya los viste?`;
+                speechEn = `Hi! I'm Professor Lina. So happy to see you! Adding is a superpower that will serve you for life. Look at the board: I put the numbers one under the other. Do you see them?`;
             }
 
             return {
@@ -100,7 +103,11 @@ export class AdditionTutor {
                     visualType: "vertical_op",
                     visualData: {
                         operand1: s1, operand2: s2, operator: "+", result: "", carry: "",
-                        phase: 'direction_check'
+                        phase: 'direction_check',
+                        helpers: useHelpers ? [
+                            { content: "🍎".repeat(parseInt(s1)), row: 0 },
+                            { content: "🍎".repeat(parseInt(s2)), row: 1 }
+                        ] : []
                     },
                     detailedExplanation: { es: "Introducción y Alineación", en: "Intro and Alignment" }
                 }]
@@ -447,8 +454,8 @@ export class AdditionTutor {
                 : `Good! 👍 ${currentCol.d1} + ${currentCol.d2}${currentCol.carryIn > 0 ? ' + ' + currentCol.carryIn : ''} = ${expectedSum}.\n\nWrite **${expectedDigit}**${currentCol.carryOut > 0 ? ` and carry **${currentCol.carryOut}**` : ''}${foundDot ? '... and don\'t forget the decimal point! •' : '.'}\n\nNext column ⬅️`;
 
             successSpeech = lang === 'es'
-                ? `${getCorrectFeedback(lang, studentName)} ${currentCol.d1} más ${currentCol.d2}${currentCol.carryIn > 0 ? ' más la que llevábamos' : ''} nos da ${expectedSum}. Escribimos el ${expectedDigit} ${currentCol.carryOut > 0 ? ' y llevamos el ' + currentCol.carryOut : ''}${foundDot ? '. ¡Y súper importante!, ponemos el punto decimal.' : '. '} Vamos a la siguiente columna.`
-                : `${getCorrectFeedback(lang, studentName)} ${currentCol.d1} plus ${currentCol.d2}${currentCol.carryIn > 0 ? ' plus the carry' : ''} gives us ${expectedSum}. Write ${expectedDigit} ${currentCol.carryOut > 0 ? ' and carry the ' + currentCol.carryOut : ''}${foundDot ? '. And super important, we place the decimal point.' : '. '} Next column.`;
+                ? `${getCorrectFeedback(lang, studentName)} ${currentCol.d1} más ${currentCol.d2}${currentCol.carryIn > 0 ? ' más la que llevábamos' : ''} nos da ${expectedSum}. Escribimos el ${expectedDigit} ${currentCol.carryOut > 0 ? ' y llevamos el ' + currentCol.carryOut : ''}${foundDot ? '. ¡Y súper importante!, el punto decimal baja como un ascensor derechito 🛗.' : '. '} Vamos a la siguiente columna.`
+                : `${getCorrectFeedback(lang, studentName)} ${currentCol.d1} plus ${currentCol.d2}${currentCol.carryIn > 0 ? ' plus the carry' : ''} gives us ${expectedSum}. Write ${expectedDigit} ${currentCol.carryOut > 0 ? ' and carry the ' + currentCol.carryOut : ''}${foundDot ? '. And super important, the decimal point drops straight down like an elevator 🛗.' : '. '} Next column.`;
 
             // Inject hidden state for persistence mechanism
             const hiddenState = ` [VISUAL_STATE] result="${nextResult}"`;

@@ -498,7 +498,14 @@ export function parseMathProblem(problem: string): {
     // If text is long and has words, IT IS A WORD PROBLEM.
     // The previous regexes were catching "2/5" inside text like "gastaron 2/5 de lo que había".
     const hasWords = /[a-zA-ZñÑáéíóúÁÉÍÓÚ]/.test(problem);
-    if (problem.length > 20 && hasWords && !problem.includes('=') && !/calc|resuelve|solve/i.test(problem)) {
+    const hasNumbers = /\d+/.test(problem);
+    const opKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|menos/i;
+
+    // 🛡️ WORD PROBLEM GUARD (RELAXED)
+    // If it has numbers and math keywords, WE ALLOW IT to go to the algorithmic board!
+    const isExplicitOp = hasNumbers && opKeywords.test(problem);
+
+    if (problem.length > 20 && hasWords && !problem.includes('=') && !/calc|resuelve|solve/i.test(problem) && !isExplicitOp) {
         return null;
     }
 
@@ -530,9 +537,12 @@ export function parseMathProblem(problem: string): {
     if (addSubMatch) return { num1: parseFloat(addSubMatch[1]), num2: parseFloat(addSubMatch[3]), operator: '+' };
 
     // 2. Pair operations (more flexible regexes to catch inside text)
-    // IMPORTANT: If it looks like a fraction equation (multiple slashes or fraction pattern), 
-    // we SKIP this simple pair detection so generateStepsForProblem can handle it correctly.
-    const isFractionEquation = (problem.match(/\//g) || []).length >= 2 || /(\d+)\/\d+[\+\-\*]/.test(problem.replace(/\s+/g, ''));
+    const isFractionEquation = (problem.match(/\//g) || []).length >= 2 || /(\d+)\/\d+[\+\-\*\/]/.test(problem.replace(/\s+/g, ''));
+
+    if (isFractionEquation && !hasWords) {
+        // Return dummy to trigger MathTutorBoard
+        return { num1: 0, num2: 0, operator: '+' };
+    }
 
     const mulMatch = !isFractionEquation ? problem.match(/(-?\d+(?:\.\d+)?)\s*[×x*]\s*(-?\d+(?:\.\d+)?)/i) : null;
     const divMatch = !isFractionEquation ? problem.match(/(-?\d+(?:\.\d+)?)\s*[÷/]\s*(-?\d+(?:\.\d+)?)/i) : null;
@@ -574,6 +584,20 @@ export function parseMathProblem(problem: string): {
         return { num1: 0, num2: 0, operator: '+' };
     }
     */
+
+    // 2.5 Word-based extraction fallback (Direct words instead of symbols)
+    if (!isFractionEquation) {
+        const nums = problem.match(/\d+(\.\d+)?/g)?.map(Number);
+        if (nums && nums.length >= 2) {
+            let op: '+' | '-' | '×' | '÷' | null = null;
+            if (/(sumar|add|más|mas|total|y)/i.test(problem) && !problem.includes('−')) op = '+';
+            else if (/(restar|subtract|menos|−)/i.test(problem)) op = '-';
+            else if (/(multiplicar|multiply|por|veces|times)/i.test(problem)) op = '×';
+            else if (/(dividir|divide|entre)/i.test(problem)) op = '÷';
+
+            if (op) return { num1: nums[0], num2: nums[1], operator: op, operands: nums };
+        }
+    }
 
     return null;
 }

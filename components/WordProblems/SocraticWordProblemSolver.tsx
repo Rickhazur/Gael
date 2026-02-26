@@ -7,6 +7,7 @@ import { callGeminiSocratic } from '@/services/gemini';
 import { callOpenAI } from '@/services/openai';
 import { Brain, Zap, Loader2, BookOpen, Trophy, CheckCircle2, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { VirtualBlocks } from './VirtualBlocks';
+import { useGamification } from '@/context/GamificationContext';
 
 interface SocraticQuestion {
   id: string;
@@ -37,6 +38,7 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
   onSolutionComplete,
   gradeLevel = 3
 }) => {
+  const { addCoins } = useGamification();
   // Utility: Normalize text (remove accents, lowercase)
   const normalize = (text: string) => text.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
 
@@ -148,32 +150,26 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
       const topic = isFraction ? 'Fracciones' : isDecimal ? 'Decimales' : 'Aritmética';
 
       const systemPrompt = `
-          Eres Lina, una tutora experta en el método socrático y el MÉTODO SINGAPUR (CPA) para el grado ${gradeLevel}. 
-          Tu objetivo es guiar al estudiante a resolver problemas matemáticos de ${topic} usando un enfoque de 3 misiones.
+          Eres PROFESORA LINA, una eminencia en METODOLOGÍA DE SINGAPUR y MÉTODO SOCRÁTICO.
+          Tu tono es maternal (como una abuelita o tía querida) pero siempre ENFOCADA EN MATEMÁTICAS.
+          Tu objetivo es guiar al estudiante a resolver problemas matemáticos de ${topic} usando un razonamiento lógico paso a paso.
           
-          Misión 1: Fase Concreta (Exploración) 🧸
-          - Si el problema es de nivel inicial (1º-2º grado), usa bloques para contar.
-          - Si el problema es de fracciones/decimales (3º grade o +), pide al niño que use los bloques para REPRESENTAR las partes. 
-          - Dile explícitamente: "Usa y mueve los bloques en la Zona de Juego para ayudarte a pensar."
-          - IMPORTANTE: Para fracciones (ej: 3/4), dile que imagine que 4 bloques juntos son un entero, y que debe separar 3.
+          🌟 PRINCIPIOS DE LINA:
+          1. **Concreto (C)**: Para grados 1-3, USA bloques de base 10, objetos (manzanas, tesoros) y analogías físicas.
+          2. **Tono**: Usa "mi vida", "corazón", "pequeño detective/matemático". JAMÁS uses "flaca" o jerga.
+          3. **Socrática**: Haz preguntas que inviten a descubrir.
           
-          Misión 2: Fase Pictórica (Visual) 🖍️
-          - Guía al niño convirtiendo los datos en una idea matemática visual (como un MODELO DE BARRAS).
-          - Explícale cómo se vería el problema en una barra segmentada.
-          - Haz que el niño deduzca la operación: "¿Crees que debemos sumar, restar, multiplicar o dividir?"
+          Misión 1: Entender los Datos 🧐
+          - Identifica personajes y cantidades. Usa colores para resaltar.
           
-          Misión 3: Fase Abstracta (Numérica) ✏️
-          - Traduce lo razonado anteriormente a los números y la operación final.
-          - "Ahora escribamos el secreto matemático: Número OP Número = ?"
-          - Celebra que ya entendió el "por qué" antes de dar la respuesta.
-
-          REGLAS:
-          1. Lenguaje: Súper mega amigable, usando emojis infantiles, adaptado para un niño de 6 - 7 años. Mantenlo muy simple, nada de oraciones largas.
-          2. Socrático: Nunca le des la respuesta de la operación final de entrada. Haz preguntas pequeñas paso a paso. Comprensión matemática sobre memorización.
-          3. 'expectedAnswer' DEBE ser un ARRAY con MUCHAS POSIBILIDADES. Para los niños pequeños cubre respuestas como "sumar", "mas", "+", el número puro, el número con texto ("cinco", "5 fichas").
-          4. 'problemData': Extrae character (personaje), initialAmount (cantidad), action (acción que pasa), actionAmount.
-          5. Máximo 2-3 preguntas por misión para no cansar al niño.
-          6. NO generes ayuda visual ni "imagePrompt" directo. Solo concéntrate en la guía textual socrática.
+          Misión 2: Planear la Estrategia 🧠
+          - "¿Si juntamos las partes, qué operación usamos?".
+          
+          Misión 3: Resolver y Verificar ✏️
+          - Traduce a la operación final.
+          4. 'expectedAnswer' DEBE ser un ARRAY con MUCHAS POSIBILIDADES aceptables.
+          5. 'problemData': Extrae character (personaje), initialAmount (cantidad), action (acción que pasa), actionAmount.
+          6. Máximo 2-3 preguntas por misión para mantener el dinamismo.
 
           Responde ÚNICAMENTE con un JSON con la siguiente estructura exacta:
           {
@@ -395,10 +391,12 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
     } else {
       // All missions completed
       setIsCompleted(true);
-      edgeTTS.speak("¡Felicidades! ¡Resolviste todo el problema!", 'lina');
+      edgeTTS.speak("¡Felicidades! ¡Has completado todas las misiones y ganado 100 monedas! ¡Resolviste todo el problema!", 'lina');
+      addCoins(100, "Misión de Problemas Completada");
       if (onSolutionComplete) {
         onSolutionComplete({
-          method: 'socratic'
+          method: 'socratic',
+          completed: true
         });
       }
     }
