@@ -583,7 +583,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
     }
 
     return (
-        <div className="min-h-screen bg-indigo-50 flex flex-col lg:flex-row relative overflow-hidden font-poppins selection:bg-indigo-200 selection:text-indigo-900">
+        <div className="min-h-screen bg-emerald-50/30 flex flex-col lg:flex-row relative overflow-hidden font-outfit selection:bg-emerald-200 selection:text-emerald-900">
 
 
 

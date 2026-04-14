@@ -92,6 +92,34 @@ h1, h2, h3, h4, h5, h6 {
   outline-offset: 2px;
 }
 
+/* ─── Luxe & High-End Utility Classes ─── */
+.text-gradient-luxe {
+  background: linear-gradient(135deg, #064e3b 0%, #059669 50%, #10b981 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.bg-luxe-blob {
+  background: radial-gradient(circle at center, rgba(16, 185, 129, 0.1) 0%, transparent 70%);
+}
+
+.glass-card-luxe {
+  background: rgba(255, 255, 255, 0.4);
+  backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.05);
+}
+
+.shadow-cute {
+  box-shadow: 0 10px 40px -10px rgba(5, 150, 105, 0.15);
+}
+
+.border-luxe {
+  border: 1px solid rgba(27, 77, 62, 0.08);
+}
+
+.animate-float-slow { animation: float 10s ease-in-out infinite; }
+
 .nova-btn-primary {
   background: var(--nova-primary);
   color: white;
