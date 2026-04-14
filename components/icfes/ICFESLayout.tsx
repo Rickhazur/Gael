@@ -24,7 +24,7 @@ export const ICFESLayout: React.FC<ICFESLayoutProps> = ({
                             <BookOpen className="w-6 h-6 text-white" />
                         </div>
                         <div>
-                            <h1 className="text-xl font-bold tracking-tight">Nova Schola <span className="text-blue-400 font-light">Prep</span></h1>
+                            <h1 className="text-xl font-bold tracking-tight">Academia <span className="text-emerald-400 font-light">Gael</span></h1>
                             <p className="text-xs text-slate-400 uppercase tracking-widest">Módulo de Preparación Saber</p>
                         </div>
                     </div>

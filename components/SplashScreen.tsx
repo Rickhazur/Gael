@@ -52,7 +52,8 @@ const SplashScreen: React.FC = () => {
 
                 {/* Text Reveal */}
                 <h1 className="text-4xl font-bold text-slate-900 mb-3 tracking-tight animate-fade-in-up">
-                    Nova Schola
+                    <span className="font-sans text-stone-100">Academia</span>
+                    <span className="font-serif italic text-emerald-300">Gael</span>
                 </h1>
 
                 <div className="flex items-center gap-3 animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
