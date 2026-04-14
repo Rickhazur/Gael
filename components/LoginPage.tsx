@@ -548,23 +548,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                         )}
 
 
-                        {/* Habeas Data Checkbox - ONLY FOR REGISTRATION */}
-                        {isRegistering && (
-                            <div className="flex items-start gap-3 px-1 py-2">
-                                <div className="pt-1">
-                                    <input
-                                        type="checkbox"
-                                        id="habeasDataMobile"
-                                        checked={isHabeasAccepted}
-                                        onChange={(e) => setIsHabeasAccepted(e.target.checked)}
-                                        className="w-5 h-5 rounded border-2 border-indigo-500 text-indigo-600 focus:ring-indigo-500 bg-slate-800/50"
-                                    />
-                                </div>
-                                <label htmlFor="habeasDataMobile" className="text-[10px] text-slate-400 leading-tight">
-                                    Acepto el tratamiento de datos para fines educativos (Ley 1581 de 2012).
-                                </label>
-                            </div>
-                        )}
+
 
                         <Button
                             type="submit" disabled={loading}

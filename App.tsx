@@ -25,6 +25,7 @@ import LoginPage from './components/LoginPage';
 const MainLayout = React.lazy(() => import('./components/MainLayout').then(m => ({ default: m.MainLayout })));
 const GoogleClassroomSync = React.lazy(() => import('./components/GoogleClassroom/GoogleClassroomSync').then(m => ({ default: m.GoogleClassroomSync })));
 const AvatarSelection = React.lazy(() => import('./components/Gamification/AvatarSelection').then(m => ({ default: m.AvatarSelection })));
+import { WelcomeGael } from './components/WelcomeGael';
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App: React.FC = () => {  // Authentication State
   const [showAvatarOnboarding, setShowAvatarOnboarding] = useState(false);
   const [icfesView, setIcfesView] = useState<'DASHBOARD' | 'SIMULATION' | 'INGEST' | 'RESULTS' | 'STUDY'>('DASHBOARD');
   const [simulationResults, setSimulationResults] = useState<any>(null);
+  const [showDannaWelcome, setShowDannaWelcome] = useState(false);
 
   // Check for Google Classroom Callback URL
   useEffect(() => {
@@ -298,6 +300,27 @@ const App: React.FC = () => {  // Authentication State
     const password = (data?.password ?? '').toString().trim();
 
     try {
+      // 👶 ACCESO ESPECIAL: Danna Sofia Corredor (Gael)
+      if (email === 'dannasofiacorredor25@gmail.com' && password === 'Gael2024*') {
+        const isFirstLogin = !localStorage.getItem('danna_initial_login_done');
+        setIsAuthenticated(true);
+        setUserId('danna-gael-user');
+        setUserName('Danna Sofia');
+        setUserRole('STUDENT');
+        setGradeLevel(11); // Supongamos grado 11 para validación
+        
+        if (isFirstLogin) {
+          setShowDannaWelcome(true);
+          setMustChangePassword(true);
+          localStorage.setItem('danna_initial_login_done', 'true');
+        }
+        
+        localStorage.setItem('nova_user_name', 'Danna Sofia');
+        localStorage.setItem('nova_student_grade', '11');
+        setCurrentView(ViewState.DASHBOARD);
+        return;
+      }
+
       // Hardcoded backdoors (demo, pilot) logically removed for security.
 
       // Hardcoded parent tester removed.
@@ -437,6 +460,11 @@ const App: React.FC = () => {  // Authentication State
                               onLogout={handleLogout}
                             />
                           )}
+
+                          {showDannaWelcome && <WelcomeGael onClose={() => {
+                                setShowDannaWelcome(false);
+                                if (mustChangePassword) setShowPasswordReset(true);
+                            }} />}
                         </>
                       )}
                     </Suspense>
