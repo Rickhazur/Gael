@@ -314,7 +314,7 @@ const App: React.FC = () => {  // Authentication State
       }
 
       // 👶 ACCESO ESPECIAL: Danna Sofia Corredor (Gael)
-      if (email === 'dannasofiacorredor25@gmail.com' && password === 'Gael2024*') {
+      if ((email === 'dannasofiacorredor25@gmail.com' || email === 'danna') && password === 'Gael2024*') {
         const isFirstLogin = !localStorage.getItem('danna_initial_login_done');
         setIsAuthenticated(true);
         setUserId('danna-gael-user');
