@@ -41,12 +41,26 @@ export const ICFESSimulator: React.FC<SimulatorProps> = ({ mode, category, onExi
   const [showMap, setShowMap] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
 
-  // Timer
+  // Timer - with countdown for 'full' mode (4h like real ICFES)
+  const TIME_LIMITS: Record<string, number> = { quick: 40 * 60, area: 30 * 60, full: 240 * 60 }; // seconds
+  const timeLimit = TIME_LIMITS[mode] || 0;
+  
   useEffect(() => {
-    const timer = setInterval(() => setElapsed(Math.floor((Date.now() - startTime) / 1000)), 1000);
+    const timer = setInterval(() => {
+      const newElapsed = Math.floor((Date.now() - startTime) / 1000);
+      setElapsed(newElapsed);
+      // Auto-submit if time runs out
+      if (timeLimit > 0 && newElapsed >= timeLimit) {
+        clearInterval(timer);
+        handleFinish();
+      }
+    }, 1000);
     return () => clearInterval(timer);
   }, [startTime]);
 
+  const remaining = Math.max(0, timeLimit - elapsed);
+  const isRunningLow = remaining < 300 && remaining > 0; // Less than 5 min
+  
   const formatTime = (secs: number) => {
     const h = Math.floor(secs / 3600);
     const m = Math.floor((secs % 3600) / 60);
