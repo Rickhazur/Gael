@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronRight, ArrowLeft, CheckCircle2, Brain, Star, TrendingUp } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { ChevronRight, ArrowLeft, CheckCircle2, Brain, Star, TrendingUp, Pause, Play, Save, Clock } from 'lucide-react';
 import { getDiagnosticQuestions, IcfesQuestion, CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS, IcfesCategory } from './services/IcfesQuestionBank';
 
 interface ICFESDiagnosticProps {
@@ -17,30 +17,100 @@ export interface DiagnosticResults {
   weaknesses: IcfesCategory[];
 }
 
+const STORAGE_KEY = 'nova_diag_session';
+
+interface SavedSession {
+  questions: IcfesQuestion[];
+  answers: Record<string, string>;
+  currentIndex: number;
+  startedAt: string;
+}
+
 export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onComplete, onBack }) => {
-  const [questions] = useState<IcfesQuestion[]>(() => getDiagnosticQuestions());
+  // Try to restore a saved session
+  const [questions, setQuestions] = useState<IcfesQuestion[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<DiagnosticResults | null>(null);
+  const [showSavedNotice, setShowSavedNotice] = useState(false);
+  const [isResuming, setIsResuming] = useState(false);
 
-  const currentQuestion = questions[currentIndex];
-  const progress = ((currentIndex + 1) / questions.length) * 100;
-  const isAnswered = currentQuestion && !!answers[currentQuestion.id];
   const firstName = userName?.split(' ')[0] || 'Estudiante';
 
+  // ─── Initialize: Load saved session or create new one ───
+  useEffect(() => {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      try {
+        const session: SavedSession = JSON.parse(saved);
+        if (session.questions && session.questions.length > 0) {
+          setQuestions(session.questions);
+          setAnswers(session.answers || {});
+          setCurrentIndex(session.currentIndex || 0);
+          setIsResuming(true);
+          return;
+        }
+      } catch { /* corrupted, start fresh */ }
+    }
+    // Generate new questions
+    const newQuestions = getDiagnosticQuestions();
+    setQuestions(newQuestions);
+    saveSession(newQuestions, {}, 0);
+  }, []);
+
+  // ─── Auto-save after every answer ───
+  const saveSession = useCallback((qs: IcfesQuestion[], ans: Record<string, string>, idx: number) => {
+    const session: SavedSession = {
+      questions: qs,
+      answers: ans,
+      currentIndex: idx,
+      startedAt: new Date().toISOString()
+    };
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+  }, []);
+
+  // Flash "saved" indicator
+  const flashSaved = useCallback(() => {
+    setShowSavedNotice(true);
+    setTimeout(() => setShowSavedNotice(false), 1500);
+  }, []);
+
+  const currentQuestion = questions[currentIndex];
+  const progress = questions.length > 0 ? ((currentIndex + 1) / questions.length) * 100 : 0;
+  const answeredCount = Object.keys(answers).length;
+  const isAnswered = currentQuestion && !!answers[currentQuestion.id];
+
+  // Calculate how many answered per area for mini-progress
+  const getAreaProgress = (area: IcfesCategory) => {
+    const areaQs = questions.filter(q => q.category === area);
+    const answered = areaQs.filter(q => answers[q.id]).length;
+    return { answered, total: areaQs.length };
+  };
+
   const handleAnswer = (optionId: string) => {
-    if (answers[currentQuestion.id]) return; // Already answered
-    setAnswers(prev => ({ ...prev, [currentQuestion.id]: optionId }));
+    if (!currentQuestion || answers[currentQuestion.id]) return;
+    const newAnswers = { ...answers, [currentQuestion.id]: optionId };
+    setAnswers(newAnswers);
+    // Auto-save immediately
+    saveSession(questions, newAnswers, currentIndex);
+    flashSaved();
   };
 
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
-      setCurrentIndex(prev => prev + 1);
+      const nextIndex = currentIndex + 1;
+      setCurrentIndex(nextIndex);
+      saveSession(questions, answers, nextIndex);
     } else {
-      // Calculate results
       calculateResults();
     }
+  };
+
+  const handlePause = () => {
+    // Save current state and go back to dashboard
+    saveSession(questions, answers, currentIndex);
+    onBack();
   };
 
   const calculateResults = () => {
@@ -59,12 +129,10 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
       };
     }
 
-    // Estimate ICFES score (rough: scale 0-500 based on performance)
     const overallPercent = (totalCorrect / questions.length) * 100;
-    const estimatedScore = Math.round((overallPercent / 100) * 400 + 50); // Range ~50-450
+    const estimatedScore = Math.round((overallPercent / 100) * 400 + 50);
 
-    // Determine strengths and weaknesses
-    const sorted = areas.sort((a, b) => areaScores[b].percent - areaScores[a].percent);
+    const sorted = [...areas].sort((a, b) => areaScores[b].percent - areaScores[a].percent);
     const strengths = sorted.filter(a => areaScores[a].percent >= 60).slice(0, 2);
     const weaknesses = sorted.filter(a => areaScores[a].percent < 50).slice(-2).reverse();
 
@@ -80,8 +148,10 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
     setResults(diagnosticResults);
     setShowResults(true);
 
-    // Save to localStorage
+    // Save final results and clear the in-progress session
     localStorage.setItem('nova_icfes_diagnostic', JSON.stringify(diagnosticResults));
+    localStorage.removeItem(STORAGE_KEY); // Clear in-progress session
+    
     const existingProgress = JSON.parse(localStorage.getItem('nova_icfes_progress') || '{}');
     const updatedProgress = {
       ...existingProgress,
@@ -90,6 +160,60 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
     };
     localStorage.setItem('nova_icfes_progress', JSON.stringify(updatedProgress));
   };
+
+  // ─── Resume Notice ───
+  if (isResuming && answeredCount > 0) {
+    return (
+      <div className="min-h-screen bg-[#FAFAF8] flex items-center justify-center px-4" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+        <div className="max-w-md w-full animate-fade-in-up">
+          <div className="nova-card p-8 text-center">
+            <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+              <Play className="w-10 h-10 text-emerald-600 ml-1" />
+            </div>
+            <h2 className="text-2xl font-bold text-slate-800 mb-3">
+              ¡Hola de nuevo, {firstName}! 👋
+            </h2>
+            <p className="text-slate-500 mb-2">
+              Tienes un examen diagnóstico en progreso.
+            </p>
+            <div className="bg-slate-50 rounded-xl p-4 mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-slate-500">Respondidas</span>
+                <span className="font-bold text-emerald-600">{answeredCount} / {questions.length}</span>
+              </div>
+              <div className="nova-progress">
+                <div 
+                  className="nova-progress-bar bg-gradient-to-r from-emerald-500 to-green-600" 
+                  style={{ width: `${(answeredCount / questions.length) * 100}%` }}
+                />
+              </div>
+            </div>
+            <button 
+              onClick={() => setIsResuming(false)}
+              className="nova-btn nova-btn-primary w-full rounded-xl mb-3"
+            >
+              Continuar donde iba <ChevronRight className="w-5 h-5" />
+            </button>
+            <button 
+              onClick={() => {
+                // Start fresh
+                localStorage.removeItem(STORAGE_KEY);
+                const newQuestions = getDiagnosticQuestions();
+                setQuestions(newQuestions);
+                setAnswers({});
+                setCurrentIndex(0);
+                setIsResuming(false);
+                saveSession(newQuestions, {}, 0);
+              }}
+              className="text-sm text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              Empezar de nuevo (perder progreso)
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   // ─── Results Screen ───
   if (showResults && results) {
@@ -102,9 +226,9 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
             <div className="w-20 h-20 bg-white/15 backdrop-blur-sm rounded-full flex items-center justify-center mx-auto mb-4 border-2 border-white/30">
               <Star className="w-10 h-10 text-yellow-300" />
             </div>
-            <h2 className="text-2xl font-bold mb-2">¡Gran punto de partida, {firstName}!</h2>
+            <h2 className="text-2xl font-bold mb-2">¡Diagnóstico completado, {firstName}!</h2>
             <p className="text-emerald-200">
-              Ya sabemos en qué eres fuerte y dónde podemos mejorar juntos.
+              Ya sabemos exactamente en qué eres fuerte y dónde Profesora Lina te va a ayudar.
             </p>
           </div>
 
@@ -123,15 +247,15 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
               </div>
             </div>
             <p className="text-sm text-slate-500">
-              {results.estimatedScore >= 30 
-                ? '✅ Ya estás cerca del puntaje de aprobación. ¡Vamos a asegurarlo!'
-                : 'Con tu ruta personalizada, vas a subir ese puntaje rápidamente.'}
+              {results.estimatedScore >= 250 
+                ? '✅ ¡Buen punto de partida! Con tu ruta personalizada, vamos a asegurar la aprobación.'
+                : '💪 No te preocupes, este es el punto de partida. Con práctica diaria vas a subir ese puntaje rápidamente.'}
             </p>
           </div>
 
           {/* Area Results */}
           <div className="nova-card p-6 mb-6 animate-fade-in-up stagger-2">
-            <h3 className="font-bold text-slate-800 mb-4">Tu nivel por área</h3>
+            <h3 className="font-bold text-slate-800 mb-4">Tu nivel por área (10 preguntas c/u)</h3>
             <div className="space-y-4">
               {areas.map(area => {
                 const score = results.areaScores[area];
@@ -223,6 +347,11 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
 
   if (!currentQuestion) return null;
 
+  // Figure out which area section we're in
+  const currentArea = currentQuestion.category;
+  const areaQs = questions.filter(q => q.category === currentArea);
+  const areaIndex = areaQs.findIndex(q => q.id === currentQuestion.id);
+
   // ─── Question Screen ───
   return (
     <div className="min-h-screen bg-[#FAFAF8] flex flex-col" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
@@ -231,28 +360,61 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
         <div className="max-w-3xl mx-auto">
           <div className="flex items-center justify-between mb-3">
             <button 
-              onClick={onBack}
-              className="flex items-center gap-2 text-slate-500 hover:text-slate-700 text-sm font-medium"
+              onClick={handlePause}
+              className="flex items-center gap-2 text-emerald-600 hover:text-emerald-700 text-sm font-bold bg-emerald-50 px-3 py-1.5 rounded-lg"
             >
-              <ArrowLeft className="w-4 h-4" /> Salir
+              <Pause className="w-4 h-4" /> Pausar y salir
             </button>
             <span className="text-sm text-slate-400 font-medium">
-              Test Diagnóstico · {currentIndex + 1}/{questions.length}
+              {answeredCount}/{questions.length} respondidas
             </span>
           </div>
-          {/* Progress Bar */}
-          <div className="nova-progress">
+          
+          {/* Overall Progress Bar */}
+          <div className="nova-progress mb-3">
             <div 
               className="nova-progress-bar bg-gradient-to-r from-violet-500 to-indigo-600" 
-              style={{ width: `${progress}%` }}
+              style={{ width: `${(answeredCount / questions.length) * 100}%` }}
             />
+          </div>
+
+          {/* Area mini-badges */}
+          <div className="flex gap-1.5 overflow-x-auto pb-1 hide-scrollbar">
+            {(['LECTURA_CRITICA', 'MATEMATICAS', 'SOCIALES', 'CIENCIAS', 'INGLES'] as IcfesCategory[]).map(area => {
+              const ap = getAreaProgress(area);
+              const isCurrent = area === currentArea;
+              return (
+                <div 
+                  key={area}
+                  className={`flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-bold whitespace-nowrap border transition-all ${
+                    isCurrent 
+                      ? 'bg-white border-2 shadow-sm' 
+                      : ap.answered === ap.total 
+                        ? 'bg-green-50 border-green-200 text-green-700'
+                        : 'bg-slate-50 border-slate-100 text-slate-400'
+                  }`}
+                  style={isCurrent ? { borderColor: CATEGORY_COLORS[area], color: CATEGORY_COLORS[area] } : {}}
+                >
+                  <span>{CATEGORY_ICONS[area]}</span>
+                  <span>{ap.answered}/{ap.total}</span>
+                  {ap.answered === ap.total && <CheckCircle2 className="w-3 h-3 text-green-500" />}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>
 
+      {/* Auto-save indicator */}
+      {showSavedNotice && (
+        <div className="fixed top-4 right-4 z-50 bg-emerald-500 text-white px-4 py-2 rounded-full text-sm font-bold flex items-center gap-2 shadow-lg animate-fade-in-up">
+          <Save className="w-4 h-4" /> Guardado ✓
+        </div>
+      )}
+
       {/* Question */}
       <div className="flex-1 flex items-center justify-center px-4 py-8">
-        <div className="max-w-2xl w-full animate-fade-in-up">
+        <div className="max-w-2xl w-full animate-fade-in-up" key={currentQuestion.id}>
           {/* Category Badge */}
           <div className="flex items-center gap-2 mb-4">
             <span className="text-xl">{CATEGORY_ICONS[currentQuestion.category]}</span>
@@ -260,7 +422,7 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
               className="text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full"
               style={{ backgroundColor: CATEGORY_COLORS[currentQuestion.category] + '15', color: CATEGORY_COLORS[currentQuestion.category] }}
             >
-              {CATEGORY_LABELS[currentQuestion.category]}
+              {CATEGORY_LABELS[currentQuestion.category]} — Pregunta {areaIndex + 1}/10
             </span>
           </div>
 
@@ -344,9 +506,14 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
 
           {/* Encouragement */}
           {!isAnswered && (
-            <p className="text-center text-sm text-slate-400 mt-4">
-              Elige la respuesta que te parezca correcta. No hay cronómetro. 🕊️
-            </p>
+            <div className="text-center mt-4 space-y-2">
+              <p className="text-sm text-slate-400">
+                Elige la respuesta que te parezca correcta. No hay cronómetro. 🕊️
+              </p>
+              <p className="text-xs text-emerald-500 font-medium flex items-center justify-center gap-1">
+                <Save className="w-3 h-3" /> Tu progreso se guarda automáticamente
+              </p>
+            </div>
           )}
         </div>
       </div>

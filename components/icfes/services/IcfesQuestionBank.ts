@@ -81,20 +81,31 @@ export const fetchIcfesQuestions = async (
   }
 };
 
-// ─── Get questions for diagnostic (3 per area, 15 total) ───
+// ─── Get questions for diagnostic (10 per area, 50 total) ───
+// Distribution: 3 easy, 4 medium, 3 hard per area (mirrors real ICFES weighting)
 export const getDiagnosticQuestions = (): IcfesQuestion[] => {
   const categories: IcfesCategory[] = ["LECTURA_CRITICA", "MATEMATICAS", "SOCIALES", "CIENCIAS", "INGLES"];
   const result: IcfesQuestion[] = [];
   
   for (const cat of categories) {
     const catQuestions = ALL_QUESTIONS.filter(q => q.category === cat);
-    // Pick 1 easy, 1 medium, 1 hard
-    const easy = catQuestions.find(q => q.difficulty === 'easy');
-    const medium = catQuestions.find(q => q.difficulty === 'medium');
-    const hard = catQuestions.find(q => q.difficulty === 'hard');
-    if (easy) result.push(easy);
-    if (medium) result.push(medium);
-    if (hard) result.push(hard);
+    const easy = catQuestions.filter(q => q.difficulty === 'easy');
+    const medium = catQuestions.filter(q => q.difficulty === 'medium');
+    const hard = catQuestions.filter(q => q.difficulty === 'hard');
+    
+    // Shuffle each difficulty pool
+    const shuffle = (arr: IcfesQuestion[]) => {
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      return arr;
+    };
+    
+    // Pick: 3 easy, 4 medium, 3 hard = 10 per area
+    result.push(...shuffle([...easy]).slice(0, 3));
+    result.push(...shuffle([...medium]).slice(0, 4));
+    result.push(...shuffle([...hard]).slice(0, 3));
   }
   
   return result;

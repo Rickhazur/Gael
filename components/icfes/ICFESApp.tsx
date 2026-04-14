@@ -89,11 +89,16 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
   // Determine initial view
   useEffect(() => {
     if (isAuthenticated) {
-      setView('dashboard');
+      // MANDATORY: If diagnostic not done, force it
+      if (!hasDiagnostic) {
+        setView('diagnostic');
+      } else {
+        setView('dashboard');
+      }
     } else {
       setView('landing');
     }
-  }, [isAuthenticated]);
+  }, [isAuthenticated, hasDiagnostic]);
 
   // ─── Demo login (no Supabase needed) ───
   const handleDemoLogin = () => {
@@ -156,7 +161,15 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
           <ICFESDiagnostic 
             userName={userName}
             onComplete={handleDiagnosticComplete}
-            onBack={() => setView('dashboard')}
+            onBack={() => {
+              // If diagnostic incomplete, show a gentle reminder but allow pause
+              if (!hasDiagnostic) {
+                // Stay on diagnostic — they can still pause internally
+                setView('diagnostic');
+              } else {
+                setView('dashboard');
+              }
+            }}
           />
         );
 
