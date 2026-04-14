@@ -103,6 +103,7 @@ const SpanishTalkInterface = ({
   const recognitionRef = useRef<any>(null);
   const [micError, setMicError] = useState<string | null>(null);
   const [micLevel, setMicLevel] = useState(0);
+  const [noSpeechCount, setNoSpeechCount] = useState(0);
   const audioIntervalRef = useRef<any>(null);
   const [isToggleMode, setIsToggleMode] = useState(true);
   const [isHandsFree, setIsHandsFree] = useState(false);
@@ -152,13 +153,14 @@ const SpanishTalkInterface = ({
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.continuous = isHandsFree ? false : isToggleMode;
+      recognition.continuous = false; // More stable
       recognition.interimResults = true;
-      recognition.lang = 'es-CO'; // Colombian Spanish
+      recognition.lang = 'es-MX';
 
       recognition.onstart = () => {
         setStatus('listening');
         setMicError(null);
+        setNoSpeechCount(0); // Reset on success
         startVisualizer();
       };
 
@@ -192,12 +194,17 @@ const SpanishTalkInterface = ({
         setStatus('idle');
 
         if (event.error === 'no-speech') {
-          toast.info("No te escuché bien. ¿Puedes repetir?");
+          setNoSpeechCount(prev => {
+            const next = prev + 1;
+            if (next >= 4) {
+              setIsHandsFree(false);
+              toast.info("No te escuché bien. ¡Prueba a escribir!");
+            }
+            return next;
+          });
         } else if (event.error === 'not-allowed') {
           setMicError("Microphone blocked");
           toast.error("Por favor permite el acceso al micrófono en la configuración del navegador.");
-        } else {
-          toast.error("Error de conexión. ¡Inténtalo de nuevo!");
         }
       };
 
@@ -378,6 +385,7 @@ const SpanishTalkInterface = ({
       if (aiResponse.suggested) {
         setHint({ es: aiResponse.suggested });
       }
+      setNoSpeechCount(0); // Reset on success
       setHistory(prev => [...prev, { role: 'tutor', text: aiResponse.content }]);
 
       setStatus('speaking');
@@ -405,7 +413,7 @@ const SpanishTalkInterface = ({
       <div className="absolute top-1/4 -left-20 w-80 h-80 bg-purple-500/10 rounded-full blur-[100px] pointer-events-none" />
       <div className="absolute bottom-1/4 -right-20 w-80 h-80 bg-pink-500/10 rounded-full blur-[100px] pointer-events-none" />
 
-      <div className="relative mb-12 text-center flex flex-col items-center z-10">
+      <div className="relative mb-12 text-center flex flex-col items-center z-10 w-full">
         <div className="relative">
           <AnimatePresence>
             {(status === 'listening' || status === 'speaking') &&
@@ -420,9 +428,9 @@ const SpanishTalkInterface = ({
           </AnimatePresence>
 
           <div className={`w-48 h-48 rounded-full border-[12px] flex items-center justify-center 
-            transition-all duration-700 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative z-10
-            backdrop-blur-sm bg-white/20
-            ${status === 'listening' ? 'border-red-500/80 ring-8 ring-red-100 shadow-red-200/50 scale-110' :
+          transition-all duration-700 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.1)] relative z-10
+          backdrop-blur-sm bg-white/20
+          ${status === 'listening' ? 'border-red-500/80 ring-8 ring-red-100 shadow-red-200/50 scale-110' :
               status === 'speaking' ? 'border-green-500/80 ring-8 ring-green-100 shadow-green-200/50' :
                 status === 'processing' ? 'border-purple-400 animate-pulse ring-8 ring-purple-50' : 'border-white shadow-xl'}`}>
             <LinaAvatar state={status === 'speaking' ? 'speaking' : 'idle'} size={170} mode="spanish" />
@@ -456,9 +464,7 @@ const SpanishTalkInterface = ({
                 >
                   <div className="flex items-center gap-2">
                     <div className="w-2 h-2 bg-red-500 rounded-full animate-ping" />
-                    <p className="text-2xl font-black text-red-600 uppercase tracking-tight">
-                      Escuchando...
-                    </p>
+                    <p className="text-2xl font-black text-red-600 uppercase tracking-tight">Escuchando...</p>
                   </div>
                   <div className="bg-white/80 px-6 py-2 rounded-2xl border border-red-100 italic text-slate-600 shadow-sm min-w-[200px]">
                     "{transcript || '...'}"
@@ -466,37 +472,18 @@ const SpanishTalkInterface = ({
                 </motion.div>
               )}
               {status === 'processing' && (
-                <motion.div
-                  key="processing"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
-                  className="flex flex-col items-center gap-3"
-                >
+                <motion.div key="processing" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="flex flex-col items-center gap-3">
                   <div className="w-12 h-12 border-4 border-purple-500 border-t-transparent rounded-full animate-spin" />
                   <p className="text-lg font-bold text-purple-600">Pensando...</p>
                 </motion.div>
               )}
               {status === 'speaking' && response && (
-                <motion.div
-                  key="speaking"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  className="bg-white/40 backdrop-blur-xl border border-white/60 p-6 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.05)]"
-                >
-                  <p className="text-lg font-medium text-slate-800 leading-relaxed text-center">
-                    {response}
-                  </p>
+                <motion.div key="speaking" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -10 }} className="bg-white/40 backdrop-blur-xl border border-white/60 p-6 rounded-[2.5rem] shadow-[0_10px_40px_rgba(0,0,0,0.05)]">
+                  <p className="text-lg font-medium text-slate-800 leading-relaxed text-center">{response}</p>
                 </motion.div>
               )}
               {status === 'idle' && hint && (
-                <motion.div
-                  key="hint"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="bg-yellow-50 border-2 border-yellow-300 p-4 rounded-2xl shadow-sm"
-                >
+                <motion.div key="hint" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="bg-yellow-50 border-2 border-yellow-300 p-4 rounded-2xl shadow-sm">
                   <p className="text-sm font-bold text-yellow-800 mb-1">💡 Puedes decir:</p>
                   <p className="text-base text-yellow-900 italic">"{hint.es}"</p>
                 </motion.div>
@@ -524,11 +511,7 @@ const SpanishTalkInterface = ({
                 status === 'processing' ? '⏳ Procesando...' :
                   '🎤 Hablar'}
           </Button>
-          <Button
-            onClick={() => setIsHandsFree(!isHandsFree)}
-            variant="outline"
-            className="px-4 py-2"
-          >
+          <Button onClick={() => setIsHandsFree(!isHandsFree)} variant="outline" className="px-4 py-2">
             {isHandsFree ? '🔇 Manual' : '🔄 Automático'}
           </Button>
         </div>
@@ -537,9 +520,35 @@ const SpanishTalkInterface = ({
         </p>
       </div>
 
-      <Button onClick={onBack} variant="ghost" className="mt-8">
-        ← Volver
-      </Button>
+      {noSpeechCount >= 3 && status === 'idle' && (
+        <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mt-4 flex gap-2 w-full max-w-sm z-20">
+          <input
+            type="text"
+            placeholder="Escribe tu respuesta aquí..."
+            className="flex-1 bg-white/80 border-4 border-black px-4 py-2 font-bold shadow-[4px_4px_0_0_#000] focus:outline-none rounded-xl"
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                processVoiceInput((e.target as HTMLInputElement).value);
+                (e.target as HTMLInputElement).value = '';
+              }
+            }}
+          />
+          <Button
+            onClick={(e) => {
+              const input = (e.currentTarget.previousSibling as HTMLInputElement).value;
+              if (input) {
+                processVoiceInput(input);
+                (e.currentTarget.previousSibling as HTMLInputElement).value = '';
+              }
+            }}
+            className="bg-blue-600 text-white font-bold border-2 border-black rounded-xl px-6"
+          >
+            ENVIAR
+          </Button>
+        </motion.div>
+      )}
+
+      <Button onClick={onBack} variant="ghost" className="mt-8">← Volver</Button>
 
       <UniversalNotebook
         isOpen={isNoteOpen}
@@ -775,39 +784,39 @@ const SpanishTutor_mod = () => {
     }));
 
     const systemPrompt = `
-      Eres 'Lina', una tutora amigable de español para primaria.
-      ESTUDIANTE: ${studentName}, Grado: ${gradeLevel}.
-      NIVEL ACTUAL: Grado ${gradeLevel} (Estándares MEN).
+            Eres 'Lina', una tutora amigable de español para primaria.
+            ESTUDIANTE: ${studentName}, Grado: ${gradeLevel}.
+            NIVEL ACTUAL: Grado ${gradeLevel} (Estándares MEN).
 
-      CONSTRAINTS LINGÜÍSTICOS PARA GRADO ${gradeLevel}:
-      - VOCABULARIO: ${spanishConfig.vocabDomains.join(', ')}.
-      - GRAMÁTICA: ${spanishConfig.grammarPoints.join('; ')}.
-      - LONGITUD MÁXIMA DE FRASE: ${spanishConfig.maxSentenceWords} palabras.
-      - MÁXIMO DE PALABRAS NUEVAS POR TURNO: ${spanishConfig.maxNewWordsPerTurn}.
+            CONSTRAINTS LINGÜÍSTICOS PARA GRADO ${gradeLevel}:
+            - VOCABULARIO: ${spanishConfig.vocabDomains.join(', ')}.
+            - GRAMÁTICA: ${spanishConfig.grammarPoints.join('; ')}.
+            - LONGITUD MÁXIMA DE FRASE: ${spanishConfig.maxSentenceWords} palabras.
+            - MÁXIMO DE PALABRAS NUEVAS POR TURNO: ${spanishConfig.maxNewWordsPerTurn}.
 
-      OBJETIVOS MEN:
-      - LECTURA: ${spanishConfig.readingStandards.join(', ')}
-      - ESCRITURA: ${spanishConfig.writingStandards.join(', ')}
-      - ORALIDAD: ${spanishConfig.oralStandards.join(', ')}
+            OBJETIVOS MEN:
+            - LECTURA: ${spanishConfig.readingStandards.join(', ')}
+            - ESCRITURA: ${spanishConfig.writingStandards.join(', ')}
+            - ORALIDAD: ${spanishConfig.oralStandards.join(', ')}
 
-      TURN-TAKING:
-      - Mantén mensajes CORTOS: 1-2 frases en grados 1-2, 2-3 en grados 3-5
-      - SIEMPRE termina con pregunta o invitación clara
-      - Reacciona a lo que el niño escribe, haz preguntas de seguimiento
-      - Si el estudiante solo escribe una respuesta muy corta, celébrala y haz una pregunta aún más simple
+            TURN-TAKING:
+            - Mantén mensajes CORTOS: 1-2 frases en grados 1-2, 2-3 en grados 3-5
+            - SIEMPRE termina con pregunta o invitación clara
+            - Reacciona a lo que el niño escribe, haz preguntas de seguimiento
+            - Si el estudiante solo escribe una respuesta muy corta, celébrala y haz una pregunta aún más simple
 
-      VARIANTE COLOMBIANA:
-      - Usa expresiones colombianas apropiadas (ej: "chévere", "bacano", "genial")
-      - Contexto cultural colombiano
-      - Acento colombiano pero claro y educativo
+            VARIANTE COLOMBIANA:
+            - Usa expresiones colombianas apropiadas (ej: "chévere", "bacano", "genial")
+            - Contexto cultural colombiano
+            - Acento colombiano pero claro y educativo
 
-      JSON FORMAT ONLY:
-      {
-        "content": "Respuesta en español",
-        "correction": "Explicación si hubo error (null si no hay)",
-        "replyOptions": ["Opción 1", "Opción 2"]
+            JSON FORMAT ONLY:
+            {
+              "content": "Respuesta en español",
+            "correction": "Explicación si hubo error (null si no hay)",
+            "replyOptions": ["Opción 1", "Opción 2"]
       }
-    `;
+            `;
 
     try {
       const aiRes = await callChatApi(

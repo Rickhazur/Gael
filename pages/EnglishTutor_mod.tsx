@@ -160,6 +160,7 @@ const TalkInterface = ({
   const recognitionRef = useRef<any>(null);
   const [micError, setMicError] = useState<string | null>(null);
   const [micLevel, setMicLevel] = useState(0);
+  const [noSpeechCount, setNoSpeechCount] = useState(0);
   const audioIntervalRef = useRef<any>(null);
 
   // Toggle mode vs Hold mode
@@ -241,13 +242,15 @@ const TalkInterface = ({
     if ('webkitSpeechRecognition' in window || 'SpeechRecognition' in window) {
       const SpeechRecognition = (window as any).webkitSpeechRecognition || (window as any).SpeechRecognition;
       const recognition = new SpeechRecognition();
-      recognition.continuous = isHandsFree ? false : isToggleMode; // En HandsFree, mejor false para que detecte el final de la frase solo
+      // Force continuous=false for better stability on single turns
+      recognition.continuous = false;
       recognition.interimResults = true;
-      recognition.lang = inputLang === 'en' ? 'en-US' : 'es-ES';
+      recognition.lang = inputLang === 'en' ? 'en-US' : 'es-MX';
 
       recognition.onstart = () => {
         setStatus('listening');
         setMicError(null);
+        setNoSpeechCount(0); // Reset on start success
         startVisualizer();
       };
 
@@ -283,12 +286,17 @@ const TalkInterface = ({
         setStatus('idle');
 
         if (event.error === 'no-speech') {
-          // Silent catch
+          setNoSpeechCount(prev => {
+            const next = prev + 1;
+            if (next >= 4) {
+              setIsHandsFree(false); // Stop auto-mic loop
+              toast.info("El micrófono está en silencio. ¡Prueba a escribir!");
+            }
+            return next;
+          });
         } else if (event.error === 'not-allowed') {
           setMicError("Microphone blocked");
-          toast.error("Please allow microphone access in your browser settings.");
-        } else {
-          // toast.error("Connection error. Try again!");
+          toast.error("Por favor permite el acceso al micrófono en la configuración del navegador.");
         }
       };
 
@@ -478,7 +486,7 @@ const TalkInterface = ({
         TURN-TAKING AND CONVERSATION SPACE:
         - Keep your turns SHORT: usually 1–2 sentences in A1/A2, 2–3 in B1/B2.
         - ALWAYS leave space for the child to speak: END EVERY TURN with a very simple question or invitation to answer (e.g. "Do you like...?", "What about you?", "Can you tell me?", "Your turn!").
-        - Never answer your own question in the same turn. Ask, then STOP and wait for the child.
+        - CRITICAL RULE: NEVER answer your own question. Ask, then STOP entirely and wait for the child's input. Do NOT simulate the child's response.
         - If the child is very quiet or only writes one word, react kindly and ask an even simpler follow-up question.
 
         SENTENCE PATTERN FAMILIES FOR LEVEL ${englishLevel} (USE THEM AS MODELS, NOT AS A SCRIPT):
@@ -581,6 +589,7 @@ const TalkInterface = ({
         es: aiResponse.suggested_es || "",
         phonetic: aiResponse.suggested_phonetic
       });
+      setNoSpeechCount(0); // Success! Reset errors
       setHistory(prev => [...prev, {
         role: 'tutor',
         text: aiResponse.content,
@@ -632,20 +641,15 @@ const TalkInterface = ({
 
   return (
     <div className="w-full max-w-5xl mx-auto p-2 md:p-6 relative min-h-[700px] flex flex-col items-center">
-
       {/* NEWSPAPER PAGE BACKGROUND */}
       <div className="absolute inset-0 bg-[#fffdf5] rounded-[2rem] border-4 border-black shadow-[8px_8px_0_0_#000] overflow-hidden">
-        {/* Dot Pattern */}
         <div className="absolute inset-0 opacity-10" style={{ backgroundImage: 'radial-gradient(#000 2px, transparent 2px)', backgroundSize: '20px 20px' }}></div>
-
-        {/* Decorative Corner Shapes */}
         <div className="absolute top-0 right-0 w-48 h-48 bg-yellow-300 rounded-bl-full border-b-4 border-l-4 border-black z-0"></div>
         <div className="absolute bottom-0 left-0 w-64 h-64 bg-cyan-200 rounded-tr-full border-t-4 border-r-4 border-black z-0"></div>
       </div>
 
       {/* HEADER SECTION */}
       <div className="relative z-10 w-full mb-8 pt-4 px-4 flex flex-col items-center">
-        {/* Navigation Buttons (Integrated) */}
         <div className="w-full flex justify-between mb-4">
           <Button variant="ghost" onClick={onBack} className="bg-white border-2 border-black shadow-[4px_4px_0_0_#000] hover:-translate-y-1 hover:shadow-[6px_6px_0_0_#000] transition-all text-black font-bold">
             {immersionMode === 'standard' ? '← SALIR' : '← EXIT'}
@@ -655,7 +659,6 @@ const TalkInterface = ({
           </Button>
         </div>
 
-        {/* Newspaper Title */}
         <div className="bg-white px-8 py-4 border-4 border-black shadow-[6px_6px_0_0_#000] -rotate-1 mb-2">
           <h1 className="text-4xl md:text-6xl font-black italic tracking-tighter text-black leading-none text-center">
             THE <span className="text-rose-500">NOVA</span> <span className="text-cyan-500">TIMES</span>
@@ -670,11 +673,8 @@ const TalkInterface = ({
 
       {/* MAIN CONTENT COLUMNS */}
       <div className="relative z-10 w-full grid grid-cols-1 lg:grid-cols-12 gap-6 px-4 pb-8 flex-1">
-
-        {/* LEFT COLUMN: LIVE BROADCAST (AVATAR) - Span 5 */}
+        {/* LEFT COLUMN: AVATAR */}
         <div className="lg:col-span-5 flex flex-col items-center">
-
-          {/* PHOTO FRAME */}
           <div className="bg-white p-3 border-4 border-black shadow-[8px_8px_0_0_#000] rotate-1 hover:rotate-0 transition-transform duration-300 w-full max-w-sm">
             <div className="flex justify-between items-center mb-2 border-b-2 border-black pb-1">
               <div className="flex items-center gap-1">
@@ -687,8 +687,6 @@ const TalkInterface = ({
             <div className="relative aspect-square bg-sky-100 border-2 border-black overflow-hidden flex items-center justify-center">
               <div className={`absolute inset-0 ${status === 'listening' ? 'bg-rose-100' : 'bg-emerald-100'} opacity-50`}></div>
               <RachelleAvatar state={status === 'speaking' ? 'speaking' : 'idle'} size={220} />
-
-              {/* Waveform */}
               {status === 'listening' && (
                 <div className="absolute bottom-0 left-0 right-0 h-16 bg-rose-500/10 flex items-end justify-center pb-2 gap-1 border-t-2 border-black">
                   {[...Array(10)].map((_, i) => (
@@ -709,77 +707,41 @@ const TalkInterface = ({
             </div>
           </div>
 
-          {/* CONTROLS (MIC) */}
-          <div className="mt-6 flex flex-col items-center w-full">
-            <div className="relative">
-              {/* ANIMATED HAND POINTER - GUIDES THE CHILD TO START */}
-              {(status === 'idle' && !response) && (
-                <div className="absolute -top-24 left-1/2 -translate-x-1/2 flex flex-col items-center animate-bounce z-30 pointer-events-none">
-                  <div className="text-6xl filter drop-shadow-xl">👇</div>
-                  <div className="bg-yellow-400 text-black text-xs font-black px-3 py-1 rounded border-2 border-black uppercase tracking-wider whitespace-nowrap -mt-2 transform -rotate-2 shadow-sm">
-                    {immersionMode === 'standard' ? '¡PRESIONA AQUÍ!' : 'PRESS HERE!'}
-                  </div>
-                </div>
-              )}
-              <button
-                onMouseDown={() => !isToggleMode && startListening()}
-                onMouseUp={() => !isToggleMode && stopListening()}
-                onTouchStart={() => !isToggleMode && startListening()}
-                onTouchEnd={() => !isToggleMode && stopListening()}
-                onClick={() => isToggleMode && toggleListening()}
-                disabled={turnsLeft <= 0 || status === 'processing' || status === 'speaking'}
-                className={`w-28 h-28 rounded-full border-4 border-black shadow-[6px_6px_0_0_#000] flex items-center justify-center transition-all active:translate-y-1 active:shadow-[2px_2px_0_0_#000]
-                      ${status === 'listening'
-                    ? 'bg-rose-500 text-white animate-pulse'
-                    : turnsLeft > 0 ? 'bg-cyan-400 hover:bg-cyan-300 text-black' : 'bg-slate-200 text-slate-400'}
-                    `}
-              >
-                <Mic className="w-12 h-12" />
-              </button>
-              {status === 'listening' && <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[10px] font-black px-2 py-0.5 border-2 border-black rounded-full animate-bounce">ON AIR</div>}
-            </div>
-
-            <p className="mt-2 text-xs font-black uppercase bg-white border-2 border-black px-3 py-1 rounded-full shadow-sm">
-              {status === 'idle' ? (immersionMode === 'standard' ? 'MANTÉN PRESIONADO' : 'HOLD TO SPEAK') : status === 'listening' ? 'LISTENING...' : 'SPEAKING...'}
-            </p>
-
-            <div className="flex gap-2 mt-4">
-              <button onClick={() => setIsToggleMode(!isToggleMode)} className="px-2 py-1 bg-white border-2 border-black text-[10px] font-bold shadow-[2px_2px_0_0_#000] hover:-translate-y-0.5 transition-transform active:translate-y-0 text-slate-700">
-                {isToggleMode ? '⚡ TOGGLE MODE' : '✋ HOLD MODE'}
-              </button>
-              <button onClick={() => setIsHandsFree(!isHandsFree)} className={`px-2 py-1 border-2 border-black text-[10px] font-bold shadow-[2px_2px_0_0_#000] hover:-translate-y-0.5 transition-transform active:translate-y-0 ${isHandsFree ? 'bg-green-400 text-black' : 'bg-white text-slate-700'}`}>
-                {isHandsFree ? '🧤 AUTO-MIC: ON' : '🧤 AUTO-MIC: OFF'}
-              </button>
-            </div>
-          </div>
+          {noSpeechCount >= 3 && status === 'idle' && (
+            <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="mt-6 flex gap-2 w-full max-w-xs">
+              <input
+                type="text"
+                placeholder={immersionMode === 'standard' ? "Escribe aquí..." : "Type here..."}
+                className="flex-1 bg-white border-4 border-black px-4 py-2 font-bold shadow-[4px_4px_0_0_#000] focus:outline-none"
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    processVoiceInput((e.target as HTMLInputElement).value);
+                    (e.target as HTMLInputElement).value = '';
+                  }
+                }}
+              />
+              <Button onClick={(e) => {
+                const input = (e.currentTarget.previousSibling as HTMLInputElement).value;
+                if (input) {
+                  processVoiceInput(input);
+                  (e.currentTarget.previousSibling as HTMLInputElement).value = '';
+                }
+              }} className="bg-black text-white border-2 border-black">OK</Button>
+            </motion.div>
+          )}
         </div>
 
-        {/* RIGHT COLUMN: HEADLINES & STORIES (CHAT) - Span 7 */}
+        {/* RIGHT COLUMN: CHAT */}
         <div className="lg:col-span-7 flex flex-col gap-6">
-
-          {/* BREAKING NEWS (BOT RESPONSE) */}
           <div className="bg-white border-4 border-black p-6 shadow-[8px_8px_0_0_rgba(0,0,0,1)] relative min-h-[180px] flex flex-col justify-center">
-            <div className="absolute -top-3 -left-3 bg-yellow-400 border-2 border-black px-4 py-1 transform -rotate-2 shadow-sm font-black text-sm uppercase">
-              BREAKING NEWS
-            </div>
-
+            <div className="absolute -top-3 -left-3 bg-yellow-400 border-2 border-black px-4 py-1 transform -rotate-2 shadow-sm font-black text-sm uppercase">BREAKING NEWS</div>
             <AnimatePresence mode="wait">
               {(status === 'speaking' || (status === 'idle' && response)) ? (
-                <motion.div
-                  key="response"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  className="text-center"
-                >
-                  <p className="text-3xl md:text-4xl font-black text-black leading-tight tracking-tight">
-                    "{response}"
-                  </p>
+                <motion.div key="response" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="text-center">
+                  <p className="text-3xl md:text-4xl font-black text-black leading-tight tracking-tight">"{response}"</p>
                   {translation && (
                     <div className="mt-4 pt-4 border-t-2 border-dashed border-slate-300">
-                      <p className="text-xl text-slate-500 font-bold italic font-serif">
-                        "{translation}"
-                      </p>
-                      {/* PHONETIC GUIDE - RESTORED & ENHANCED */}
+                      <p className="text-xl text-slate-500 font-bold italic font-serif">"{translation}"</p>
                       {phonetic && (
                         <div className="mt-3 flex justify-center">
                           <div className="bg-yellow-100 px-4 py-1.5 rounded-full border-2 border-yellow-400 shadow-sm flex items-center gap-2 transform -rotate-1">
@@ -797,14 +759,15 @@ const TalkInterface = ({
                   <p className="font-black text-xl text-slate-400 animate-pulse">WRITING STORY...</p>
                 </div>
               ) : (
-                <div className="flex flex-col items-center justify-center h-full opacity-30">
-                  <p className="font-black text-2xl text-slate-400">TOP STORY COMING UP...</p>
+                <div className="flex flex-col items-center justify-center h-full opacity-30 text-center">
+                  <p className="font-black text-2xl text-slate-400 uppercase tracking-tighter leading-none italic">
+                    Press the microphone and speak to Miss Rachelle! 🎤
+                  </p>
                 </div>
               )}
             </AnimatePresence>
           </div>
 
-          {/* EDITORIAL (USER INPUT) */}
           <div className="bg-black p-6 border-4 border-white shadow-[8px_8px_0_0_rgba(0,0,0,0.2)] transform rotate-1">
             <div className="flex justify-between items-center mb-2">
               <span className="text-white font-mono text-xs uppercase bg-rose-500 px-2 py-0.5 font-bold">YOUR QUOTE</span>
@@ -818,36 +781,22 @@ const TalkInterface = ({
             </p>
           </div>
 
-          {/* HINT STRIP (ADVERTISEMENT) */}
           <AnimatePresence>
             {hint && status === 'idle' && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-yellow-100 border-2 border-black border-dashed p-4 relative"
-              >
-                <div className="absolute -top-3 left-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-bold uppercase rotate-2">
-                  PRO TIP
-                </div>
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="bg-yellow-100 border-2 border-black border-dashed p-4 relative">
+                <div className="absolute -top-3 left-4 bg-white border-2 border-black px-2 py-0.5 text-[10px] font-bold uppercase rotate-2">PRO TIP</div>
                 <p className="text-center font-bold text-slate-500 text-xs uppercase mb-1">Try saying this phrase:</p>
                 <p className="text-center font-black text-xl text-black mb-2">"{hint.en}"</p>
-
-                {hint.es && (
-                  <p className="text-center text-sm font-bold text-slate-500 italic mb-2">"{hint.es}"</p>
-                )}
-
+                {hint.es && <p className="text-center text-sm font-bold text-slate-500 italic mb-2">"{hint.es}"</p>}
                 {hint.phonetic && (
                   <div className="flex justify-center">
-                    <span className="bg-white border border-black px-2 py-0.5 text-xs font-mono font-bold text-slate-700 shadow-[2px_2px_0_0_#000] transform -rotate-1">
-                      🗣️ {hint.phonetic}
-                    </span>
+                    <span className="bg-white border border-black px-2 py-0.5 text-xs font-mono font-bold text-slate-700 shadow-[2px_2px_0_0_#000] transform -rotate-1">🗣️ {hint.phonetic}</span>
                   </div>
                 )}
               </motion.div>
             )}
           </AnimatePresence>
 
-          {/* ENERGY BAR (FOOTER) */}
           <div className="mt-auto pt-4 flex justify-between items-center border-t-4 border-black">
             <div className="flex items-center gap-2">
               <span className="text-xs font-black uppercase">ENERGY LEVEL:</span>
@@ -858,50 +807,72 @@ const TalkInterface = ({
               </div>
               <span className="text-xs font-bold text-slate-500 ml-2">{turnsLeft}/20</span>
             </div>
-            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">
-              PAGE 1 OF 1
-            </div>
+            <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">PAGE 1 OF 1</div>
           </div>
-
         </div>
       </div>
-      {/* INTEGRATED NOTEBOOK */}
+
       <UniversalNotebook
         isOpen={isNoteOpen}
         onClose={() => setIsNoteOpen(false)}
         language="en"
-        onSave={(data: NoteData) => {
-          notebookService.saveNote({ ...data, subject: 'english' });
-        }}
+        onSave={(data: NoteData) => { notebookService.saveNote({ ...data, subject: 'english' }); }}
         getNoteData={() => {
-          // DEMO Check
           const isDemo = typeof window !== 'undefined' && localStorage.getItem('nova_demo_mode') === 'true';
-
           if (isDemo && history.length === 0) {
             return {
               topic: "Conversation Practice: Daily Routine",
               date: new Date().toLocaleDateString(),
               subject: 'english',
-              summary: "Student practiced talking about their morning routine.\n\nVocabulary Used:\n- Breakfast\n- School bus\n- To brush teeth\n\nRachelle's Feedback: Great pronunciation of 'Breakfast'! Remember to use 'I go' instead of 'I goes'.",
+              summary: "Student practiced talking about their morning routine.",
             };
           }
-
           return {
             topic: "English Voice Session",
             date: new Date().toLocaleDateString(),
             subject: 'english',
-            summary: history.length > 0
-              ? history.map(h => `${h.role === 'student' ? 'Student' : 'Rachelle'}: ${h.text}`).join('\n\n')
-              : "No conversation yet."
+            summary: history.length > 0 ? history.map(h => `${h.role === 'student' ? 'Student' : 'Rachelle'}: ${h.text}`).join('\n\n') : "No conversation yet."
           };
         }}
-        onStudy={(data: NoteData) => {
-          setIsNoteOpen(false);
-          toast.info("Study Buddy Activated! Rachelle is ready to evaluate you.");
-        }}
+        onStudy={(data: NoteData) => { setIsNoteOpen(false); toast.info("Study Buddy Activated! Rachelle is ready to evaluate you."); }}
       />
 
-    </div >
+      {/* FLOATING MIC BUTTON: Arreglado para que se vea y sea gigante */}
+      <div className="absolute bottom-24 right-8 z-[60] flex flex-col items-center gap-2">
+        <motion.button
+          onClick={toggleListening}
+          className={cn(
+            "w-24 h-24 rounded-full border-4 border-black shadow-[10px_10px_0_0_#000] flex items-center justify-center transition-all active:translate-y-1 active:shadow-none relative group",
+            status === 'listening' ? "bg-rose-500 animate-pulse" :
+              status === 'processing' ? "bg-amber-400" :
+                "bg-cyan-400 hover:bg-cyan-300"
+          )}
+          initial={{ scale: 0, rotate: -20 }}
+          animate={{ scale: 1, rotate: 0 }}
+          whileHover={{ scale: 1.1, rotate: 5 }}
+          whileTap={{ scale: 0.9 }}
+        >
+          {/* Animated rings for listening */}
+          {status === 'listening' && (
+            <div className="absolute inset-0 rounded-full border-4 border-rose-400 animate-ping opacity-50" />
+          )}
+
+          {status === 'processing' ? (
+            <div className="w-10 h-10 border-4 border-black border-t-transparent rounded-full animate-spin"></div>
+          ) : (
+            <Mic className={cn("w-12 h-12 text-black transition-transform", status === 'listening' && "scale-110")} />
+          )}
+        </motion.button>
+
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="bg-black text-white text-xs font-black px-4 py-1.5 uppercase tracking-[0.2em] shadow-[4px_4px_0_0_rgba(0,0,0,0.3)] rotate-2 border-2 border-white"
+        >
+          {status === 'listening' ? 'LISTEN!' : status === 'processing' ? 'Thinking...' : 'SPEAK NOW!'}
+        </motion.div>
+      </div>
+    </div>
   );
 };
 
@@ -1157,7 +1128,7 @@ const EnglishTutor_mod = ({ onNavigate }: { onNavigate?: (view: any) => void }) 
 
   const handleGameComplete = useCallback((score: number, coins: number, skillType?: string) => {
     refreshBalance();
-    sfx.playSuccess();
+    sfx.playPop();
     confetti({
       particleCount: 150,
       spread: 100,

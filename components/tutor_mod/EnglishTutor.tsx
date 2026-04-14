@@ -71,6 +71,7 @@ REGLAS DE INTERACCIÓN:
 4. Si el niño comete un error gramatical o de vocabulario, corrígelo amablemente en "correction" en ESPAÑOL.
 5. Las "options" DEBEN ser respuestas lógicas y fáciles de pronunciar.
 6. El español se usa SOLO como apoyo en los campos correspondientes.
+7. REGLA CRÍTICA: NUNCA respondas tus propias preguntas. Haz la pregunta y DETENTE COMPLETAMENTE. Espera a que el niño responda. NO simules una conversación de dos vías.
 `;
 
     const scrollToBottom = useCallback(() => {

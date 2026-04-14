@@ -56,7 +56,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       remedial: 'Entrenamiento Especial',
       mathTutor: 'Centro de Matemáticas',
       research: 'Centro de Investigación',
-      buddyLearn: 'Centro de Idiomas',
+      buddyLearn: 'The Nova Times 📰',
       parentDashboard: 'Panel de Padres',
       notebooks: 'Mis Cuadernos',
       mathLab: 'Lab de Bloques', // NEW
@@ -82,7 +82,7 @@ const Sidebar: React.FC<SidebarProps> = ({
       remedial: 'Special Training',
       mathTutor: 'Math Center',
       research: 'Research Center',
-      buddyLearn: 'Language Center',
+      buddyLearn: 'The Nova Times 📰',
       parentDashboard: 'Parent Panel',
       notebooks: 'My Notebooks',
       mathLab: 'Block Lab', // NEW
@@ -107,7 +107,6 @@ const Sidebar: React.FC<SidebarProps> = ({
     { id: ViewState.FLASHCARDS, label: labels.flashcards, icon: Layers },
     { id: ViewState.BUDDY_LEARN, label: labels.buddyLearn, icon: Globe },
     { id: ViewState.NOTEBOOK_LIBRARY, label: labels.notebooks, icon: BookOpen },
-    { id: ViewState.SPARK_CHAT, label: (labels as any).spark, icon: Mic },
     { id: ViewState.NOVA_BANK, label: (labels as any).novaBank, icon: CreditCard },
     { id: ViewState.PROGRESS, label: labels.progress, icon: UserCheck },
   ];

@@ -1,10 +1,11 @@
 
 import { StepResponse, VisualState } from './types';
+import { GradeLevel } from '@/types/tutor';
 import { AnswerValidator, StateHelper } from './utils';
 import { getCorrectFeedback } from '../../data/feedbackPhrases';
 
 export class FractionTutor {
-    static handleFractions(input: string, prob: any, lang: 'es' | 'en', history: any[], studentName?: string): StepResponse | null {
+    static handleFractions(input: string, prob: any, lang: 'es' | 'en', history: any[], studentName?: string, grade: GradeLevel = 4): StepResponse | null {
         const lastState = StateHelper.getCurrentVisualState(history);
 
         // -- NEW: Route to post-analysis if active --

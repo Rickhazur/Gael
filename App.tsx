@@ -17,15 +17,12 @@ import { PetProvider } from '@/context/PetContext';
 // Components - eagerly loaded (small / always visible)
 import SplashScreen from './components/SplashScreen';
 
-// Components - lazy loaded (only needed after specific navigation)
-import LandingPage from './components/LandingPage';
+// Nova ICFES - New primary app
+import { ICFESApp } from './components/icfes/ICFESApp';
+
+// Legacy Components (kept for admin access)
 import LoginPage from './components/LoginPage';
 const MainLayout = React.lazy(() => import('./components/MainLayout').then(m => ({ default: m.MainLayout })));
-// const ICFESLayout = React.lazy(() => import('./components/icfes/ICFESLayout').then(m => ({ default: m.ICFESLayout })));
-// const ICFESDashboard = React.lazy(() => import('./components/icfes/ICFESDashboard').then(m => ({ default: m.ICFESDashboard })));
-// const ExamSimulator = React.lazy(() => import('./components/icfes/ExamSimulator').then(m => ({ default: m.ExamSimulator })));
-// const IngestQuestions = React.lazy(() => import('./components/icfes/admin/IngestQuestions').then(m => ({ default: m.IngestQuestions })));
-// const ICFESResults = React.lazy(() => import('./components/icfes/ICFESResults').then(m => ({ default: m.ICFESResults })));
 const GoogleClassroomSync = React.lazy(() => import('./components/GoogleClassroom/GoogleClassroomSync').then(m => ({ default: m.GoogleClassroomSync })));
 const AvatarSelection = React.lazy(() => import('./components/Gamification/AvatarSelection').then(m => ({ default: m.AvatarSelection })));
 
@@ -119,6 +116,24 @@ const App: React.FC = () => {  // Authentication State
       const isAdminUser = userEmail === 'rickhazur@gmail.com';
       if (isAdminUser) {
         role = 'ADMIN';
+        // Force Mateo avatar for Admin to allow testing all accessories
+        localStorage.setItem('nova_avatar_id', 'g5_boy_2');
+        localStorage.setItem('nova_student_grade', '0'); // Universal
+
+        // Grant massive coins and XP for testing the whole store
+        const adminGamification = {
+          coins: 999999,
+          savingsBalance: 999999,
+          xp: 15000,
+          level: 10,
+          novaCoins: 999999
+        };
+        localStorage.setItem('nova_gamification', JSON.stringify(adminGamification));
+        localStorage.setItem('nova_math_gamification', JSON.stringify(adminGamification));
+
+        // Signal contexts to re-sync if needed
+        window.dispatchEvent(new CustomEvent('nova_gamification_updated'));
+        window.dispatchEvent(new CustomEvent('nova_avatar_sync'));
       }
 
       try {
@@ -499,25 +514,8 @@ const App: React.FC = () => {  // Authentication State
 
                           {isLoading ? (
                             <SplashScreen />
-                          ) : !isAuthenticated && !showLogin ? (
-                            <LandingPage
-                              onLogin={(mode) => {
-                                setShowLogin(true);
-                                setLoginMode(mode);
-                              }}
-                            />
-                          ) : !isAuthenticated && showLogin ? (
-                            <LoginPage
-                              onLogin={handleLogin}
-                              onBack={() => setShowLogin(false)}
-                              defaultMode={loginMode}
-                            />
-                          ) : isAuthenticated && userRole === 'STUDENT' && showAvatarOnboarding ? (
-                            <AvatarSelection
-                              initialGrade={gradeLevel}
-                              onComplete={() => setShowAvatarOnboarding(false)}
-                            />
-                          ) : (
+                          ) : isAuthenticated && userRole === 'ADMIN' ? (
+                            /* Admin users get the legacy MainLayout */
                             <MainLayout
                               isAuthenticated={isAuthenticated}
                               userRole={userRole}
@@ -530,6 +528,25 @@ const App: React.FC = () => {  // Authentication State
                               setMustChangePassword={setMustChangePassword}
                               gradeLevel={gradeLevel}
                               setGradeLevel={setGradeLevel}
+                            />
+                          ) : showLogin ? (
+                            /* Legacy login (admin access) */
+                            <LoginPage
+                              onLogin={handleLogin}
+                              onBack={() => setShowLogin(false)}
+                              defaultMode={loginMode}
+                            />
+                          ) : (
+                            /* Primary Experience: Nova ICFES */
+                            <ICFESApp
+                              isAuthenticated={isAuthenticated}
+                              userName={userName}
+                              userId={userId}
+                              onLogin={(mode: string) => {
+                                setShowLogin(true);
+                                setLoginMode(mode as 'STUDENT' | 'ADMIN' | 'PARENT');
+                              }}
+                              onLogout={handleLogout}
                             />
                           )}
                         </>

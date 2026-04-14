@@ -61,27 +61,34 @@ export async function callGeminiSocratic(
         contents.push({ role: 'user', parts: finalParts });
     }
 
-    // LISTA DE MODELOS A INTENTAR (v1beta endpoint)
-    const MODELS = ["gemini-2.0-flash", "gemini-2.0-flash-lite", "gemini-1.5-flash", "gemini-1.5-flash-8b"];
+    // [FIX] Lista de modelos más robusta y con nombres garantizados
+    const MODELS = [
+        { name: "gemini-2.0-flash", api: "v1beta" },
+        { name: "gemini-1.5-flash-latest", api: "v1beta" },
+        { name: "gemini-1.5-flash", api: "v1" }
+    ];
 
-    // Apply system prompt once before retries to avoid stacking on each model attempt
-    if (systemPrompt && contents.length > 0) {
-        contents[0].parts[0].text = `INSTRUCCIONES: ${systemPrompt}\n\nMENSAJE: ${contents[0].parts[0].text}`;
-    }
+    async function tryGemini(modelName: string, apiVersion: string) {
+        const url = `https://generativelanguage.googleapis.com/${apiVersion}/models/${modelName}:generateContent?key=${API_KEY}`;
 
-    async function tryGemini(modelName: string) {
-        // v1beta soporta response_mime_type para JSON mode
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${API_KEY}`;
-
-        console.log(`📡 [Gemini] Intentando modelo: ${modelName}...`);
+        console.log(`📡 [Gemini] Intentando modelo: ${modelName} (${apiVersion})...`);
 
         const body: any = {
             contents,
+            // Solo usar system_instruction en v1beta (donde es nativo)
+            system_instruction: apiVersion === 'v1beta' && systemPrompt ? {
+                parts: [{ text: systemPrompt }]
+            } : undefined,
             generationConfig: {
                 temperature: 0.7,
                 max_output_tokens: 2048,
             }
         };
+
+        // Si es v1, pegamos el prompt al inicio si no se usó system_instruction
+        if (apiVersion === 'v1' && systemPrompt && body.contents.length > 0) {
+            body.contents[0].parts[0].text = `INSTRUCCIONES: ${systemPrompt}\n\nMENSAJE: ${body.contents[0].parts[0].text}`;
+        }
 
         if (jsonMode) {
             body.generationConfig.response_mime_type = "application/json";
@@ -105,18 +112,20 @@ export async function callGeminiSocratic(
     return withTimeoutAndRetry(
         async () => {
             let lastErr: any;
-            for (const model of MODELS) {
+            for (const { name, api } of MODELS) {
                 try {
-                    const textResult = await tryGemini(model);
+                    const textResult = await tryGemini(name, api);
                     if (jsonMode) {
-                        const parsed = safeParseJSON(textResult, `Gemini-${model}`);
-                        if (parsed === null) throw new Error(`JSON inválido de ${model}`);
+                        const parsed = safeParseJSON(textResult, `Gemini-${name}`);
+                        if (parsed === null) throw new Error(`JSON inválido de ${name}`);
                         return parsed;
                     }
                     return textResult;
-                } catch (e) {
-                    console.warn(`⚠️ Falló ${model}, intentando siguiente...`);
+                } catch (e: any) {
+                    console.warn(`⚠️ Falló ${name} (${api}): ${e.message}`);
                     lastErr = e;
+                    // Si es una cuota (429), no saltamos al siguiente modelo inmediatamente 
+                    // porque probablemente todos fallarán, pero permitimos el reintento de withTimeoutAndRetry
                 }
             }
             throw lastErr;

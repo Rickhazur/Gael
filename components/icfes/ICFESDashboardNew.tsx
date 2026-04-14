@@ -1,0 +1,327 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Play, Clock, BarChart3, ChevronRight, Flame, BookOpen, Target,
+  TrendingUp, Award, Zap, Calendar, ArrowRight
+} from 'lucide-react';
+import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS, IcfesCategory } from './services/IcfesQuestionBank';
+
+interface UserProgress {
+  streak: number;
+  xp: number;
+  level: number;
+  totalCapsules: number;
+  totalSimulations: number;
+  estimatedScore: number;
+  areaScores: Record<IcfesCategory, number>;
+  lastActivity?: string;
+  weeklyGoal: number;
+  weeklyCompleted: number;
+}
+
+interface ICFESDashboardNewProps {
+  userName: string;
+  onStartSimulation: (type: 'quick' | 'area' | 'full', category?: IcfesCategory) => void;
+  onStartLearning: (category?: IcfesCategory) => void;
+  onStartDiagnostic: () => void;
+  onViewProgress: () => void;
+  onStartQuickClass?: (category?: IcfesCategory) => void;
+  hasDiagnostic: boolean;
+}
+
+const DEFAULT_PROGRESS: UserProgress = {
+  streak: 0,
+  xp: 0,
+  level: 1,
+  totalCapsules: 0,
+  totalSimulations: 0,
+  estimatedScore: 0,
+  areaScores: {
+    LECTURA_CRITICA: 0,
+    MATEMATICAS: 0,
+    SOCIALES: 0,
+    CIENCIAS: 0,
+    INGLES: 0
+  },
+  weeklyGoal: 5,
+  weeklyCompleted: 0
+};
+
+export const ICFESDashboardNew: React.FC<ICFESDashboardNewProps> = ({
+  userName, onStartSimulation, onStartLearning, onStartDiagnostic, onViewProgress, onStartQuickClass, hasDiagnostic
+}) => {
+  const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
+  
+  // Load from localStorage
+  useEffect(() => {
+    const saved = localStorage.getItem('nova_icfes_progress');
+    if (saved) {
+      try { setProgress({ ...DEFAULT_PROGRESS, ...JSON.parse(saved) }); } catch {}
+    }
+  }, []);
+
+  const firstName = userName?.split(' ')[0] || 'Estudiante';
+  const timeOfDay = new Date().getHours();
+  const greeting = timeOfDay < 12 ? 'Buenos días' : timeOfDay < 18 ? 'Buenas tardes' : 'Buenas noches';
+  const scorePercent = Math.min(100, (progress.estimatedScore / 500) * 100);
+  const passThreshold = (30 / 500) * 100; // 30 points out of 500 = 6%
+
+  const areas: IcfesCategory[] = ['LECTURA_CRITICA', 'MATEMATICAS', 'SOCIALES', 'CIENCIAS', 'INGLES'];
+
+  return (
+    <div className="min-h-screen bg-[#FAFAF8] pb-24" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+      {/* ─── Header ─── */}
+      <div className="bg-white border-b border-slate-100 px-4 sm:px-6 py-5">
+        <div className="max-w-5xl mx-auto flex items-center justify-between">
+          <div>
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-800">
+              {greeting}, <span className="text-[#1B4D3E]">{firstName}</span> 👋
+            </h1>
+            <p className="text-sm text-slate-500 mt-1">
+              {progress.streak > 0 
+                ? `Llevas ${progress.streak} ${progress.streak === 1 ? 'día' : 'días'} seguidos. ¡Sigue así!` 
+                : 'Tu ruta al bachillerato empieza aquí.'}
+            </p>
+          </div>
+          {progress.streak > 0 && (
+            <div className="nova-streak animate-streak-glow">
+              <Flame className="w-4 h-4" />
+              <span>{progress.streak}</span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 pt-6 space-y-6">
+
+        {/* ─── Diagnostic CTA (if not done) ─── */}
+        {!hasDiagnostic && (
+          <div className="bg-gradient-to-r from-violet-600 to-indigo-700 rounded-2xl p-6 sm:p-8 text-white shadow-lg animate-fade-in-up" id="diagnostic-cta">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-2 bg-white/15 rounded-lg backdrop-blur-sm">
+                    <Target className="w-6 h-6 text-white" />
+                  </div>
+                  <span className="bg-yellow-400 text-yellow-900 text-xs font-bold px-2 py-1 rounded">PRIMER PASO</span>
+                </div>
+                <h2 className="text-xl font-bold mb-2">Descubre tu nivel actual</h2>
+                <p className="text-violet-200 text-sm">
+                  15 preguntas rápidas para conocer en qué eres fuerte y qué puedes mejorar. Sin cronómetro. Sin presión.
+                </p>
+              </div>
+              <button 
+                onClick={onStartDiagnostic}
+                className="nova-btn bg-white text-violet-700 font-bold hover:bg-violet-50 !px-8 rounded-xl shrink-0"
+                id="btn-start-diagnostic"
+              >
+                Hacer Mi Diagnóstico
+                <ChevronRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ─── Quick Actions ─── */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up stagger-1">
+          {/* Quick Simulation */}
+          <button
+            onClick={() => onStartSimulation('quick')}
+            className="nova-card p-5 text-left hover:scale-[1.02] transition-all group"
+            id="btn-quick-sim"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-gradient-to-br from-[#1B4D3E] to-[#2D7A5F] rounded-xl text-white shadow-md">
+                <Play className="w-6 h-6" />
+              </div>
+              <span className="bg-green-100 text-green-700 text-xs font-bold px-2 py-1 rounded">Recomendado</span>
+            </div>
+            <h3 className="font-bold text-slate-800 text-lg mb-1">Simulacro Rápido</h3>
+            <p className="text-sm text-slate-500">20 preguntas · ~30 min · 5 áreas</p>
+            <div className="flex items-center gap-1 mt-3 text-sm font-semibold text-[#1B4D3E] group-hover:gap-2 transition-all">
+              Empezar <ArrowRight className="w-4 h-4" />
+            </div>
+          </button>
+
+          {/* Quick ICFES Class — Socratic */}
+          <button
+            onClick={() => onStartQuickClass?.()}
+            className="nova-card p-5 text-left hover:scale-[1.02] transition-all group relative overflow-hidden"
+            id="btn-quick-class"
+          >
+            <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-bl from-violet-100 to-transparent rounded-bl-full opacity-60" />
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-gradient-to-br from-violet-500 to-purple-600 rounded-xl text-white shadow-md">
+                <Zap className="w-6 h-6" />
+              </div>
+              <span className="bg-violet-100 text-violet-700 text-xs font-bold px-2 py-1 rounded animate-pulse">NUEVO</span>
+            </div>
+            <h3 className="font-bold text-slate-800 text-lg mb-1">Clase Rápida ICFES 🎤</h3>
+            <p className="text-sm text-slate-500">Entrena con la Profe Lina en vivo</p>
+            <div className="flex items-center gap-1 mt-3 text-sm font-semibold text-violet-600 group-hover:gap-2 transition-all">
+              Empezar <ArrowRight className="w-4 h-4" />
+            </div>
+          </button>
+
+          {/* Continue Learning */}
+          <button
+            onClick={() => onStartLearning()}
+            className="nova-card p-5 text-left hover:scale-[1.02] transition-all group"
+            id="btn-continue-learning"
+          >
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-3 bg-gradient-to-br from-[#3B82F6] to-blue-600 rounded-xl text-white shadow-md">
+                <BookOpen className="w-6 h-6" />
+              </div>
+            </div>
+            <h3 className="font-bold text-slate-800 text-lg mb-1">Seguir Estudiando</h3>
+            <p className="text-sm text-slate-500">Continúa tu ruta de aprendizaje</p>
+            <div className="flex items-center gap-1 mt-3 text-sm font-semibold text-blue-600 group-hover:gap-2 transition-all">
+              Continuar <ArrowRight className="w-4 h-4" />
+            </div>
+          </button>
+
+          {/* Score Prediction */}
+          <div className="nova-card p-5" id="score-card">
+            <div className="flex items-center gap-2 mb-3">
+              <TrendingUp className="w-5 h-5 text-[#F5A623]" />
+              <span className="font-bold text-slate-700 text-sm">Tu Puntaje Estimado</span>
+            </div>
+            <div className="flex items-end gap-2 mb-3">
+              <span className="text-4xl font-extrabold text-slate-800">{progress.estimatedScore || '—'}</span>
+              <span className="text-slate-400 text-sm mb-1">/500</span>
+            </div>
+            <div className="nova-progress mb-2">
+              <div 
+                className="nova-progress-bar bg-gradient-to-r from-[#1B4D3E] to-[#2D7A5F]" 
+                style={{ width: `${scorePercent}%` }}
+              />
+            </div>
+            <p className="text-xs text-slate-500">
+              {progress.estimatedScore >= 30 
+                ? '✅ Ya superas el puntaje mínimo de aprobación' 
+                : `Meta: 30 puntos para aprobar`}
+            </p>
+          </div>
+        </div>
+
+        {/* ─── Progress by Area ─── */}
+        <div className="nova-card p-6 animate-fade-in-up stagger-2" id="area-progress">
+          <div className="flex items-center justify-between mb-5">
+            <h2 className="font-bold text-slate-800 text-lg flex items-center gap-2">
+              <BarChart3 className="w-5 h-5 text-slate-400" />
+              Progreso por Área
+            </h2>
+            <button 
+              onClick={onViewProgress}
+              className="text-sm font-semibold text-[#1B4D3E] hover:underline"
+            >
+              Ver detalle →
+            </button>
+          </div>
+          <div className="space-y-4">
+            {areas.map((area) => {
+              const score = progress.areaScores[area] || 0;
+              const color = CATEGORY_COLORS[area];
+              return (
+                <button
+                  key={area}
+                  onClick={() => onStartLearning(area)}
+                  className="w-full flex items-center gap-4 p-3 rounded-xl hover:bg-slate-50 transition-colors text-left group"
+                >
+                  <span className="text-xl">{CATEGORY_ICONS[area]}</span>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex justify-between items-center mb-1.5">
+                      <span className="text-sm font-semibold text-slate-700 truncate">{CATEGORY_LABELS[area]}</span>
+                      <span className="text-sm font-bold" style={{ color }}>{score}%</span>
+                    </div>
+                    <div className="nova-progress">
+                      <div 
+                        className="nova-progress-bar transition-all duration-700" 
+                        style={{ width: `${score}%`, backgroundColor: color }}
+                      />
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 text-slate-300 group-hover:text-slate-500 transition-colors shrink-0" />
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ─── Practice by Area ─── */}
+        <div className="animate-fade-in-up stagger-3">
+          <h2 className="font-bold text-slate-800 text-lg mb-4 flex items-center gap-2">
+            <Zap className="w-5 h-5 text-[#F5A623]" />
+            Practica por Área
+          </h2>
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-3">
+            {areas.map((area) => (
+              <button
+                key={area}
+                onClick={() => onStartSimulation('area', area)}
+                className="nova-card p-4 text-center hover:scale-105 transition-all"
+                id={`btn-area-${area.toLowerCase()}`}
+              >
+                <span className="text-3xl mb-2 block">{CATEGORY_ICONS[area]}</span>
+                <span className="text-xs font-semibold text-slate-600 block leading-tight">
+                  {CATEGORY_LABELS[area].split(' ')[0]}
+                </span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* ─── Weekly Goal ─── */}
+        <div className="nova-card p-6 animate-fade-in-up stagger-4" id="weekly-goal">
+          <div className="flex items-center justify-between mb-3">
+            <h2 className="font-bold text-slate-800 flex items-center gap-2">
+              <Calendar className="w-5 h-5 text-slate-400" />
+              Meta Semanal
+            </h2>
+            <span className="text-sm text-slate-500">{progress.weeklyCompleted}/{progress.weeklyGoal} cápsulas</span>
+          </div>
+          <div className="nova-progress h-3 mb-3">
+            <div 
+              className="nova-progress-bar bg-gradient-to-r from-[#F5A623] to-orange-500"
+              style={{ width: `${Math.min(100, (progress.weeklyCompleted / progress.weeklyGoal) * 100)}%` }}
+            />
+          </div>
+          <p className="text-xs text-slate-500">
+            {progress.weeklyCompleted >= progress.weeklyGoal 
+              ? '🎉 ¡Meta cumplida esta semana! Sigue así.' 
+              : `Te faltan ${progress.weeklyGoal - progress.weeklyCompleted} cápsulas para cumplir tu meta.`}
+          </p>
+        </div>
+
+        {/* ─── Recent Activity ─── */}
+        <div className="nova-card p-6 animate-fade-in-up stagger-5" id="recent-activity">
+          <h2 className="font-bold text-slate-800 mb-4 flex items-center gap-2">
+            <Clock className="w-5 h-5 text-slate-400" />
+            Actividad Reciente
+          </h2>
+          {progress.totalSimulations === 0 && progress.totalCapsules === 0 ? (
+            <div className="text-center py-8 text-slate-400">
+              <BookOpen className="w-10 h-10 mx-auto mb-3 opacity-50" />
+              <p className="text-sm">Aquí verás tu historial de estudio.</p>
+              <p className="text-xs mt-1">¡Empieza con el diagnóstico para ver tu primera actividad!</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <div className="flex items-center gap-3 p-3 bg-slate-50 rounded-xl">
+                <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                  <Award className="w-4 h-4 text-green-600" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-slate-700">Diagnóstico completado</p>
+                  <p className="text-xs text-slate-500">Tu ruta personalizada está lista</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default ICFESDashboardNew;

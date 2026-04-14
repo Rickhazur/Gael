@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ViewState, Language } from '@/types';
-import { Globe, Languages, Globe2, Gamepad2, ArrowLeft, Clock, UtensilsCrossed, Ruler, Sparkles, Star as StarIcon, Zap, Layout, BookOpen, Briefcase, CreditCard } from 'lucide-react';
+import { Globe, Languages, Globe2, Gamepad2, ArrowLeft, Clock, UtensilsCrossed, Ruler, Sparkles, Star as StarIcon, Zap, Layout, BookOpen, Briefcase, CreditCard, Mic } from 'lucide-react';
 
 
 import { useNovaSound } from '@/hooks/useNovaSound';
@@ -34,7 +34,7 @@ export const LanguageCenterHub: React.FC<LanguageCenterHubProps> = ({ onNavigate
     }
     return 0;
   });
-  const [showEnglishOptions, setShowEnglishOptions] = useState(false);
+  const [showEnglishOptions, setShowEnglishOptions] = useState(true);
   const [showNanoBananaCity, setShowNanoBananaCity] = useState(false);
   const [showAdventureRadio, setShowAdventureRadio] = useState(false);
   const [showNeonDiner, setShowNeonDiner] = useState(false);
@@ -221,9 +221,9 @@ export const LanguageCenterHub: React.FC<LanguageCenterHubProps> = ({ onNavigate
                   <div className="w-[800px] h-[1400px] bg-[#020617] relative shadow-[0_0_400px_rgba(59,130,246,0.5)] flex flex-col items-center pt-56 overflow-hidden border-t-[12px] border-cyan-400/80 rounded-t-[5rem]">
                     {/* COLORFUL NEON SIGN */}
                     <div className="absolute top-10 flex flex-col items-center gap-2 animate-[neon-flicker_4s_infinite] pr-4">
-                      <span className="text-xl font-black text-cyan-300 tracking-[0.8em] uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">CENTRO DE</span>
+                      <span className="text-xl font-black text-cyan-300 tracking-[0.8em] uppercase drop-shadow-[0_0_8px_rgba(34,211,238,0.8)]">WELCOME TO</span>
                       <div className="px-10 py-3 bg-gradient-to-r from-pink-500 via-purple-600 to-cyan-500 rounded-full shadow-[0_0_40px_rgba(236,72,153,0.6)] border-2 border-white/20">
-                        <span className="text-4xl font-black text-white tracking-[0.2em] drop-shadow-md">IDIOMAS</span>
+                        <span className="text-4xl font-black text-white tracking-[0.2em] drop-shadow-md">THE NOVA TIMES</span>
                       </div>
                     </div>
 
@@ -263,10 +263,10 @@ export const LanguageCenterHub: React.FC<LanguageCenterHubProps> = ({ onNavigate
                           transition={{ delay: 0.8 }}
                           className="text-[16px] font-black tracking-[1em] text-cyan-400 mb-6 uppercase drop-shadow-[0_0_10px_rgba(34,211,238,0.8)]"
                         >
-                          Linguistic Academy
+                          THE NOVA TIMES
                         </motion.div>
                         <h2 className="text-8xl font-black text-white tracking-tighter leading-none mb-8 drop-shadow-[0_0_30px_rgba(255,255,255,0.4)]">
-                          NOVA SCHOLA
+                          ENGLISH EDITION
                         </h2>
                         <div className="flex items-center justify-center gap-6">
                           <div className="w-4 h-4 bg-cyan-400 rounded-full animate-ping" />
@@ -309,7 +309,7 @@ export const LanguageCenterHub: React.FC<LanguageCenterHubProps> = ({ onNavigate
                 <div className="w-8 h-8 rounded-xl bg-slate-50 flex items-center justify-center group-hover:bg-blue-500 transition-colors">
                   <ArrowLeft size={16} />
                 </div>
-                {isSpanish ? 'Regresar' : 'Return Home'}
+                Return to Newsroom
               </button>
 
               <div className="flex gap-4">
@@ -333,165 +333,78 @@ export const LanguageCenterHub: React.FC<LanguageCenterHubProps> = ({ onNavigate
             </motion.div>
 
             <h1 className="text-8xl font-black text-slate-900 tracking-tighter mb-6 relative">
-              {showEnglishOptions ? (isSpanish ? 'Domo de Inglés' : 'English Dome') : (isSpanish ? 'Centro de Idiomas' : 'Language Center')}
+              The Nova Times 📰
               <motion.div animate={{ rotate: 360 }} transition={{ duration: 10, repeat: Infinity, ease: 'linear' }} className="absolute -top-10 -right-12 opacity-40">
                 <Sparkles size={60} className="text-blue-500" />
               </motion.div>
             </h1>
 
             <p className="text-2xl text-slate-400 font-medium max-w-2xl mx-auto leading-relaxed">
-              {showEnglishOptions
-                ? (isSpanish ? 'Bienvenido a la academia de alta tecnología. Selecciona tu simulación de aprendizaje.' : 'Welcome to the high-tech academy. Select your learning simulation.')
-                : (isSpanish ? 'Domina nuevas lenguas explorando mundos diseñados para mentes jóvenes.' : 'Master new tongues by exploring worlds designed for young minds.')}
+              Welcome to the high-tech newsroom. Select your reporting assignment.
             </p>
           </motion.div>
 
-          {!showEnglishOptions ? (
-            /* MAIN LANGUAGE SELECTOR */
-            <div className="grid md:grid-cols-2 gap-12 w-full max-w-5xl">
+          {/* THE NOVA TIMES - ENGLISH SUBSYSTEMS SELECTOR */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl">
+            {[
+              { id: ViewState.BUDDY_LEARN, title: 'Chat Simulator', desc: 'Face-to-face with Ollie', icon: Globe, color: 'from-emerald-500 to-teal-700', shadow: 'shadow-emerald-500/20', emoji: '🤖' },
+              { id: ViewState.NANO_BANANA_CITY, title: 'City Architect', desc: 'Design & nomenclature', icon: Building2, color: 'from-blue-500 to-indigo-700', shadow: 'shadow-blue-500/20', emoji: '🏗️' },
+              { id: ViewState.NEON_DINER, title: 'Career Academy', desc: 'Simulate high-tech professions', icon: Briefcase, color: 'from-blue-600 to-indigo-800', shadow: 'shadow-blue-500/20', emoji: '🍔' },
+              { id: ViewState.ADVENTURE_RADIO, title: 'Global Scout', desc: 'Audio navigation mission', icon: Globe2, color: 'from-indigo-500 to-blue-700', shadow: 'shadow-indigo-500/20', emoji: '🧭' },
+              { id: ViewState.TIME_MACHINE, title: 'Chronos Lab', desc: 'Tense & grammar control', icon: Clock, color: 'from-purple-500 to-violet-700', shadow: 'shadow-purple-500/20', emoji: '⏳' },
+              { id: ViewState.SENTENCE_BUILDER, title: 'Sentence Architect', desc: 'Blueprint construction', icon: Layout, color: 'from-cyan-500 to-blue-700', shadow: 'shadow-cyan-500/20', emoji: '📐' },
+              { id: ViewState.STORY_TELLER, title: 'Story Legend', desc: 'Cinematic world-weaving', icon: BookOpen, color: 'from-amber-500 to-orange-700', shadow: 'shadow-amber-500/20', emoji: '📖' },
+              { id: ViewState.CITY_INSPECTOR, title: 'Analysis Hub', desc: 'Comparative inspection', icon: Ruler, color: 'from-slate-700 to-slate-900', shadow: 'shadow-slate-500/20', emoji: '🔍' },
+              { id: ViewState.SPARK_CHAT, title: 'Call Rachelle', desc: 'Voice practice session', icon: Mic, color: 'from-rose-500 to-pink-700', shadow: 'shadow-rose-500/20', emoji: '📞' }
+            ].map((item, idx) => (
               <motion.button
-                whileHover={{ y: -25, scale: 1.05, rotateY: 5 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleSelectLanguage(ViewState.BUDDY_LEARN)}
-                className="group relative h-[550px] rounded-[5rem] overflow-hidden border-4 border-white shadow-[0_40px_100px_rgba(59,130,246,0.3)] flex flex-col items-center justify-center p-14 bg-gradient-to-br from-blue-600 via-indigo-700 to-blue-900 transition-all duration-500 hover:border-cyan-300"
-              >
-                {/* Animated Background Glow */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(34,211,238,0.4)_0%,_transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-
-                <div className="relative z-10 flex flex-col items-center">
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-                    className="w-48 h-48 bg-white/20 backdrop-blur-xl rounded-[4rem] flex items-center justify-center mb-10 shadow-2xl border border-white/40 group-hover:bg-cyan-400 group-hover:border-white transition-all duration-500"
-                  >
-                    <Globe className="w-28 h-28 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
-                  </motion.div>
-                  <h2 className="text-8xl font-black text-white mb-4 tracking-tighter drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)]">ENGLISH</h2>
-                  <p className="text-cyan-100 text-center text-xl max-w-[340px] font-bold leading-relaxed drop-shadow-md">
-                    {isSpanish ? '¡Despega hacia el futuro con Ollie y sus misiones!' : 'Blast off into the future with Ollie and his missions!'}
-                  </p>
-                  <motion.div
-                    whileHover={{ scale: 1.1, boxShadow: "0 0 30px rgba(34,211,238,0.8)" }}
-                    className="mt-14 flex items-center gap-4 px-14 py-6 bg-white text-blue-700 rounded-[2.5rem] font-extrabold tracking-[0.2em] uppercase text-sm shadow-2xl group-hover:bg-cyan-400 group-hover:text-white transition-all"
-                  >
-                    {isSpanish ? 'INICIAR VIAJE' : 'START JOURNEY'} <Zap size={20} className="fill-current" />
-                  </motion.div>
-                </div>
-              </motion.button>
-
-              <motion.button
-                whileHover={{ y: -25, scale: 1.05, rotateY: -5 }}
-                whileTap={{ scale: 0.98 }}
-                onClick={() => handleSelectLanguage(ViewState.SPANISH_TUTOR)}
-                className="group relative h-[550px] rounded-[5rem] overflow-hidden border-4 border-white shadow-[0_40px_100px_rgba(236,72,153,0.3)] flex flex-col items-center justify-center p-14 bg-gradient-to-br from-pink-600 via-rose-700 to-purple-800 transition-all duration-500 hover:border-pink-300"
-              >
-                {/* Animated Background Glow */}
-                <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,_rgba(251,113,133,0.4)_0%,_transparent_70%)] opacity-0 group-hover:opacity-100 transition-opacity duration-700" />
-                <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-
-                <div className="relative z-10 flex flex-col items-center">
-                  <motion.div
-                    animate={{ y: [0, -10, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-                    className="w-48 h-48 bg-white/20 backdrop-blur-xl rounded-[4rem] flex items-center justify-center mb-10 shadow-2xl border border-white/40 group-hover:bg-rose-400 group-hover:border-white transition-all duration-500"
-                  >
-                    <Languages className="w-28 h-28 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.5)]" />
-                  </motion.div>
-                  <h2 className="text-8xl font-black text-white mb-4 tracking-tighter drop-shadow-[0_10px_30px_rgba(0,0,0,0.3)]">ESPAÑOL</h2>
-                  <p className="text-pink-100 text-center text-xl max-w-[340px] font-bold leading-relaxed drop-shadow-md">
-                    {isSpanish ? 'Domina nuestra lengua con retos espectaculares.' : 'Master our language with spectacular challenges.'}
-                  </p>
-                  <motion.div
-                    whileHover={{ scale: 1.1, boxShadow: "0 0 30px rgba(251,113,133,0.8)" }}
-                    className="mt-14 flex items-center gap-4 px-14 py-6 bg-white text-rose-700 rounded-[2.5rem] font-extrabold tracking-[0.2em] uppercase text-sm shadow-2xl group-hover:bg-rose-500 group-hover:text-white transition-all"
-                  >
-                    {isSpanish ? 'INICIAR VIAJE' : 'START JOURNEY'} <Zap size={20} className="fill-current" />
-                  </motion.div>
-                </div>
-              </motion.button>
-            </div>
-          ) : !isAnyGameActive && (
-            /* ENGLISH SUBSYSTEMS SELECTOR */
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 w-full max-w-7xl">
-              {[
-                { id: ViewState.BUDDY_LEARN, title: 'Chat Simulator', desc: 'Face-to-face with Ollie', icon: Globe, color: 'from-emerald-500 to-teal-700', shadow: 'shadow-emerald-500/20', emoji: '🤖' },
-                { id: ViewState.NANO_BANANA_CITY, title: 'City Architect', desc: 'Design & nomenclature', icon: Building2, color: 'from-blue-500 to-indigo-700', shadow: 'shadow-blue-500/20', emoji: '🏗️' },
-                { id: ViewState.NEON_DINER, title: 'Career Academy', desc: 'Simulate high-tech professions', icon: Briefcase, color: 'from-blue-600 to-indigo-800', shadow: 'shadow-blue-500/20', emoji: '🍔' },
-                { id: ViewState.ADVENTURE_RADIO, title: 'Global Scout', desc: 'Audio navigation mission', icon: Globe2, color: 'from-indigo-500 to-blue-700', shadow: 'shadow-indigo-500/20', emoji: '🧭' },
-                { id: ViewState.TIME_MACHINE, title: 'Chronos Lab', desc: 'Tense & grammar control', icon: Clock, color: 'from-purple-500 to-violet-700', shadow: 'shadow-purple-500/20', emoji: '⏳' },
-                { id: ViewState.SENTENCE_BUILDER, title: 'Sentence Architect', desc: 'Blueprint construction', icon: Layout, color: 'from-cyan-500 to-blue-700', shadow: 'shadow-cyan-500/20', emoji: '📐' },
-                { id: ViewState.STORY_TELLER, title: 'Story Legend', desc: 'Cinematic world-weaving', icon: BookOpen, color: 'from-amber-500 to-orange-700', shadow: 'shadow-amber-500/20', emoji: '📖' },
-                { id: ViewState.CITY_INSPECTOR, title: 'Analysis Hub', desc: 'Comparative inspection', icon: Ruler, color: 'from-slate-700 to-slate-900', shadow: 'shadow-slate-500/20', emoji: '🔍' }
-              ].map((item, idx) => (
-                <motion.button
-                  key={idx}
-                  initial={{ opacity: 0, y: 30 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: idx * 0.05 }}
-                  whileHover={{ y: -20, scale: item.id === ViewState.NOVA_BANK ? 1.05 : 1.02 }}
-                  onClick={() => handleEnglishOption(item.id)}
-                  className={`group relative border-4 border-white/30 shadow-2xl ${item.shadow} rounded-[4rem] p-12 flex flex-col items-center text-center transition-all hover:border-white hover:shadow-white/20 overflow-hidden
-                    ${item.id === ViewState.NOVA_BANK
-                      ? 'bg-gradient-to-br from-blue-500 via-indigo-600 to-sky-400 border-yellow-300/50 shadow-[0_0_50px_rgba(59,130,246,0.2)]'
-                      : `bg-gradient-to-br ${item.color}`}
+                key={idx}
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: idx * 0.05 }}
+                whileHover={{ y: -20, scale: 1.02 }}
+                onClick={() => handleEnglishOption(item.id)}
+                className={`group relative border-4 border-white/30 shadow-2xl ${item.shadow} rounded-[4rem] p-12 flex flex-col items-center text-center transition-all hover:border-white hover:shadow-white/20 overflow-hidden
+                    bg-gradient-to-br ${item.color}
                   `}
+              >
+                {/* Decorative Glow */}
+                <div className={`absolute -top-10 -left-10 w-40 h-40 blur-[50px] rounded-full transition-all group-hover:bg-white/20 bg-white/10`} />
+
+                <div className="absolute top-8 right-10 text-white/50 group-hover:text-white transition-colors uppercase text-[11px] font-black tracking-[0.4em] font-mono">
+                  {`MOD-${idx + 1}`}
+                </div>
+
+                <motion.div
+                  whileHover={{ rotate: [0, -10, 10, 0] }}
+                  className={`w-28 h-28 backdrop-blur-xl rounded-[3rem] flex items-center justify-center mb-10 shadow-xl border transition-all duration-500 group-hover:scale-110
+                        bg-white/20 border-white/40 group-hover:bg-white/30
+                    `}
                 >
-                  {/* Decorative Glow */}
-                  <div className={`absolute -top-10 -left-10 w-40 h-40 blur-[50px] rounded-full transition-all group-hover:bg-white/20
-                    ${item.id === ViewState.NOVA_BANK ? 'bg-white/20' : 'bg-white/10'}
-                  `} />
+                  {item.emoji ? <span className="text-5xl drop-shadow-lg">{item.emoji}</span> : <item.icon className="w-14 h-14 text-white drop-shadow-lg" />}
+                </motion.div>
 
-                  {item.id === ViewState.NOVA_BANK && (
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 15, repeat: Infinity, ease: 'linear' }}
-                      className="absolute inset-0 opacity-20 pointer-events-none"
-                    >
-                      <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-[radial-gradient(circle_at_center,_white_0%,_transparent_60%)] blur-[100px]" />
-                    </motion.div>
-                  )}
+                <h3 className="text-3xl font-black text-white mb-4 tracking-tighter drop-shadow-xl">
+                  {item.title}
+                </h3>
+                <p className="text-white/90 text-base font-bold leading-relaxed px-4">
+                  {item.desc}
+                </p>
 
-                  <div className="absolute top-8 right-10 text-white/50 group-hover:text-white transition-colors uppercase text-[11px] font-black tracking-[0.4em] font-mono">
-                    {item.id === ViewState.NOVA_BANK ? 'HERO ZONE' : `MOD-${idx + 1}`}
-                  </div>
-
-                  <motion.div
-                    whileHover={{ rotate: [0, -10, 10, 0] }}
-                    className={`w-28 h-28 backdrop-blur-xl rounded-[3rem] flex items-center justify-center mb-10 shadow-xl border transition-all duration-500 group-hover:scale-110
-                        ${item.id === ViewState.NOVA_BANK
-                        ? 'bg-gradient-to-br from-yellow-300 to-amber-500 border-white shadow-yellow-400/40'
-                        : 'bg-white/20 border-white/40 group-hover:bg-white/30'}
+                <motion.div
+                  whileHover={{ scale: 1.05 }}
+                  className={`mt-10 px-10 py-4 rounded-2xl border-2 transition-all flex items-center gap-3 backdrop-blur-md
+                        bg-white/20 border-white/20 text-white hover:bg-white/30
                     `}
-                  >
-                    {item.emoji ? <span className="text-5xl drop-shadow-lg">{item.emoji}</span> : <item.icon className="w-14 h-14 text-white drop-shadow-lg" />}
-                  </motion.div>
-
-                  <h3 className="text-3xl font-black text-white mb-4 tracking-tighter drop-shadow-xl">
-                    {item.title}
-                  </h3>
-                  <p className="text-white/90 text-base font-bold leading-relaxed px-4">
-                    {item.desc}
-                  </p>
-
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    className={`mt-10 px-10 py-4 rounded-2xl border-2 transition-all flex items-center gap-3 backdrop-blur-md
-                        ${item.id === ViewState.NOVA_BANK
-                        ? 'bg-yellow-400/20 border-yellow-400/40 text-yellow-400 group-hover:bg-yellow-400 group-hover:text-black'
-                        : 'bg-white/20 border-white/20 text-white hover:bg-white/30'}
-                    `}
-                  >
-                    <Zap size={18} className="fill-current" />
-                    <span className="text-xs font-black uppercase tracking-[0.2em]">
-                      {item.id === ViewState.NOVA_BANK ? 'ENTER SECURE VAULT' : 'Launch Alpha'}
-                    </span>
-                  </motion.div>
-                </motion.button>
-              ))}
-            </div>
-          )}
-
+                >
+                  <Zap size={18} className="fill-current" />
+                  <span className="text-xs font-black uppercase tracking-[0.2em]">
+                    Launch Alpha
+                  </span>
+                </motion.div>
+              </motion.button>
+            ))}
+          </div>
           {/* LOWER DECORATIONS */}
           <div className="mt-20 flex items-center gap-10 opacity-30">
             <div className="flex flex-col items-center gap-2">

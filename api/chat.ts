@@ -18,12 +18,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     try {
-        if (!process.env.OPENAI_API_KEY) {
-            throw new Error("Missing OPENAI_API_KEY in environment variables.");
+        if (!process.env.DEEPSEEK_API_KEY) {
+            throw new Error("Missing DEEPSEEK_API_KEY in environment variables.");
         }
 
         const openai = new OpenAI({
-            apiKey: process.env.OPENAI_API_KEY,
+            baseURL: 'https://api.deepseek.com',
+            apiKey: process.env.DEEPSEEK_API_KEY,
         });
 
         const { messages, model, tools, tool_choice, response_format, stream } = req.body;
@@ -34,7 +35,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             res.setHeader('Connection', 'keep-alive');
 
             const streamResponse = await openai.chat.completions.create({
-                model: model || "gpt-4o-mini",
+                model: model || "deepseek-chat",
                 messages,
                 tools,
                 tool_choice,
@@ -48,11 +49,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
             res.end();
         } else {
             const completion = await openai.chat.completions.create({
-                model: model || "gpt-4o-mini",
+                model: model || "deepseek-chat",
                 messages,
-                tools,
-                tool_choice,
-                response_format,
+                temperature: 0.75,
+                max_tokens: 600,
             });
 
             return res.status(200).json(completion);
@@ -60,8 +60,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     } catch (err: any) {
         console.error("AI Engine CRITICAL Error:", err);
-        console.error("Request Body was:", JSON.stringify(req.body));
-        console.error("API Key present:", !!process.env.OPENAI_API_KEY);
+        console.error("API Key present:", !!process.env.DEEPSEEK_API_KEY);
         return res.status(500).json({ error: "Error calling AI Engine", details: err.message });
     }
 }

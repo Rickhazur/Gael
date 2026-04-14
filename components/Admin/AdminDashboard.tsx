@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
 import { Users, Clock, TrendingUp, CheckCircle, Lock, Monitor, CreditCard, RefreshCw } from 'lucide-react';
-import { adminGetPendingUsers, adminActivateSubscription } from '../../services/supabase';
+import { adminGetPendingUsers, adminActivateSubscription, adminGetAllProfiles } from '../../services/supabase';
 
 const AdminDashboard: React.FC = () => {
     const [pendingUsers, setPendingUsers] = useState<any[]>([]);
+    const [allUsers, setAllUsers] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
 
     const loadUsers = async () => {
@@ -13,8 +14,12 @@ const AdminDashboard: React.FC = () => {
             setTimeout(() => reject(new Error('timeout')), timeoutMs)
         );
         try {
-            const users = await Promise.race([adminGetPendingUsers(), timeoutPromise]);
-            setPendingUsers(users);
+            const [pending, all] = await Promise.all([
+                Promise.race([adminGetPendingUsers(), timeoutPromise]),
+                adminGetAllProfiles()
+            ]);
+            setPendingUsers(pending);
+            setAllUsers(all);
         } catch (e) {
             console.error('Error cargando solicitudes:', e);
             setPendingUsers([]);
@@ -74,14 +79,16 @@ const AdminDashboard: React.FC = () => {
                     </div>
                 </div>
 
-                {/* Tiempo - Static */}
+                {/* Prueba - Dynamic */}
                 <div className="bg-white p-6 rounded-3xl shadow-sm border border-stone-100 flex items-center gap-4">
                     <div className="p-3 bg-cyan-50 text-cyan-600 rounded-2xl">
                         <Clock className="w-6 h-6" />
                     </div>
                     <div>
-                        <h3 className="text-3xl font-black text-stone-900">12.5h</h3>
-                        <p className="text-xs text-stone-500 font-medium">Tiempo esta semana</p>
+                        <h3 className="text-3xl font-black text-stone-900">
+                            {allUsers.filter(u => u.subscription_status === 'trial').length}
+                        </h3>
+                        <p className="text-xs text-stone-500 font-medium">Estudiantes en Prueba</p>
                     </div>
                 </div>
 
@@ -142,7 +149,37 @@ const AdminDashboard: React.FC = () => {
                 </div>
             </div>
 
-            {/* Payment Management Table - Now Dynamic */}
+            {/* Trial Expiration Section - NEW */}
+            {allUsers.some(u => u.subscription_status === 'trial') && (
+                <div className="bg-amber-50/50 rounded-3xl p-8 border border-amber-100 mb-8 animate-fade-in">
+                    <div className="flex items-center gap-4 mb-6">
+                        <div className="w-10 h-10 rounded-xl bg-amber-100 flex items-center justify-center text-amber-600">
+                            <Clock className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <h3 className="font-bold text-lg text-stone-900">Seguimiento de Periodos de Prueba</h3>
+                            <p className="text-xs text-stone-500">Estudiantes disfrutando de los 7 días de acceso gratuito</p>
+                        </div>
+                    </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {allUsers.filter(u => u.subscription_status === 'trial').map(u => {
+                            const diff = Math.ceil((new Date(u.trial_ends_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                            return (
+                                <div key={u.id} className="bg-white p-4 rounded-2xl border border-amber-50 shadow-sm flex justify-between items-center hover:border-amber-200 transition-colors">
+                                    <div className="overflow-hidden">
+                                        <p className="font-bold text-stone-800 text-sm truncate">{u.name}</p>
+                                        <p className="text-[10px] text-stone-400 truncate">{u.email}</p>
+                                    </div>
+                                    <div className={`px-3 py-1 rounded-lg text-xs font-black shrink-0 ${diff <= 2 ? 'bg-rose-100 text-rose-600 animate-pulse' : 'bg-amber-100 text-amber-600'}`}>
+                                        {diff > 0 ? `${diff}d restantes` : 'Expiró'}
+                                    </div>
+                                </div>
+                            );
+                        })}
+                    </div>
+                </div>
+            )}
+
             <div className="bg-white rounded-3xl p-8 shadow-sm border border-stone-200">
                 <div className="flex items-center justify-between mb-8">
                     <div className="flex items-center gap-4">

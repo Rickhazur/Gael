@@ -22,12 +22,14 @@ export const ACCESSORIES: Accessory[] = [
     { id: 'acc_party_hat', name: 'Gorro de Fiesta', type: 'head', rarity: 'common', cost: 100, conditionType: 'none', icon: '🥳' },
     { id: 'acc_halo', name: 'Chispas Mágicas', type: 'head', rarity: 'epic', cost: 500, conditionType: 'none', icon: '✨' },
     { id: 'acc_bow_fairy', name: 'Lazo de Hada', type: 'head', rarity: 'common', cost: 150, conditionType: 'none', icon: '🎀' },
-    { id: 'acc_nova_cap', name: 'Birrete Nova', type: 'head', rarity: 'epic', cost: 600, conditionType: 'level', conditionValue: 4, icon: '🎓' },
+    { id: 'acc_nova_cap', name: 'Birrete Nova', type: 'head', rarity: 'epic', cost: 600, conditionType: 'none', icon: '🎓' },
     { id: 'acc_tophat', name: 'Sombrero de Copa', type: 'head', rarity: 'rare', cost: 300, conditionType: 'none', icon: '🎩' },
     { id: 'acc_viking', name: 'Casco Valiente', type: 'head', rarity: 'epic', cost: 550, conditionType: 'none', icon: '🪖' },
     { id: 'acc_tiara_princess', name: 'Tiara Real (💎)', type: 'head', rarity: 'legendary', cost: 2000, conditionType: 'mission', conditionValue: 'm_all_done', icon: '👑' },
     { id: 'acc_headphones_gamer', name: 'Audífonos Gamer RGB', type: 'head', rarity: 'epic', cost: 1200, conditionType: 'none', icon: '🎧' },
     { id: 'acc_bunny_ears', name: 'Orejas de Conejito', type: 'head', rarity: 'common', cost: 200, conditionType: 'none', icon: '🐰' },
+    { id: 'acc_hat_cachuca_1', name: 'Gorra Nova Estilo 1', type: 'head', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/avatars/cachucas/Gemini_Generated_Image_7wck857wck857wck.png' },
+    { id: 'acc_hat_cachuca_2', name: 'Gorra Nova Estilo 2', type: 'head', rarity: 'legendary', cost: 1500, conditionType: 'none', icon: '/avatars/cachucas/Gemini_Generated_Image_i80czki80czki80c.png' },
 
     // --- GLASSES (GAFAS) - ELITE & PREMIUM COLLECTION ---
     {
@@ -437,8 +439,8 @@ export const ACCESSORIES: Accessory[] = [
     // --- JUGUETES, SNACKS Y DEPORTES REMOVED ITEMS WITHOUT IMAGES ---
 
     // --- MASCOTAS MÁGICAS ---
-    { id: 'acc_pet_dragon', name: 'Bebé Dragón', type: 'pet', rarity: 'legendary', cost: 2500, conditionType: 'level', conditionValue: 5, icon: '/pets/dragon_baby.png' },
-    { id: 'acc_pet_robot', name: 'Bebé Bot', type: 'pet', rarity: 'legendary', cost: 2500, conditionType: 'level', conditionValue: 5, icon: '/pets/robot_baby.png' },
+    { id: 'acc_pet_dragon', name: 'Bebé Dragón', type: 'pet', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/pets/dragon_baby.png' },
+    { id: 'acc_pet_robot', name: 'Bebé Bot', type: 'pet', rarity: 'legendary', cost: 2500, conditionType: 'none', icon: '/pets/robot_baby.png' },
 
     // --- EFFECTS ---
     // --- EFFECTS REMOVED ITEMS WITHOUT IMAGES ---

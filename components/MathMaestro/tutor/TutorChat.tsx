@@ -548,170 +548,182 @@ const TutorChatComponent = (
         }
     };
 
+    const processingRef = useRef(false);
+
     const internalAnalyzeText = async (text: string, isSystemHidden = false) => {
-        // 💎 INTERCEPT SYSTEM STYLE CHANGE: Handle locally without calling AI to avoid context reset
-        if (text.includes('[SYSTEM: Cambiar estilo a ') || text.includes('[SYSTEM: Change style to ')) {
-            const newStyle: 'latin' | 'us' = text.toLowerCase().includes('latin') ? 'latin' : 'us';
-            const confirmMsg = language === 'es'
-                ? `¡Entendido! Cambiando a estilo **${newStyle === 'latin' ? 'tradicional' : 'americano'}**...`
-                : `Got it! Switching to **${newStyle === 'latin' ? 'traditional' : 'american'}** style...`;
-
-            // 1. Update visual context immediately
-            let lastState: any = null;
-            for (let i = messages.length - 1; i >= 0; i--) {
-                const m = messages[i] as any;
-                if (m.visualState) {
-                    lastState = m.visualState;
-                    break;
-                }
-            }
-
-            // 2. Try to refresh the tutor step with the NEW style
-            // We pass an empty string to trigger "persistence" or "intro" logic which simply restates the current step
-            const algoRef = AlgorithmicTutor.generateResponse("", messages, language, newStyle, studentName, grade);
-
-            if (algoRef) {
-                // If the tutor generated a valid step, show it!
-                await processAIResponse(algoRef);
-            } else {
-                // Fallback: just confirm
-                const visualData = lastState ? { ...lastState, divisionStyle: newStyle } : { divisionStyle: newStyle };
-                await addMessage('nova', confirmMsg, "", null, 'text', visualData);
-            }
+        // 🛡️ RE-ENTRANCY GUARD: Prevent double-processing (mobile touch + click, Enter + form submit, etc.)
+        if (processingRef.current) {
+            console.log("⏳ Already processing, skipping duplicate call");
             return;
         }
+        processingRef.current = true;
+        try {
+            // 💎 INTERCEPT SYSTEM STYLE CHANGE: Handle locally without calling AI to avoid context reset
+            if (text.includes('[SYSTEM: Cambiar estilo a ') || text.includes('[SYSTEM: Change style to ')) {
+                const newStyle: 'latin' | 'us' = text.toLowerCase().includes('latin') ? 'latin' : 'us';
+                const confirmMsg = language === 'es'
+                    ? `¡Entendido! Cambiando a estilo **${newStyle === 'latin' ? 'tradicional' : 'americano'}**...`
+                    : `Got it! Switching to **${newStyle === 'latin' ? 'traditional' : 'american'}** style...`;
 
-        // Normalizar fracciones mal leídas (3443→3/4, 2552→2/5) para que el word problem parser las reconozca
-        const normalizedText = normalizePastedFractions(text.trim());
-        text = normalizedText;
-
-        // 🧩 [BLOQUE ELIMINADO]: No redirigir problemas verbales. El usuario quiere que se resuelvan aquí mismo.
-
-        // 🛡️ PRIORITY CHECK: If we're in guided mode, let AlgorithmicTutor handle it FIRST
-        if (isGuidedMode.current) {
-            console.log("📍 Guided Mode Active - Checking if this is an answer...");
-
-            // Add user message to history BEFORE checking with AlgorithmicTutor
-            const tempHistory = [
-                ...messages,
-                { role: 'user' as const, content: text }
-            ];
-
-            const algoResponse = AlgorithmicTutor.generateResponse(text, tempHistory, language, divisionStyle || undefined, studentName, grade);
-            if (algoResponse) {
-                console.log("✅ AlgorithmicTutor handled the answer:", algoResponse);
-                // Add the user message to the actual messages
-                if (!isSystemHidden) {
-                    setMessages(prev => [...prev, { role: 'user', content: text, type: 'text', timestamp: Date.now() }]);
+                // 1. Update visual context immediately
+                let lastState: any = null;
+                for (let i = messages.length - 1; i >= 0; i--) {
+                    const m = messages[i] as any;
+                    if (m.visualState) {
+                        lastState = m.visualState;
+                        break;
+                    }
                 }
-                await processAIResponse(algoResponse);
+
+                // 2. Try to refresh the tutor step with the NEW style
+                // We pass an empty string to trigger "persistence" or "intro" logic which simply restates the current step
+                const algoRef = AlgorithmicTutor.generateResponse("", messages, language, newStyle, studentName, grade);
+
+                if (algoRef) {
+                    // If the tutor generated a valid step, show it!
+                    await processAIResponse(algoRef);
+                } else {
+                    // Fallback: just confirm
+                    const visualData = lastState ? { ...lastState, divisionStyle: newStyle } : { divisionStyle: newStyle };
+                    await addMessage('nova', confirmMsg, "", null, 'text', visualData);
+                }
                 return;
             }
-            // 🧩 FALLBACK "no sé" / respuestas no reconocidas: si estamos en problema verbal (wpPhase en estado), intentar WordProblemTutor
-            let lastVisualState: any = null;
-            for (let i = tempHistory.length - 1; i >= 0; i--) {
-                const m = tempHistory[i] as { role?: string; visualState?: any };
-                if (m.role === 'assistant' || m.role === 'nova') {
-                    lastVisualState = m.visualState;
-                    break;
-                }
-            }
-            if (lastVisualState?.wpPhase && (lastVisualState?.wpParsed || lastVisualState?.text)) {
-                const prob = lastVisualState.wpParsed || {
-                    type: 'wordProblem' as const,
-                    text: lastVisualState.text || '',
-                    highlights: Array.isArray(lastVisualState.highlights) ? lastVisualState.highlights : [],
-                };
-                const wpResponse = WordProblemTutor.handleWordProblem(text, prob, language, tempHistory, studentName);
-                if (wpResponse?.steps?.length) {
-                    console.log("🧩 WordProblemTutor handled (e.g. 'no sé') in guided mode:", wpResponse);
+
+            // Normalizar fracciones mal leídas (3443→3/4, 2552→2/5) para que el word problem parser las reconozca
+            const normalizedText = normalizePastedFractions(text.trim());
+            text = normalizedText;
+
+            // 🧩 [BLOQUE ELIMINADO]: No redirigir problemas verbales. El usuario quiere que se resuelvan aquí mismo.
+
+            // 🛡️ PRIORITY CHECK: If we're in guided mode, let AlgorithmicTutor handle it FIRST
+            if (isGuidedMode.current) {
+                console.log("📍 Guided Mode Active - Checking if this is an answer...");
+
+                // Add user message to history BEFORE checking with AlgorithmicTutor
+                const tempHistory = [
+                    ...messages,
+                    { role: 'user' as const, content: text }
+                ];
+
+                const algoResponse = AlgorithmicTutor.generateResponse(text, tempHistory, language, divisionStyle || undefined, studentName, grade);
+                if (algoResponse) {
+                    console.log("✅ AlgorithmicTutor handled the answer:", algoResponse);
+                    // Add the user message to the actual messages
                     if (!isSystemHidden) {
                         setMessages(prev => [...prev, { role: 'user', content: text, type: 'text', timestamp: Date.now() }]);
                     }
+                    await processAIResponse(algoResponse);
+                    return;
+                }
+                // 🧩 FALLBACK "no sé" / respuestas no reconocidas: si estamos en problema verbal (wpPhase en estado), intentar WordProblemTutor
+                let lastVisualState: any = null;
+                for (let i = tempHistory.length - 1; i >= 0; i--) {
+                    const m = tempHistory[i] as { role?: string; visualState?: any };
+                    if (m.role === 'assistant' || m.role === 'nova') {
+                        lastVisualState = m.visualState;
+                        break;
+                    }
+                }
+                if (lastVisualState?.wpPhase && (lastVisualState?.wpParsed || lastVisualState?.text)) {
+                    const prob = lastVisualState.wpParsed || {
+                        type: 'wordProblem' as const,
+                        text: lastVisualState.text || '',
+                        highlights: Array.isArray(lastVisualState.highlights) ? lastVisualState.highlights : [],
+                    };
+                    const wpResponse = WordProblemTutor.handleWordProblem(text, prob, language, tempHistory, studentName);
+                    if (wpResponse?.steps?.length) {
+                        console.log("🧩 WordProblemTutor handled (e.g. 'no sé') in guided mode:", wpResponse);
+                        if (!isSystemHidden) {
+                            setMessages(prev => [...prev, { role: 'user', content: text, type: 'text', timestamp: Date.now() }]);
+                        }
+                        isGuidedMode.current = true;
+                        currentProblemSteps.current = wpResponse.steps as any;
+                        currentStepIndex.current = 0;
+                        await processAIResponse(wpResponse);
+                        return;
+                    }
+                }
+                // If AlgorithmicTutor returns null and no word-problem state, fall through to reset
+                console.log("⚠️ AlgorithmicTutor returned null - treating as new problem");
+            }
+
+            // RESET GUARDIAN (only if not handled above)
+            console.log("🎆 NEW PROBLEM - Resetting guardian");
+            originalOperands.current = {};
+            isGuidedMode.current = false;
+            currentProblemSteps.current = [];
+            currentStepIndex.current = 0;
+
+            // Detect Grade and Complexity
+            const gradeNum = typeof grade === 'number' ? grade : parseInt(String(grade).replace(/\D/g, '') || '3');
+
+            // Relaxed complexity check: Only bypass if it's REALLY long and doesn't look like a direct math question
+            const mathKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|mas|vínculos|vínculo/i;
+            const isMathExpression = /[\d\/\+\-\*÷x\(\)=]/.test(text) || (mathKeywords.test(text) && /\d+/.test(text));
+            const isComplexText = text.length > 60 && /[a-zA-ZáéíóúñÁÉÍÓÚ]/.test(text) && !text.includes('=') && !mathKeywords.test(text);
+
+            const shouldBypassAlgo = isComplexText && !isMathExpression;
+
+            if (!shouldBypassAlgo) {
+                const algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade, masteryMode);
+                if (algoRef) {
+                    console.log("🚀 Specialized Math Logic Intercepted:", algoRef);
                     isGuidedMode.current = true;
-                    currentProblemSteps.current = wpResponse.steps as any;
+                    currentProblemSteps.current = algoRef.steps as any;
                     currentStepIndex.current = 0;
-                    await processAIResponse(wpResponse);
+                    if (!isSystemHidden) {
+                        setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
+                    }
+                    await processAIResponse(algoRef);
                     return;
                 }
             }
-            // If AlgorithmicTutor returns null and no word-problem state, fall through to reset
-            console.log("⚠️ AlgorithmicTutor returned null - treating as new problem");
-        }
 
-        // RESET GUARDIAN (only if not handled above)
-        console.log("🎆 NEW PROBLEM - Resetting guardian");
-        originalOperands.current = {};
-        isGuidedMode.current = false;
-        currentProblemSteps.current = [];
-        currentStepIndex.current = 0;
+            const steps = generateStepsForProblem(text);
+            const problem = parseMathProblem(text);
 
-        // Detect Grade and Complexity
-        const gradeNum = typeof grade === 'number' ? grade : parseInt(String(grade).replace(/\D/g, '') || '3');
+            // División: Invitamos al niño a elegir su estilo favorito (Americano o Colombiano/Tradicional)
+            if (problem && !isComplexText && (problem as any).operator === '÷') {
+                if (onShowDivisionSelector) onShowDivisionSelector();
+            }
 
-        // Relaxed complexity check: Only bypass if it's REALLY long and doesn't look like a direct math question
-        const mathKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|mas|vínculos|vínculo/i;
-        const isMathExpression = /[\d\/\+\-\*÷x\(\)=]/.test(text) || (mathKeywords.test(text) && /\d+/.test(text));
-        const isComplexText = text.length > 60 && /[a-zA-ZáéíóúñÁÉÍÓÚ]/.test(text) && !text.includes('=') && !mathKeywords.test(text);
-
-        const shouldBypassAlgo = isComplexText && !isMathExpression;
-
-        if (!shouldBypassAlgo) {
-            const algoRef = AlgorithmicTutor.generateResponse(text, messages, language, divisionStyle || undefined, studentName, grade, masteryMode);
-            if (algoRef) {
-                console.log("🚀 Specialized Math Logic Intercepted:", algoRef);
+            if (steps && steps.length > 0) {
                 isGuidedMode.current = true;
-                currentProblemSteps.current = algoRef.steps as any;
+                currentProblemSteps.current = steps;
                 currentStepIndex.current = 0;
-                if (!isSystemHidden) {
-                    setMessages(prev => [...prev, { role: 'user', content: text.trim(), type: 'text', timestamp: Date.now() }]);
+                const step = steps[0];
+
+                // Sync Visual State
+                const visualDataPayload = step.visualData || { operand1: step.operand1, operand2: step.operand2, operator: step.operator, result: step.result, carry: step.carry, highlight: step.highlight };
+                lastVisualState.current = { type: step.visualType || 'vertical_op', data: visualDataPayload };
+
+                // Immediate Draw
+                if (step.visualType === 'fraction_bar' && onDrawFraction) {
+                    onDrawFraction(step.visualData?.numerator || 1, step.visualData?.denominator || 2, 'bar');
+                } else if (onDrawVerticalOp) {
+                    const v = step.visualData || {};
+                    onDrawVerticalOp(
+                        v.operands || step.operand1,
+                        step.operand2,
+                        step.result,
+                        step.operator,
+                        step.carry,
+                        step.highlight,
+                        v.borrows,
+                        v.helpers,
+                        v
+                    );
                 }
-                await processAIResponse(algoRef);
+
+                await processAIResponse({ steps: steps });
                 return;
             }
+
+            await handleAIcall(text, false, undefined, isSystemHidden, true);
+        } finally {
+            processingRef.current = false;
         }
-
-        const steps = generateStepsForProblem(text);
-        const problem = parseMathProblem(text);
-
-        // División: Invitamos al niño a elegir su estilo favorito (Americano o Colombiano/Tradicional)
-        if (problem && !isComplexText && (problem as any).operator === '÷') {
-            if (onShowDivisionSelector) onShowDivisionSelector();
-        }
-
-        if (steps && steps.length > 0) {
-            isGuidedMode.current = true;
-            currentProblemSteps.current = steps;
-            currentStepIndex.current = 0;
-            const step = steps[0];
-
-            // Sync Visual State
-            const visualDataPayload = step.visualData || { operand1: step.operand1, operand2: step.operand2, operator: step.operator, result: step.result, carry: step.carry, highlight: step.highlight };
-            lastVisualState.current = { type: step.visualType || 'vertical_op', data: visualDataPayload };
-
-            // Immediate Draw
-            if (step.visualType === 'fraction_bar' && onDrawFraction) {
-                onDrawFraction(step.visualData?.numerator || 1, step.visualData?.denominator || 2, 'bar');
-            } else if (onDrawVerticalOp) {
-                const v = step.visualData || {};
-                onDrawVerticalOp(
-                    v.operands || step.operand1,
-                    step.operand2,
-                    step.result,
-                    step.operator,
-                    step.carry,
-                    step.highlight,
-                    v.borrows,
-                    v.helpers,
-                    v
-                );
-            }
-
-            await processAIResponse({ steps: steps });
-            return;
-        }
-
-        await handleAIcall(text, false, undefined, isSystemHidden, true);
     };
 
     const handleAIcall = async (text: string, isMathFallback = false, imgBase64?: string, isHidden = false, bypassMathCheck = false) => {
@@ -749,6 +761,7 @@ const TutorChatComponent = (
                 const potentialMath = parseMathProblem(text);
                 if (potentialMath) {
                     console.log("🛡️ Intercepted Math Problem in generic flow:", text);
+                    setIsThinking(false);
                     await internalAnalyzeText(text, isHidden);
                     return;
                 }
@@ -1243,7 +1256,11 @@ const TutorChatComponent = (
                 </div>
                 <form className="relative group lg" onSubmit={(e) => {
                     e.preventDefault();
-                    if (!inputText.trim()) return;
+                    // Guard: prevent double-send (Enter key already handled it)
+                    const now = Date.now();
+                    if (now - lastSendRef.current < 500) return;
+                    if (!inputText.trim() || isThinking) return;
+                    lastSendRef.current = now;
                     internalAnalyzeText(inputText);
                     setInputText('');
                 }}>
@@ -1260,7 +1277,11 @@ const TutorChatComponent = (
                                 onKeyDown={(e) => {
                                     if (e.key === 'Enter' && !e.shiftKey) {
                                         e.preventDefault();
-                                        if (inputText.trim()) {
+                                        // Guard: use same debounce ref to prevent double-send
+                                        const now = Date.now();
+                                        if (now - lastSendRef.current < 500) return;
+                                        if (inputText.trim() && !isThinking) {
+                                            lastSendRef.current = now;
                                             internalAnalyzeText(inputText);
                                             setInputText('');
                                             if (e.currentTarget) e.currentTarget.style.height = 'auto';
@@ -1286,17 +1307,7 @@ const TutorChatComponent = (
                                 onClick={(e) => {
                                     e.preventDefault();
                                     const now = Date.now();
-                                    if (now - lastSendRef.current < 400) return;
-                                    if (inputText.trim() && !isThinking) {
-                                        lastSendRef.current = now;
-                                        internalAnalyzeText(inputText);
-                                        setInputText('');
-                                    }
-                                }}
-                                onTouchEnd={(e) => {
-                                    e.preventDefault();
-                                    const now = Date.now();
-                                    if (now - lastSendRef.current < 400) return;
+                                    if (now - lastSendRef.current < 500) return;
                                     if (inputText.trim() && !isThinking) {
                                         lastSendRef.current = now;
                                         internalAnalyzeText(inputText);

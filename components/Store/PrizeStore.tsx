@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useGamification } from '@/context/GamificationContext';
-import { Sparkles, ShoppingBag, Gift, Palette, Ticket, Trophy, User, Fingerprint, ShieldCheck, LockKeyholeOpen, Heart, Trash2, X } from 'lucide-react';
+import { Plus, ShoppingBag, Sparkles, Trophy, Gift, Heart, UserCircle2, ArrowRight, Zap, Target, Star, ExternalLink, Timer, Lock, Coins, Search, LayoutGrid, List, Filter, ShoppingCart, CreditCard, Wallet, Banknote, Palette, Ticket, User, Fingerprint, ShieldCheck, LockKeyholeOpen, Trash2, X } from 'lucide-react';
+import { StoreItem, ViewState } from '@/types';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -12,7 +13,7 @@ import { useNovaSound } from '@/hooks/useNovaSound';
 import { useAvatar } from '@/context/AvatarContext';
 import { ACCESSORIES } from '../Gamification/data/avatars';
 import { toast } from 'sonner';
-import { supabase, getParentRewards, type ParentRewardRow } from '@/services/supabase';
+import { supabase, getParentRewards, fetchStoreItems, type ParentRewardRow } from '@/services/supabase';
 
 const STORE_ITEMS = [
     {
@@ -478,6 +479,19 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
 
     const [parentRewards, setParentRewards] = useState<ParentRewardRow[]>([]);
     const [loadingRewards, setLoadingRewards] = useState(false);
+    const [dbItems, setDbItems] = useState<StoreItem[]>([]);
+
+    // Fetch DB Items (Nova Store)
+    const loadDbItems = async () => {
+        const items = await fetchStoreItems();
+        setDbItems(items);
+    };
+
+    React.useEffect(() => {
+        loadDbItems();
+        window.addEventListener('nova_store_updated', loadDbItems);
+        return () => window.removeEventListener('nova_store_updated', loadDbItems);
+    }, []);
 
     // Fetch Parent Rewards
     React.useEffect(() => {
@@ -552,6 +566,7 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
         <div className="relative h-screen bg-[#f8fbff] font-poppins overflow-hidden">
             {/* Nova specialized filters for jerseys */}
             <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+                {/* 1. Basic cleaning for standard items */}
                 <filter id="whiteToAlphaJersey" colorInterpolationFilters="sRGB">
                     <feColorMatrix type="matrix" values="
                         1 0 0 0 0
@@ -560,6 +575,7 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                         -1 -1 -1 0 2.88
                     " />
                 </filter>
+                {/* 2. Premium cleaning: Aggressively kills all backgrounds while keeping high quality silhouettes */}
                 <filter id="premiumJerseyFilter" colorInterpolationFilters="sRGB">
                     <feColorMatrix type="matrix" values="
                         1 0 0 0 0
@@ -567,6 +583,9 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                         0 0 1 0 0
                         -4 -4 -4 0 11.5
                     " />
+                    <feComponentTransfer>
+                        <feFuncA type="linear" slope="28" intercept="-25" />
+                    </feComponentTransfer>
                 </filter>
             </svg>
 
@@ -871,7 +890,23 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                 { id: 'utility', name: 'Súper Útiles', icon: '🛠️', color: 'text-blue-600' },
                                 { id: 'coupons', name: 'Cupones Galácticos', icon: '🎟️', color: 'text-amber-600' }
                             ].map(dept => {
-                                const deptItems = STORE_ITEMS
+                                const ALL_ITEMS = [
+                                    ...STORE_ITEMS,
+                                    ...dbItems
+                                        .filter(item => item.category !== 'accessory' && item.category !== 'avatar')
+                                        .map(item => ({
+                                            ...item,
+                                            price: item.cost,
+                                            icon: item.image || '🎁',
+                                            type: item.category,
+                                            nameEn: item.name,
+                                            description: `Premio Nova: ${item.name}`,
+                                            dept: item.category === 'coupon' ? 'coupons' :
+                                                item.category === 'real' ? 'utility' : 'custom'
+                                        }))
+                                ];
+
+                                const deptItems = ALL_ITEMS
                                     .filter(i => (i as any).dept === dept.id)
                                     .filter(i => !deletedCatalogItems.includes(i.id));
                                 if (deptItems.length === 0) return null;
@@ -886,6 +921,29 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                                 {dept.name}
                                             </h2>
                                             <div className="flex-1 h-px bg-slate-200" />
+
+                                            {/* ⚡ ADMIN QUICK ADD */}
+                                            {userRole === 'ADMIN' && (
+                                                <button
+                                                    onClick={() => {
+                                                        const catMap: Record<string, string> = {
+                                                            'custom': 'theme',
+                                                            'stickers': 'sticker',
+                                                            'utility': 'powerup',
+                                                            'coupons': 'coupon'
+                                                        };
+                                                        window.dispatchEvent(new CustomEvent('nova_navigate', { detail: ViewState.STORE }));
+                                                        setTimeout(() => {
+                                                            window.dispatchEvent(new CustomEvent('nova_open_admin_store', {
+                                                                detail: { category: catMap[dept.id] || 'theme' }
+                                                            }));
+                                                        }, 100);
+                                                    }}
+                                                    className="flex items-center gap-2 px-4 py-2 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-200 transition-all active:scale-95"
+                                                >
+                                                    <Plus size={14} /> AGREGAR PREMIO
+                                                </button>
+                                            )}
                                         </div>
 
                                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-8">
@@ -905,13 +963,13 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                                                 alt={item.name}
                                                                 className="w-20 h-20 object-contain"
                                                                 style={{
-                                                                    filter: item.id.includes('nova_gold')
-                                                                        ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
-                                                                        : (item.id.includes('nova_neon')
-                                                                            ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
-                                                                            : ((item.id.includes('nova_official') || item.id.includes('nova_premium') || item.id.includes('retro') || item.id.includes('spiderman') || item.id.includes('diamond') || item.id.includes('black'))
-                                                                                ? 'url(#premiumJerseyFilter)'
-                                                                                : 'none'))
+                                                                    filter: (item.icon.toLowerCase().endsWith('.jpg') || item.icon.toLowerCase().endsWith('.png') || item.icon.startsWith('http')) ? (
+                                                                        item.id.includes('nova_gold')
+                                                                            ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
+                                                                            : (item.id.includes('nova_neon')
+                                                                                ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
+                                                                                : 'url(#premiumJerseyFilter)'))
+                                                                        : 'none'
                                                                 }}
                                                             />
                                                         ) : (
@@ -1151,6 +1209,25 @@ export function PrizeStore({ language = 'es', demoData }: PrizeStoreProps) {
                                         {language === 'es' ? 'Tu Colección Privada' : 'Your Stuff'}
                                     </h2>
                                     <p className="text-slate-400 font-bold uppercase tracking-widest text-sm">Objetos Adquiridos</p>
+
+                                    {/* ⚡ ADMIN QUICK ADD */}
+                                    {userRole === 'ADMIN' && (
+                                        <div className="mt-6 flex justify-center">
+                                            <button
+                                                onClick={() => {
+                                                    window.dispatchEvent(new CustomEvent('nova_navigate', { detail: ViewState.STORE }));
+                                                    setTimeout(() => {
+                                                        window.dispatchEvent(new CustomEvent('nova_open_admin_store', {
+                                                            detail: { category: 'accessory' }
+                                                        }));
+                                                    }, 100);
+                                                }}
+                                                className="flex items-center gap-3 px-8 py-4 bg-indigo-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-xl shadow-indigo-200 hover:bg-indigo-700 transition-all active:scale-95"
+                                            >
+                                                <Plus size={18} /> AGREGAR NUEVO ACCESORIO PÚBLICO
+                                            </button>
+                                        </div>
+                                    )}
                                 </div>
 
                                 {ownedAccessories.length > 0 ? (

@@ -24,11 +24,11 @@ export default async function handler(req: any, res: any) {
     .from('profiles')
     .update({
       account_status: 'active',
-      subscription_status: 'active',
+      subscription_status: 'trial', // Start with trial
+      trial_ends_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
       is_active: true,
-    })
-    .eq('id', userId)
-    .select('id', { count: 'exact', head: true });
+    }, { count: 'exact' })
+    .eq('id', userId);
 
   if (updateError) {
     console.error('[activate-user] update error:', updateError);
@@ -105,7 +105,7 @@ export default async function handler(req: any, res: any) {
   try {
     const result = await resend.emails.send({
       from: FROM_EMAIL,
-      reply_to: REPLY_TO,
+      replyTo: REPLY_TO,
       to: [emailTarget.email],
       subject: 'Cuenta activada – Nova Schola',
       html,

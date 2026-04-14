@@ -21,7 +21,7 @@ export default async function handler(req: any, res: any) {
     try {
         const data = await resend.emails.send({
             from: process.env.RESEND_FROM_EMAIL ?? 'Nova Schola <onboarding@resend.dev>',
-            reply_to: process.env.RESEND_REPLY_TO ?? 'novaschola25@gmail.com',
+            replyTo: process.env.RESEND_REPLY_TO ?? 'novaschola25@gmail.com',
             to: [to],
             subject: subject,
             html: html,

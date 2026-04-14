@@ -39,8 +39,12 @@ export class MultiplicationTutor {
             if (grade <= 1) {
                 introEs = `¡Hola! 🌟 Soy la **Profesora Lina**. ¡Vamos a multiplicar!\n\n¿Sabes qué es multiplicar? 🍭 Es como sumar grupos de cosas ricas. ¡Nos ayuda a contar mucho más rápido!\n\nMira la pizarra: alineé los números uno debajo del otro. ¿Los ves listos para jugar?`;
                 introEn = `Hi! 🌟 I'm **Professor Lina**. Let's multiply!\n\nDo you know what multiplying is? 🍭 It's like adding groups of yummy things. It helps us count much faster!\n\nLook at the board: I aligned the numbers one under the other. Are they ready to play?`;
-                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a aprender a multiplicar. Es como un truco de magia para contar súper rápido. Mira la pizarra: puse los números alineaditos. ¿Ya los viste?`;
-                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to learn to multiply. It's like a magic trick for counting super fast. Look at the board: I put the numbers all lined up. Do you see them?`;
+                speechEs = grade >= 6
+                    ? `Hola. Soy la profesora Lina. Vamos a trabajar multiplicaciones. Mira la pizarra: los números están organizados por unidades. ¿Los ves?`
+                    : `¡Hola, corazón! Soy la profe Lina. Hoy vamos a aprender a multiplicar. Es como un truco de magia para contar súper rápido. Mira la pizarra: puse los números alineaditos. ¿Ya los viste?`;
+                speechEn = grade >= 6
+                    ? `Hello. I'm Professor Lina. Let's work on multiplication. Look at the board: the numbers are aligned by units. Do you see them?`
+                    : `Hi, sweetie! I'm Professor Lina. Today we're going to learn to multiply. It's like a magic trick for counting super fast. Look at the board: I put the numbers all lined up. Do you see them?`;
             } else {
                 introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para la Misión Multiplicación!\n\nMultiplicar es una de las herramientas más poderosas 🛠️. Te servirá para calcular áreas, recetas y ¡hasta para programar robots!\n\nPrimero, alineamos los números: **unidades con unidades**. ¿Ves qué bien quedaron en el tablero?`;
                 introEn = `Hi! 👋 I'm **Professor Lina**. Ready for the Multiplication Mission!\n\nMultiplying is one of the most powerful tools 🛠️. It will help you calculate areas, recipes, and even program robots!\n\nFirst, we align the numbers: **units with units**. Do they look good on the board?`;

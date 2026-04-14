@@ -164,7 +164,9 @@ export interface StoreItem {
   id: string;
   name: string;
   cost: number;
-  category: 'avatar' | 'theme' | 'coupon' | 'real';
+  category: 'avatar' | 'accessory' | 'theme' | 'coupon' | 'real';
+  subType?: string; // For accessories: 'head', 'glasses', 'torso', etc.
+  rarity?: 'common' | 'rare' | 'epic' | 'legendary';
   image?: string; // Emoji or URL
   color?: string;
   owned: boolean;

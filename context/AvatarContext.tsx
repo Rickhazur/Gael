@@ -1,10 +1,10 @@
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { AVATARS, ACCESSORIES, Avatar, Accessory } from '../components/Gamification/data/avatars';
+import { AVATARS, ACCESSORIES, Accessory } from '../components/Gamification/data/avatars';
 type AvatarId = string;
 import { useGamification } from './GamificationContext';
 import { toast } from '@/hooks/use-toast';
-import { supabase, buyAccessorySecure, saveAvatarSetup, subscribeToProfile } from '../services/supabase';
+import { supabase, buyAccessorySecure, saveAvatarSetup, subscribeToProfile, fetchStoreItems } from '../services/supabase';
 
 /** Multa en monedas si el niño cambia de avatar en la Tienda Nova. El avatar es permanente; cambiarlo es caro. */
 export const AVATAR_CHANGE_PENALTY_COINS = 120;
@@ -29,6 +29,7 @@ interface AvatarContextType {
     deleteAccessory: (id: string) => void;
     hideFromCatalog: (id: string) => void;
     userRole: string | null;
+    fullCatalog: Accessory[];
 }
 
 const AvatarContext = createContext<AvatarContextType | undefined>(undefined);
@@ -71,6 +72,61 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return saved ? JSON.parse(saved) : {};
     });
 
+    const [fullCatalog, setFullCatalog] = useState<Accessory[]>(ACCESSORIES);
+
+    const loadStoreItems = async () => {
+        if (!supabase) return;
+        try {
+            const dbItems = await fetchStoreItems();
+            const mappedDbItems: Accessory[] = dbItems
+                .filter(item => item.category === 'accessory')
+                .map(item => ({
+                    id: item.id,
+                    name: item.name,
+                    cost: item.cost,
+                    type: (item.subType || 'torso') as any,
+                    rarity: item.rarity || 'rare',
+                    conditionType: 'none',
+                    icon: item.image || '🎁'
+                }));
+
+            // Remove duplicates (if any item exists in both hardcoded and DB)
+            const combined = [...ACCESSORIES];
+            mappedDbItems.forEach(dbi => {
+                if (!combined.some(hbi => hbi.id === dbi.id)) {
+                    combined.push(dbi);
+                }
+            });
+            setFullCatalog(combined);
+
+            // 🔑 Admin bypass: auto-own items when catalog loads
+            const session = await supabase.auth.getSession();
+            if (session.data.session?.user?.email === 'rickhazur@gmail.com') {
+                const allIds = combined.map(a => a.id);
+                setOwnedAccessories(prev => Array.from(new Set([...prev, ...allIds])));
+            }
+
+            // 1b. Fetch Global Exclusions
+            try {
+                const { data: globalExData } = await supabase
+                    .from('profiles')
+                    .select('owned_accessories')
+                    .eq('id', '00000000-0000-0000-0000-000000000000')
+                    .maybeSingle();
+                if (globalExData?.owned_accessories) {
+                    setDeletedCatalogItems(prev => {
+                        const nextExclusions = globalExData.owned_accessories as string[];
+                        return Array.from(new Set([...prev, ...nextExclusions]));
+                    });
+                }
+            } catch (e) {
+                console.warn("Global exclusions refresh failed:", e);
+            }
+        } catch (e) {
+            console.warn("Error mixing catalog:", e);
+        }
+    };
+
     // Sync with Supabase (Load & Subscribe)
     useEffect(() => {
         let unsubscribe: (() => void) | undefined;
@@ -99,6 +155,14 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
                         }
                         if (data.owned_accessories) setOwnedAccessories(data.owned_accessories);
                         if (data.equipped_accessories) setEquippedAccessories(data.equipped_accessories);
+
+                        // 🔑 Special Privilege: Admin owns EVERYTHING for testing
+                        if (user.email === 'rickhazur@gmail.com') {
+                            setOwnedAccessories(prev => {
+                                const allIds = fullCatalog.map(a => a.id);
+                                return Array.from(new Set([...prev, ...allIds]));
+                            });
+                        }
                         if (data.accessory_offsets) setAccessoryOffsets(data.accessory_offsets as any);
                         if (data.role) setUserRole(data.role);
 
@@ -177,9 +241,15 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
                 setIsLoading(false);
             }
+
+            // Also load the store items for the catalog
+            loadStoreItems();
         };
 
         initSession();
+
+        // Listen for store updates to refresh catalog
+        window.addEventListener('nova_store_updated', loadStoreItems);
 
         // Re-sincronizar cuando cambie la sesión (login/logout) para evitar nombre demo en cuenta real
         let authSub: any;
@@ -194,6 +264,7 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
         return () => {
             if (unsubscribe) unsubscribe();
             authSub?.unsubscribe?.();
+            window.removeEventListener('nova_store_updated', loadStoreItems);
         };
     }, []);
 
@@ -446,7 +517,7 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     const isOwned = (id: string) => ownedAccessories.includes(id);
 
     const deleteAccessory = async (id: string) => {
-        const item = ACCESSORIES.find(a => a.id === id);
+        const item = fullCatalog.find(a => a.id === id);
         const itemName = item ? item.name : id;
 
         // confirmation for the kid
@@ -549,7 +620,8 @@ export const AvatarProvider: React.FC<{ children: React.ReactNode }> = ({ childr
             isOwned,
             deleteAccessory,
             hideFromCatalog,
-            userRole
+            userRole,
+            fullCatalog
         }}>
             {children}
         </AvatarContext.Provider>

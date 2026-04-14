@@ -177,17 +177,17 @@ export class AlgorithmicTutor {
                 // if (problem.isDecimal) return DecimalTutor.handleDecimal(currentText, problem, language, history, studentName);
                 return SubtractionTutor.handleSubtraction(currentText, problem, language, history, studentName, grade);
             case 'multiplication':
-                if (problem.isDecimal) return DecimalTutor.handleDecimal(currentText, problem, language, history, studentName);
+                if (problem.isDecimal) return DecimalTutor.handleDecimal(currentText, problem, language, history, studentName, grade);
                 return MultiplicationTutor.handleMultiplication(currentText, problem, language, history, studentName, grade);
             case 'division':
-                if (problem.isDecimal) return DecimalTutor.handleDecimal(currentText, { operator: '÷', n1: problem.dividend, n2: problem.divisor, isNew: problem.isNew }, language, history, studentName);
+                if (problem.isDecimal) return DecimalTutor.handleDecimal(currentText, { operator: '÷', n1: problem.dividend, n2: problem.divisor, isNew: problem.isNew }, language, history, studentName, grade);
                 return AlgorithmicTutor.handleDivision(currentText, problem, language, history, studentName, grade);
-            case 'fraction': return FractionTutor.handleFractions(currentText, problem, language, history, studentName);
+            case 'fraction': return FractionTutor.handleFractions(currentText, problem, language, history, studentName, grade);
             case 'percentage': return AlgorithmicTutor.handlePercentage(currentText, problem, language, history, studentName);
             case 'wordProblem': return AlgorithmicTutor.handleWordProblem(currentText, problem, language, history, studentName);
             case 'conversion': return ConversionTutor.handleConversion(currentText, problem, language, history, studentName);
             case 'lcm': return AlgorithmicTutor.handleLCM(currentText, problem, language, history, studentName);
-            case 'decimal': return DecimalTutor.handleDecimal(currentText, problem, language, history, studentName);
+            case 'decimal': return DecimalTutor.handleDecimal(currentText, problem, language, history, studentName, grade);
             case 'geometry': return GeometryTutor.handleGeometry(currentText, problem, language, history, studentName);
             case 'integer': return IntegerTutor.handleIntegers(currentText, problem, language, history, studentName);
             case 'algebra': return AlgebraTutor.handleAlgebra(currentText, problem, language, history, studentName);

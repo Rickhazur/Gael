@@ -1,10 +1,11 @@
 
 import { StepResponse, VisualState } from './types';
+import { GradeLevel } from '@/types/tutor';
 import { AnswerValidator, StateHelper } from './utils';
 import { getCorrectFeedback } from '../../data/feedbackPhrases';
 
 export class DecimalTutor {
-    static handleDecimal(input: string, prob: any, lang: 'es' | 'en', history: any[], studentName?: string): StepResponse | null {
+    static handleDecimal(input: string, prob: any, lang: 'es' | 'en', history: any[], studentName?: string, grade: GradeLevel = 4): StepResponse | null {
         const lastState = StateHelper.getCurrentVisualState(history);
         const phase = lastState?.phase || 'intro';
 
@@ -13,8 +14,8 @@ export class DecimalTutor {
         const n2 = String(prob.n2 ?? lastState?.tempVal?.n2 ?? lastState?.operand2 ?? '');
 
         if (prob.isNew) {
-            if (op === '×' || op === 'x' || op === '*' || op === 'multiplication') return this.introMultiplication(n1, n2, lang);
-            if (op === '÷' || op === '/') return this.introDecimalDivision(n1, n2, lang);
+            if (op === '×' || op === 'x' || op === '*' || op === 'multiplication') return this.introMultiplication(n1, n2, lang, grade);
+            if (op === '÷' || op === '/') return this.introDecimalDivision(n1, n2, lang, grade);
             return this.introAlignment(n1, n2, op, lang);
         }
 
@@ -25,17 +26,17 @@ export class DecimalTutor {
             case 'div_result':
                 return this.handleDivResult(input, n1, n2, lang, history, studentName);
             case 'mult_count':
-                return this.handleMultCount(input, n1, n2, lang, history);
+                return this.handleMultCount(input, n1, n2, lang, history, grade);
             case 'mult_solve_int':
-                return this.handleMultSolveInt(input, n1, n2, lang, history, studentName);
+                return this.handleMultSolveInt(input, n1, n2, lang, history, studentName, grade);
             case 'mult_place_point':
-                return this.handleMultPlacePoint(input, n1, n2, lang, history, studentName);
+                return this.handleMultPlacePoint(input, n1, n2, lang, history, studentName, grade);
             default:
                 return null;
         }
     }
 
-    private static handleMultSolveInt(input: string, n1: string, n2: string, lang: 'es' | 'en', history: any[], studentName?: string): StepResponse | null {
+    private static handleMultSolveInt(input: string, n1: string, n2: string, lang: 'es' | 'en', history: any[], studentName?: string, grade: GradeLevel = 4): StepResponse | null {
         const lastState = StateHelper.getCurrentVisualState(history);
         const originalN1 = lastState?.tempVal?.n1 || n1;
         const originalN2 = lastState?.tempVal?.n2 || n2;
@@ -118,7 +119,7 @@ export class DecimalTutor {
         };
     }
 
-    private static handleMultPlacePoint(input: string, n1: string, n2: string, lang: 'es' | 'en', history: any[], studentName?: string): StepResponse | null {
+    private static handleMultPlacePoint(input: string, n1: string, n2: string, lang: 'es' | 'en', history: any[], studentName?: string, grade: GradeLevel = 4): StepResponse | null {
         const lastState = StateHelper.getCurrentVisualState(history);
 
         let intResult = lastState?.tempVal?.intResult;
@@ -146,9 +147,15 @@ export class DecimalTutor {
             return {
                 steps: [{
                     text: lang === 'es'
-                        ? `¡MISIÓN CUMPLIDA! ✨🏆\n\nHas multiplicado **${n1} × ${n2}** con éxito.\n\nEl resultado final es **${expectedFinal}**.\n\n¿Viste? Solo fue multiplicar normal y saltar el punto al final. ¡Eres un genio! 🧠`
-                        : `MISSION ACCOMPLISHED! ✨🏆\n\nYou successfully multiplied **${n1} × ${n2}**.\n\nThe final result is **${expectedFinal}**.\n\nSee? Just multiply normally and jump the point at the end. You're a genius! 🧠`,
-                    speech: lang === 'es' ? `${getCorrectFeedback(lang, studentName)} El resultado es ${expectedFinal}.` : `${getCorrectFeedback(lang, studentName)} The result is ${expectedFinal}.`,
+                        ? (grade >= 6
+                            ? `¡OPERACIÓN COMPLETADA! ✨\n\nHas multiplicado **${n1} × ${n2}** con éxito.\n\nEl resultado final es **${expectedFinal}**.\n\nExcelente trabajo al ajustar el punto decimal al final.`
+                            : `¡MISIÓN CUMPLIDA! ✨🏆\n\nHas multiplicado **${n1} × ${n2}** con éxito.\n\nEl resultado final es **${expectedFinal}**.\n\n¿Viste? Solo fue multiplicar normal y saltar el punto al final. ¡Eres un genio! 🧠`)
+                        : (grade >= 6
+                            ? `OPERATION COMPLETE! ✨\n\nYou successfully multiplied **${n1} × ${n2}**.\n\nThe final result is **${expectedFinal}**.\n\nExcellent work adjusting the decimal point at the end.`
+                            : `MISSION ACCOMPLISHED! ✨🏆\n\nYou successfully multiplied **${n1} × ${n2}**.\n\nThe final result is **${expectedFinal}**.\n\nSee? Just multiply normally and jump the point at the end. You're a genius! 🧠`),
+                    speech: lang === 'es'
+                        ? `${getCorrectFeedback(lang, studentName)} El resultado es ${expectedFinal}.`
+                        : `${getCorrectFeedback(lang, studentName)} The result is ${expectedFinal}.`,
                     visualType: "vertical_op",
                     visualData: { ...lastState, result: String(expectedFinal), highlight: "done" },
                     detailedExplanation: { es: "Multiplicación decimal completada", en: "Decimal multiplication finished" }
@@ -248,7 +255,7 @@ export class DecimalTutor {
     }
 
     // --- DIVISION WITH DECIMALS ---
-    private static introDecimalDivision(n1: string, n2: string, lang: 'es' | 'en'): StepResponse {
+    private static introDecimalDivision(n1: string, n2: string, lang: 'es' | 'en', grade: GradeLevel = 4): StepResponse {
         const d1 = (n1.split('.')[1] || "").length;
         const d2 = (n2.split('.')[1] || "").length;
         const maxDec = Math.max(d1, d2);
@@ -325,7 +332,7 @@ export class DecimalTutor {
     }
 
     // --- MULTIPLICATION: THE "GHOST POINT" STRATEGY ---
-    private static introMultiplication(n1: string, n2: string, lang: 'es' | 'en'): StepResponse {
+    private static introMultiplication(n1: string, n2: string, lang: 'es' | 'en', grade: GradeLevel = 4): StepResponse {
         const dec1 = (n1.split('.')[1] || "").length;
         const dec2 = (n2.split('.')[1] || "").length;
         const totalDec = dec1 + dec2;
@@ -333,11 +340,19 @@ export class DecimalTutor {
         return {
             steps: [{
                 text: lang === 'es'
-                    ? `¡Ojo de Águila! 🦅 Para multiplicar **${n1} × ${n2}**, usaremos el **Truco del Punto Fantasma**.\n\n1️⃣ Cuenta cuántos números hay después de los puntos decimales en TOTAL.\n\n¿Cuántos decimales ves entre los dos números?`
-                    : `Eagle Eye! 🦅 To multiply **${n1} × ${n2}**, we'll use the **Ghost Point Trick**.\n\n1️⃣ Count how many total decimal places there are in BOTH numbers.\n\nHow many decimal places do you see in total?`,
+                    ? (grade >= 6
+                        ? `Atención. Para multiplicar **${n1} × ${n2}**, usaremos la **estrategia del punto decimal**.\n\n1️⃣ Cuenta cuántos números hay después de los puntos decimales en TOTAL.\n\n¿Cuántos decimales ves entre los dos números?`
+                        : `¡Ojo de Águila! 🦅 Para multiplicar **${n1} × ${n2}**, usaremos el **Truco del Punto Fantasma**.\n\n1️⃣ Cuenta cuántos números hay después de los puntos decimales en TOTAL.\n\n¿Cuántos decimales ves entre los dos números?`)
+                    : (grade >= 6
+                        ? `Attention. To multiply **${n1} × ${n2}**, we'll use the **decimal point strategy**.\n\n1️⃣ Count how many total decimal places there are in BOTH numbers.\n\nHow many decimal places do you see in total?`
+                        : `Eagle Eye! 🦅 To multiply **${n1} × ${n2}**, we'll use the **Ghost Point Trick**.\n\n1️⃣ Count how many total decimal places there are in BOTH numbers.\n\nHow many decimal places do you see in total?`),
                 speech: lang === 'es'
-                    ? `¡Truco del punto fantasma! Cuenta cuántos números hay después de los puntos en total. ¿Cuántos ves?`
-                    : `Ghost point trick! Count the total decimal places in both numbers. How many?`,
+                    ? (grade >= 6
+                        ? `Para multiplicar ${n1} por ${n2}, usaremos la estrategia del punto decimal. Primero, cuenta cuántos decimales hay en total.`
+                        : `¡Truco del punto fantasma! Cuenta cuántos números hay después de los puntos en total. ¿Cuántos ves?`)
+                    : (grade >= 6
+                        ? `To multiply ${n1} by ${n2}, we'll use the decimal point strategy. First, count the total decimal places.`
+                        : `Ghost point trick! Count the total decimal places in both numbers. How many?`),
                 visualType: "vertical_op",
                 visualData: {
                     operand1: n1,
@@ -352,7 +367,7 @@ export class DecimalTutor {
         };
     }
 
-    private static handleMultCount(input: string, n1: string, n2: string, lang: 'es' | 'en', history: any[]): StepResponse | null {
+    private static handleMultCount(input: string, n1: string, n2: string, lang: 'es' | 'en', history: any[], grade: GradeLevel = 4): StepResponse | null {
         const lastState = StateHelper.getCurrentVisualState(history);
         const expected = lastState?.tempVal?.totalDec;
         const validation = AnswerValidator.validate(input, expected);

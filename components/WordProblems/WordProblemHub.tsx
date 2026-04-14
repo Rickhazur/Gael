@@ -141,7 +141,7 @@ export const WordProblemHub: React.FC<WordProblemHubProps> = ({ gradeLevel = 3 }
     // 🧠 INTELLIGENT ROUTING
     // If it looks like a direct operation or is "Grade 1" (which the user stressed before),
     // we prioritize the Interactive Whiteboard (MathTutorBoard).
-    const mathKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|menos|\+|\-|\*|\/|x|÷/i;
+    const mathKeywords = /sumar|restar|multiplicar|dividir|add|subtract|multiply|divide|total|más|menos|\+|\-|\*|\/|x|÷|=/i;
     const hasLargeNumbers = /\d{3,}/.test(problem.problem); // 100 or more
 
     // Check if it's primarily an operation (few words or matches simple pattern)

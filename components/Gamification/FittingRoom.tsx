@@ -165,7 +165,7 @@ export const FittingRoom: React.FC<FittingRoomProps> = ({
                             <div className="bg-gradient-to-br from-purple-800/50 to-indigo-800/50 rounded-2xl p-6 border-2 border-purple-400/30">
                                 <div className="flex items-center gap-4">
                                     <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center text-4xl">
-                                        {accessory.icon.startsWith('/') ? (
+                                        {accessory.icon.startsWith('/') || accessory.icon.startsWith('http') ? (
                                             <img src={accessory.icon} className="w-full h-full object-contain p-2" />
                                         ) : (
                                             accessory.icon

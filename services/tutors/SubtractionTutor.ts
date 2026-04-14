@@ -185,8 +185,12 @@ export class SubtractionTutor {
             if (grade <= 1) {
                 introEs = `¡Hola! 🦋 Soy la **Profesora Lina**. ¡Vamos a restar!\n\n¿Sabes por qué es útil restar? 🎨 Nos ayuda a saber cuántas cosas nos quedan después de regalar o usar algunas. ¡Como cuando compartes tus dulces!\n\nMira el tablero: puse los números uno debajo del otro, bien ordenaditos. ¿Los ves?`;
                 introEn = `Hi! 🦋 I'm **Professor Lina**. Let's subtract!\n\nDo you know why subtracting is useful? 🎨 It helps us know how many things we have left after giving away or using some. Like when you share your candies!\n\nLook at the board: I put the numbers one under the other, very neat. Do you see them?`;
-                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a restar. Restar es genial para saber cuánto te queda de algo rico. Mira cómo puse los números en la pizarra. ¿Están bien peinaditos uno debajo del otro?`;
-                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to subtract. Subtracting is great for knowing how much you have left of something yummy. Look how I placed the numbers on the board. Are they nicely lined up?`;
+                speechEs = grade >= 6
+                    ? `Hola. Soy la profesora Lina. Vamos a trabajar restas. Mira cómo están organizados los números en la pizarra, uno debajo del otro.`
+                    : `¡Hola, corazón! Soy la profe Lina. Hoy vamos a restar. Restar es genial para saber cuánto te queda de algo rico. Mira cómo puse los números en la pizarra. ¿Están bien peinaditos uno debajo del otro?`;
+                speechEn = grade >= 6
+                    ? `Hello. I'm Professor Lina. Let's work on subtraction. Look how the numbers are organized on the board, one under the other.`
+                    : `Hi, sweetie! I'm Professor Lina. Today we're going to subtract. Subtracting is great for knowing how much you have left of something yummy. Look how I placed the numbers on the board. Are they nicely lined up?`;
             } else {
                 introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Preparados para restar!\n\nLa resta es como un juego de quitar pistas 🔍. Nos sirve para calcular vueltos, distancias y tiempos.\n\nPrimero, alineé los números: **unidades con unidades** y **decenas con decenas**. ¿Los ves listos en su lugar?`;
                 introEn = `Hi! 👋 I'm **Professor Lina**. Ready to subtract!\n\nSubtraction is like a game of taking away clues 🔍. It helps us calculate change, distances, and times.\n\nFirst, I aligned the numbers: **units with units** and **tens with tens**. Do they look ready?`;
@@ -229,8 +233,8 @@ export class SubtractionTutor {
                             ? `¡Exacto! 🎯 Siempre empezamos por la **derecha**, por las **unidades**.\n\nAhora sí, **${q}**`
                             : `Exactly! 🎯 We always start on the **right**, with the **units**.\n\nNow, **${q}**`,
                         speech: lang === 'es'
-                            ? `¡Eso es! Muy bien. Siempre empezamos por la derecha. Entonces, ${q}`
-                            : `That's it! Very good. We always start on the right. So, ${q}`,
+                            ? (grade >= 6 ? `Correcto. Siempre empezamos por la derecha.` : `¡Eso es! Muy bien. Siempre empezamos por la derecha. Entonces, ${q}`)
+                            : (grade >= 6 ? `Correct. We always start on the right.` : `That's it! Very good. We always start on the right. So, ${q}`),
                         visualType: "vertical_op",
                         visualData: {
                             operand1: s1, operand2: s2, operator: "-", result: "",

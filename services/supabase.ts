@@ -26,6 +26,9 @@ export const loginWithSupabase = async (email: string, password: string, intende
     if (error.message.includes('Invalid login credentials')) {
       throw new Error('Correo o contraseña incorrectos. Inténtalo de nuevo.');
     }
+    if (error.message.includes('Email not confirmed')) {
+      throw new Error('⚠️ Tu correo no ha sido verificado. Por favor revisa tu bandeja de entrada y haz clic en el enlace de confirmación antes de entrar.');
+    }
     throw error;
   }
 
@@ -225,7 +228,8 @@ export const registerStudent = async (data: { email: string; password: string; n
   return {
     success: true,
     user: authData.user,
-    session: authData.session
+    session: authData.session,
+    emailConfirmationRequired: !authData.session // Si no hay sesión inmediata, es que falta confirmar email
   };
 };
 
@@ -250,7 +254,7 @@ export const notifyAdminOfNewUser = async (data: { type: 'STUDENT' | 'PARENT_STU
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        to: 'novaschola25@gmail.com',
+        to: 'rickhazur@gmail.com',
         subject: `🔔 Nuevo Registro: ${data.name}`,
         html: html
       })
@@ -449,6 +453,7 @@ export const registerParentAndStudent = async (data: {
     success: true,
     user: studentAuth.user,
     session: studentAuth.session,
+    emailConfirmationRequired: true,
     message: isNewParent ? "Cuenta creada exitosamente" : "Estudiante creado y vinculado a tu cuenta de Padre existente."
   };
 };
@@ -1051,19 +1056,125 @@ export const saveAvatarSetup = async (userId: string, avatarId: string, equipped
 
 export const saveStoreItemToDb = async (item: StoreItem) => {
   if (!supabase) return false;
-  // Remove 'owned' field if it exists before saving, as it's a UI property
-  const { owned, ...dbItem } = item;
-  const { error } = await supabase.from("store_items").upsert(dbItem);
-  if (error) {
-    console.error("Error saving item:", error);
-    throw error;
+
+  try {
+    // 1. Prepare data for DB
+    const { owned, ...dbItem } = item;
+
+    // Ensure we have a valid ID
+    if (!dbItem.id) {
+      dbItem.id = `item_${Date.now()}`;
+    }
+
+    console.log("Saving item to Supabase:", dbItem);
+
+    // 2. Initial Upsert attempt
+    const { error } = await supabase.from("store_items").upsert(dbItem);
+
+    if (error) {
+      console.warn("Primary upsert failed, trying manual column mapping...", error.message);
+
+      // Fallback: If columns like 'subType' or 'image' don't exist yet, 
+      // try mapping to legacy columns like 'type' and 'icon' if they exist.
+      const legacyItem: any = {
+        id: dbItem.id,
+        name: dbItem.name,
+        cost: dbItem.cost,
+        description: (dbItem as any).description || "",
+        rarity: dbItem.rarity || "rare",
+        type: dbItem.subType || (dbItem as any).type || "misc",
+        icon: dbItem.image || (dbItem as any).icon || ""
+      };
+
+      const { error: legacyError } = await supabase.from("store_items").upsert(legacyItem);
+
+      if (legacyError) {
+        console.error("Critical error saving item even with fallback:", legacyError);
+        throw legacyError;
+      }
+    }
+
+    return true;
+  } catch (err) {
+    console.error("Exception in saveStoreItemToDb:", err);
+    throw err;
   }
-  return true;
+};
+
+export const uploadStoreImage = async (file: File) => {
+  if (!supabase) return null;
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${Date.now()}.${fileExt}`;
+  const filePath = `store-items/${fileName}`;
+
+  // Priorizar buckets configurados para la tienda
+  const buckets = ['nova-store', 'Nova Store', 'assets', 'public-content', 'images', 'uploads', 'storage'];
+
+  for (const bucketName of buckets) {
+    try {
+      console.log(`Intentando subir a bucket: ${bucketName}...`);
+      const { data, error } = await supabase.storage
+        .from(bucketName)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true
+        });
+
+      if (!error && data) {
+        console.log(`✅ Subida exitosa al bucket: ${bucketName}`);
+        const { data: publicUrl } = supabase.storage
+          .from(bucketName)
+          .getPublicUrl(filePath);
+
+        return publicUrl.publicUrl;
+      }
+
+      if (error) {
+        console.warn(`Bucket '${bucketName}' falló:`, error.message);
+      }
+    } catch (err) {
+      // Sigue intentando con el siguiente bucket
+    }
+  }
+  console.error("❌ Todos los buckets de subida fallaron. Por favor, crea un bucket llamado 'assets' o 'public-content' en Supabase Storage.");
+  return null;
+};
+
+export const hideStoreItemGlobally = async (id: string) => {
+  if (!supabase) return false;
+  try {
+    const GLOBAL_CONFIG_ID = '00000000-0000-0000-0000-000000000000';
+    const { data: globalRow } = await supabase
+      .from('profiles')
+      .select('owned_accessories')
+      .eq('id', GLOBAL_CONFIG_ID)
+      .maybeSingle();
+
+    const currentExclusions = (globalRow?.owned_accessories as string[]) || [];
+    if (!currentExclusions.includes(id)) {
+      await supabase.from('profiles').upsert({
+        id: GLOBAL_CONFIG_ID,
+        owned_accessories: [...currentExclusions, id],
+        name: 'GLOBAL_CATALOG_CONFIG'
+      }, { onConflict: 'id' });
+    }
+    return true;
+  } catch (e) {
+    console.error("Global exclusion failed:", e);
+    return false;
+  }
 };
 
 export const deleteStoreItemFromDb = async (id: string) => {
   if (!supabase) return false;
+
+  // 1. Delete from dynamic table
   const { error } = await supabase.from("store_items").delete().eq("id", id);
+
+  // 2. Also hide globally (in case it's a hardcoded item with same ID)
+  await hideStoreItemGlobally(id);
+
   if (error) throw error;
   return true;
 };

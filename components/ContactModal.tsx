@@ -59,7 +59,7 @@ const ContactModal: React.FC<ContactModalProps> = ({ isOpen, onOpenChange }) => 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    to: 'novaschola25@gmail.com',
+                    to: 'rickhazur@gmail.com',
                     subject: `Solicitud de Demo - ${formData.school}`,
                     html: emailHtml
                 })

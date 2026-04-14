@@ -184,9 +184,17 @@ export const LinaAvatar: React.FC<LinaAvatarProps> = ({ state, className = '', s
                 {/* Main Avatar Image */}
                 <motion.div className="relative w-full h-full">
                     <motion.img
-                        src={mouthOpen ? "/assets/avatars/lina_talking.png" : "/assets/avatars/lina_avatar.png"}
-                        alt="Profesora Lina"
-                        className="w-full h-full object-cover rounded-full shadow-2xl relative z-10"
+                        src={(() => {
+                            if (typeof window !== 'undefined') {
+                                const storedGrade = localStorage.getItem('nova_user_grade');
+                                if (mode === 'math' && (storedGrade === '1' || storedGrade === '0')) {
+                                    return '/avatars/g1_robot.png';
+                                }
+                            }
+                            return mouthOpen ? "/assets/avatars/lina_talking.png" : "/assets/avatars/lina_avatar.png";
+                        })()}
+                        alt="Tutor"
+                        className="w-full h-full object-cover rounded-full shadow-2xl relative z-10 bg-white"
                         animate={{
                             filter: state === 'speaking' ? 'brightness(1.2)' :
                                 state === 'celebrating' || state === 'excited' ? 'brightness(1.25) saturate(1.2)' :

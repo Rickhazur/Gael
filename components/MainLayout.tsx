@@ -237,15 +237,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
     // Piloto no bilingüe: forzar modo estándar en la misma sesión (sin recargar)
 
+    // Pilot logic & Navigation listener for global events
     useEffect(() => {
-
         if (userId === 'test-pilot-quinto') {
-
             setImmersionMode('standard');
-
         }
 
-    }, [userId, setImmersionMode]);
+        const handleNavigate = (e: any) => {
+            if (e.detail) setCurrentView(e.detail);
+        };
+        window.addEventListener('nova_navigate', handleNavigate);
+        return () => window.removeEventListener('nova_navigate', handleNavigate);
+    }, [userId, setImmersionMode, setCurrentView]);
 
 
 
@@ -786,9 +789,29 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
             <PetPanel isOpen={isPetPanelOpen} onClose={() => setIsPetPanelOpen(false)} />
 
+            {/* 🛡️ GLOBAL SVG FILTERS: Clean Backgrounds for all accessories in the platform */}
+            <svg style={{ position: 'absolute', width: 0, height: 0, pointerEvents: 'none' }} aria-hidden="true">
+                <filter id="premiumJerseyFilter" colorInterpolationFilters="sRGB">
+                    <feColorMatrix type="matrix" values="
+                        1 0 0 0 0
+                        0 1 0 0 0
+                        0 0 1 0 0
+                        -3.5 -3.5 -3.5 0 9.8
+                    " />
+                    <feComponentTransfer>
+                        <feFuncA type="linear" slope="35" intercept="-34" />
+                    </feComponentTransfer>
+                </filter>
+                <filter id="whiteToAlphaUniversal" colorInterpolationFilters="sRGB">
+                    <feColorMatrix type="matrix" values="
+                      1 0 0 0 0
+                      0 1 0 0 0
+                      0 0 1 0 0
+                      -100 -100 -100 0 299
+                  " />
+                </filter>
+            </svg>
         </div>
-
     );
-
 };
 

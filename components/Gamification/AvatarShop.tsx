@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ShoppingBag, UserCircle2, Sparkles, Check, Coins, Settings2, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Plus, Minus, X, Store, Lock, Key, Star, Trash2, RotateCcw, RotateCw, Gift } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { ViewState } from '../../types';
 import { AvatarDisplay } from './AvatarDisplay';
 import { FittingRoom } from './FittingRoom';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -26,7 +27,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
         buyAccessory, equipAccessory, isOwned, unequipAccessory, deleteAccessory,
         ownedAccessories, equippedAccessories, setAvatar,
         currentAvatar, updateAccessoryOffset, accessoryOffsets, grade,
-        userId, deletedCatalogItems, hideFromCatalog, userRole
+        userId, deletedCatalogItems, hideFromCatalog, userRole, fullCatalog
     } = useAvatar();
 
     const { coins, savingsBalance, withdrawCoinsFromBank, useCredit, spendCoins: spendCoinsGamification } = useGamification();
@@ -63,7 +64,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
     React.useEffect(() => {
         if (!demoData?.openStore && !demoData?.showAccessories) return;
         const onDemoGlasses = () => {
-            const glasses = ACCESSORIES.find((a) => a.id === DEMO_GLASSES_ID);
+            const glasses = fullCatalog.find((a) => a.id === DEMO_GLASSES_ID);
             if (!glasses) return;
             // Asegurar que estamos en la categoría de gafas
             setActiveCategory('face');
@@ -92,6 +93,11 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
     };
 
     const handleBuy = (item: any) => {
+        if (isOwned(item.id)) {
+            equipAccessory(item);
+            toast.success(`¡Ya tienes ${item.name}! Lo acabas de equipar.`);
+            return;
+        }
         // Show payment method selection modal
         setPendingPurchaseItem(item);
         setShowPaymentModal(true);
@@ -193,7 +199,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                     <div className="flex justify-between items-center mb-6">
                         <div className="flex items-center gap-3">
                             <div className="w-12 h-12 bg-indigo-50 rounded-2xl flex items-center justify-center text-3xl shadow-inner">
-                                {adjustingItem.icon.startsWith('/') ? <img src={adjustingItem.icon} className="w-8 h-8 object-contain" /> : adjustingItem.icon}
+                                {adjustingItem.icon.startsWith('/') || adjustingItem.icon.startsWith('http') || adjustingItem.icon.includes('supabase') || adjustingItem.icon.includes('.png') || adjustingItem.icon.includes('.jpg') ? <img src={adjustingItem.icon} className="w-8 h-8 object-contain" /> : adjustingItem.icon}
                             </div>
                             <div>
                                 <h3 className="font-bold text-slate-800">Sastrería Pro</h3>
@@ -376,7 +382,7 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                                         cat === 'back' ? 'MOCHILAS' :
                                                             cat === 'favorites' ? 'PERSONAJES 3D' :
                                                                 cat === 'nova' ? 'EXCLUSIVO NOVA' :
-                                                                    cat === 'hats' ? 'SOMBREROS' : cat.toUpperCase()}
+                                                                    cat === 'hats' ? 'CACHUCAS NOVA' : cat.toUpperCase()}
                                     </button>
                                 ))}
                             </div>
@@ -421,11 +427,11 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                     })}
 
                                 {mainTab !== 'characters' && (() => {
-                                    const itemsToDisplay = ACCESSORIES.filter(i => {
+                                    const itemsToDisplay = fullCatalog.filter(i => {
                                         if (deletedCatalogItems.includes(i.id)) return false;
                                         if (mainTab === 'backpack') return isOwned(i.id);
 
-                                        // Type-safe string checks to satisfy lint
+                                        // Filter by category
                                         const type = i.type as string;
                                         const isEquipped = equippedAccessories[type] === i.id;
 
@@ -451,185 +457,220 @@ export const AvatarShop = ({ demoData = null, showAdoptButton = false }: AvatarS
                                         }
 
                                         return matchesCategory;
-                                    }).sort((a, b) => {
-                                        const typeA = a.type as string;
-                                        const typeB = b.type as string;
-                                        const aEquipped = equippedAccessories[typeA] === a.id;
-                                        const bEquipped = equippedAccessories[typeB] === b.id;
-                                        if (aEquipped && !bEquipped) return -1;
-                                        if (!aEquipped && bEquipped) return 1;
-
-                                        const aOwned = isOwned(a.id);
-                                        const bOwned = isOwned(b.id);
-                                        if (aOwned && !bOwned) return -1;
-                                        if (!aOwned && bOwned) return 1;
-
-                                        return 0;
                                     });
 
-                                    return itemsToDisplay.map((item, idx) => {
-                                        const owned = isOwned(item.id);
-                                        const equipped = equippedAccessories[item.type] === item.id;
-                                        return (
-                                            <motion.div
-                                                key={item.id}
-                                                initial={{ opacity: 0, scale: 0.8 }}
-                                                animate={{ opacity: 1, scale: 1 }}
-                                                transition={{ delay: idx * 0.05, type: 'spring' }}
-                                                className="relative flex flex-col items-center group cursor-pointer"
-                                                onClick={() => {
-                                                    if (owned) {
-                                                        // No action on main container if owned, use buttons
-                                                    } else handleBuy(item);
-                                                }}
-                                            >
-                                                {/* 🧊 THE HEXAGONAL VITRINE */}
-                                                <div className={cn("relative w-48 h-64 flex items-center justify-center", demoPurchaseItemId === item.id && "ring-4 ring-emerald-500 ring-offset-4 rounded-3xl animate-pulse")}>
-                                                    {mainTab === 'backpack' && equipped && (
-                                                        <div className="absolute -top-4 -right-4 bg-emerald-500 text-white p-2 rounded-full shadow-lg z-50 animate-bounce">
-                                                            <Check className="w-5 h-5" />
-                                                        </div>
-                                                    )}
-                                                    {/* Demo: overlay ¡Comprado! */}
-                                                    {demoPurchaseItemId === item.id && (
-                                                        <div className="absolute inset-0 z-30 flex items-center justify-center bg-emerald-500/90 rounded-t-[3rem] animate-in zoom-in duration-300">
-                                                            <div className="text-white font-black text-center px-4">
-                                                                <Check className="w-16 h-16 mx-auto mb-2" strokeWidth={4} />
-                                                                <span className="text-lg tracking-wide">¡Comprado!</span>
-                                                            </div>
-                                                        </div>
-                                                    )}
-                                                    <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px] border border-white/60 rounded-t-[3rem] skew-y-1 transform group-hover:bg-white/50 transition-all duration-500 overflow-hidden">
-                                                        <div className="absolute inset-x-[-50%] top-[-20%] h-full w-[200%] bg-gradient-to-tr from-transparent via-white/20 to-transparent rotate-45 animate-scanline" />
+                                    return (
+                                        <>
+                                            {/* ⚡ ADMIN SHORTCUT: Add Item */}
+                                            {userRole === 'ADMIN' && mainTab === 'accessories' && (
+                                                <motion.button
+                                                    whileHover={{ scale: 1.05 }}
+                                                    whileTap={{ scale: 0.95 }}
+                                                    onClick={() => {
+                                                        window.dispatchEvent(new CustomEvent('nova_navigate', { detail: ViewState.STORE }));
+                                                        // Brief delay to ensure component mounts before triggering modal
+                                                        setTimeout(() => {
+                                                            window.dispatchEvent(new CustomEvent('nova_open_admin_store'));
+                                                        }, 100);
+                                                    }}
+                                                    className="aspect-square bg-indigo-50 border-2 border-dashed border-indigo-200 rounded-3xl flex flex-col items-center justify-center gap-3 hover:border-indigo-400 hover:bg-indigo-100/50 transition-all group overflow-hidden"
+                                                >
+                                                    <div className="w-14 h-14 bg-white rounded-2xl flex items-center justify-center shadow-md text-indigo-500 group-hover:bg-indigo-600 group-hover:text-white transition-all transform group-hover:rotate-12">
+                                                        <Plus className="w-8 h-8" />
                                                     </div>
+                                                    <div className="text-center">
+                                                        <span className="block text-[10px] font-black text-indigo-600 uppercase tracking-tighter">AGREGAR</span>
+                                                        <span className="block text-[8px] font-bold text-stone-400 uppercase tracking-tight">ACCESORIO</span>
+                                                    </div>
+                                                </motion.button>
+                                            )}
 
-                                                    <div className="absolute bottom-[-20%] w-56 h-32 bg-white rounded-b-3xl border-b-8 border-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center pt-8">
-                                                        <div className="absolute top-0 inset-x-0 h-4 bg-cyan-100/50 shadow-[0_0_15px_cyan] opacity-0 group-hover:opacity-100 transition-opacity" />
-                                                        <div className="flex flex-col items-center gap-1">
-                                                            <div className="px-4 py-1.5 bg-slate-900 rounded-lg text-white text-[8px] font-black tracking-widest uppercase mb-1 flex items-center gap-1">
-                                                                {owned ? (equipped ? 'PUESTO' : 'OBTENIDO') : <><span className="text-[10px]">🪙</span> {item.cost}</>}
-                                                            </div>
-                                                            {owned && (
-                                                                <div className="flex gap-1">
-                                                                    {!equipped && (
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                            className="h-7 px-2 text-[10px] font-bold border-emerald-300 text-emerald-600 hover:bg-emerald-50"
-                                                                            onClick={(e) => { e.stopPropagation(); playClick(); equipAccessory(item); }}
-                                                                        >
-                                                                            Ponerse
-                                                                        </Button>
-                                                                    )}
-                                                                    {equipped && (
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                            className="h-7 px-2 text-[10px] font-bold border-indigo-300 text-indigo-600 hover:bg-indigo-50"
-                                                                            onClick={(e) => { e.stopPropagation(); playClick(); setFittingAccessory(item); setShowFittingRoom(true); }}
-                                                                        >
-                                                                            Ajustar
-                                                                        </Button>
-                                                                    )}
-                                                                    {equipped && (
-                                                                        <Button
-                                                                            size="sm"
-                                                                            variant="outline"
-                                                                            className="h-7 px-2 text-[10px] font-bold border-slate-300 text-slate-600 hover:bg-slate-100"
-                                                                            onClick={(e) => { e.stopPropagation(); playClick(); unequipAccessory(item.type); toast.success(`Quitaste ${item.name}`); }}
-                                                                        >
-                                                                            Quitar
-                                                                        </Button>
-                                                                    )}
+                                            {itemsToDisplay.sort((a, b) => {
+                                                const typeA = a.type as string;
+                                                const typeB = b.type as string;
+                                                const aEquipped = equippedAccessories[typeA] === a.id;
+                                                const bEquipped = equippedAccessories[typeB] === b.id;
+                                                if (aEquipped && !bEquipped) return -1;
+                                                if (!aEquipped && bEquipped) return 1;
+                                                return 0;
+                                            }).map((item, idx) => {
+                                                const owned = isOwned(item.id);
+                                                const equipped = equippedAccessories[item.type] === item.id;
+                                                return (
+                                                    <motion.div
+                                                        key={item.id}
+                                                        initial={{ opacity: 0, scale: 0.8 }}
+                                                        animate={{ opacity: 1, scale: 1 }}
+                                                        transition={{ delay: idx * 0.05, type: 'spring' }}
+                                                        className="relative flex flex-col items-center group cursor-pointer"
+                                                        onClick={() => {
+                                                            if (owned) {
+                                                                if (!equipped) {
+                                                                    playClick();
+                                                                    equipAccessory(item);
+                                                                    toast.success(`Equipaste ${item.name}`);
+                                                                }
+                                                            } else handleBuy(item);
+                                                        }}
+                                                    >
+                                                        {/* 🧊 THE HEXAGONAL VITRINE */}
+                                                        <div className={cn("relative w-48 h-64 flex items-center justify-center", demoPurchaseItemId === item.id && "ring-4 ring-emerald-500 ring-offset-4 rounded-3xl animate-pulse")}>
+                                                            {mainTab === 'backpack' && equipped && (
+                                                                <div className="absolute -top-4 -right-4 bg-emerald-500 text-white p-2 rounded-full shadow-lg z-50 animate-bounce">
+                                                                    <Check className="w-5 h-5" />
                                                                 </div>
                                                             )}
-                                                        </div>
-                                                        <div className="font-bold text-slate-400 text-[10px] uppercase truncate px-4">{item.name}</div>
-                                                    </div>
-
-                                                    {!owned && (
-                                                        <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-yellow-400 text-white px-3 py-1 rounded-full text-[10px] font-black shadow-lg animate-bounce z-20">
-                                                            NUEVO
-                                                        </div>
-                                                    )}
-
-                                                    {(userId === 'test-pilot-quinto' || userRole === 'ADMIN') && (
-                                                        <div className="absolute top-4 left-4 z-50">
-                                                            <Button
-                                                                size="icon"
-                                                                variant="outline"
-                                                                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-red-100 border-none shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
-                                                                onClick={(e) => { e.stopPropagation(); hideFromCatalog(item.id); }}
-                                                                title="Eliminar de la Tienda (Para Siempre)"
-                                                            >
-                                                                <X className="w-4 h-4 text-slate-400 group-hover:text-red-500" />
-                                                            </Button>
-                                                        </div>
-                                                    )}
-
-                                                    {owned && (
-                                                        <div className="absolute top-4 right-4 z-50">
-                                                            <Button
-                                                                size="icon"
-                                                                variant="destructive"
-                                                                className="w-10 h-10 rounded-full shadow-lg border-2 border-white hover:scale-110 active:scale-95 transition-all group-hover:opacity-100 opacity-0 bg-rose-500 hover:bg-rose-600"
-                                                                onClick={(e) => { e.stopPropagation(); deleteAccessory(item.id); }}
-                                                                title="Eliminar de mi baúl"
-                                                            >
-                                                                <Trash2 className="w-5 h-5 text-white" />
-                                                            </Button>
-                                                        </div>
-                                                    )}
-
-                                                    <div className="relative z-10 transition-transform duration-500 group-hover:scale-125 group-hover:-translate-y-4">
-                                                        {(() => {
-                                                            let displayIcon = imageUrlFallback[item.id] || item.icon;
-                                                            if (displayIcon.startsWith('/') || displayIcon.startsWith('http') || displayIcon.startsWith('C:') || displayIcon.startsWith('data:')) {
-                                                                if (failedImageIds[item.id] && !displayIcon.startsWith('C:')) {
-                                                                    return (
-                                                                        <div className="w-24 h-24 flex items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 border-2 border-amber-300 text-amber-800 font-black text-[10px] text-center px-2 shadow-inner">
-                                                                            <span className="uppercase tracking-tighter leading-tight">{item.name.replace(' - ', '\n')}</span>
-                                                                        </div>
-                                                                    );
-                                                                }
-                                                                return (
-                                                                    <div className="relative group/img">
-                                                                        {item.rarity === 'legendary' && <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-40 group-hover/img:opacity-70 animate-pulse transition-opacity" />}
-                                                                        <img
-                                                                            src={displayIcon}
-                                                                            alt={item.name}
-                                                                            className="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.3)] relative z-10"
-                                                                            onError={() => {
-                                                                                const url = imageUrlFallback[item.id] || item.icon;
-                                                                                if (url.endsWith('.png') && !imageUrlFallback[item.id]) {
-                                                                                    setImageUrlFallback(prev => ({ ...prev, [item.id]: url.replace(/\.png$/i, '.jpg') }));
-                                                                                } else {
-                                                                                    setFailedImageIds(prev => ({ ...prev, [item.id]: true }));
-                                                                                }
-                                                                            }}
-                                                                            style={{
-                                                                                filter: item.id.includes('nova_gold')
-                                                                                    ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
-                                                                                    : (item.id.includes('nova_neon')
-                                                                                        ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
-                                                                                        : (item.id.includes('nova_official') || item.id.includes('nova_premium') || item.id.includes('retro') || item.id.includes('spiderman') || item.id.includes('diamond') || item.id.includes('black')
-                                                                                            ? 'url(#premiumJerseyFilter)'
-                                                                                            : 'none'))
-                                                                            }}
-                                                                        />
+                                                            {/* Demo: overlay ¡Comprado! */}
+                                                            {demoPurchaseItemId === item.id && (
+                                                                <div className="absolute inset-0 z-30 flex items-center justify-center bg-emerald-500/90 rounded-t-[3rem] animate-in zoom-in duration-300">
+                                                                    <div className="text-white font-black text-center px-4">
+                                                                        <Check className="w-16 h-16 mx-auto mb-2" strokeWidth={4} />
+                                                                        <span className="text-lg tracking-wide">¡Comprado!</span>
                                                                     </div>
-                                                                );
-                                                            }
-                                                            return <span className="text-7xl drop-shadow-2xl">{item.icon}</span>;
-                                                        })()}
-                                                    </div>
-                                                </div>
-                                                <div className="absolute bottom-[-30%] left-1/2 -translate-x-1/2 w-40 h-2 bg-cyan-400/20 blur-xl opacity-0 group-hover:opacity-100" />
-                                            </motion.div>
-                                        );
-                                    });
+                                                                </div>
+                                                            )}
+                                                            <div className="absolute inset-0 bg-white/30 backdrop-blur-[2px] border border-white/60 rounded-t-[3rem] skew-y-1 transform group-hover:bg-white/50 transition-all duration-500 overflow-hidden">
+                                                                <div className="absolute inset-x-[-50%] top-[-20%] h-full w-[200%] bg-gradient-to-tr from-transparent via-white/20 to-transparent rotate-45 animate-scanline" />
+                                                            </div>
+
+                                                            <div className="absolute bottom-[-20%] w-56 h-32 bg-white rounded-b-3xl border-b-8 border-slate-100 shadow-[0_20px_40px_rgba(0,0,0,0.1)] flex flex-col items-center justify-center pt-8">
+                                                                <div className="absolute top-0 inset-x-0 h-4 bg-cyan-100/50 shadow-[0_0_15px_cyan] opacity-0 group-hover:opacity-100 transition-opacity" />
+                                                                <div className="flex flex-col items-center gap-1">
+                                                                    <div className="px-4 py-1.5 bg-slate-900 rounded-lg text-white text-[8px] font-black tracking-widest uppercase mb-1 flex items-center gap-1">
+                                                                        {owned ? (equipped ? 'PUESTO' : 'OBTENIDO') : <><span className="text-[10px]">🪙</span> {item.cost}</>}
+                                                                    </div>
+                                                                    {owned && (
+                                                                        <div className="flex gap-1">
+                                                                            {!equipped && (
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    className="h-7 px-2 text-[10px] font-bold border-emerald-300 text-emerald-600 hover:bg-emerald-50"
+                                                                                    onClick={(e) => { e.stopPropagation(); playClick(); equipAccessory(item); }}
+                                                                                >
+                                                                                    Ponerse
+                                                                                </Button>
+                                                                            )}
+                                                                            {equipped && (
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    className="h-7 px-2 text-[10px] font-bold border-indigo-300 text-indigo-600 hover:bg-indigo-50"
+                                                                                    onClick={(e) => { e.stopPropagation(); playClick(); setFittingAccessory(item); setShowFittingRoom(true); }}
+                                                                                >
+                                                                                    Ajustar
+                                                                                </Button>
+                                                                            )}
+                                                                            {equipped && (
+                                                                                <Button
+                                                                                    size="sm"
+                                                                                    variant="outline"
+                                                                                    className="h-7 px-2 text-[10px] font-bold border-slate-300 text-slate-600 hover:bg-slate-100"
+                                                                                    onClick={(e) => { e.stopPropagation(); playClick(); unequipAccessory(item.type); toast.success(`Quitaste ${item.name}`); }}
+                                                                                >
+                                                                                    Quitar
+                                                                                </Button>
+                                                                            )}
+                                                                        </div>
+                                                                    )}
+                                                                </div>
+                                                                <div className="font-bold text-slate-400 text-[10px] uppercase truncate px-4">{item.name}</div>
+                                                            </div>
+
+                                                            {!owned && (
+                                                                <div className="absolute top-10 left-1/2 -translate-x-1/2 bg-yellow-400 text-white px-3 py-1 rounded-full text-[10px] font-black shadow-lg animate-bounce z-20">
+                                                                    NUEVO
+                                                                </div>
+                                                            )}
+
+                                                            {(userId === 'test-pilot-quinto' || userRole === 'ADMIN') && (
+                                                                <div className="absolute top-4 left-4 z-50">
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="outline"
+                                                                        className="w-8 h-8 rounded-full bg-slate-100 hover:bg-red-100 border-none shadow-sm opacity-0 group-hover:opacity-100 transition-opacity"
+                                                                        onClick={(e) => { e.stopPropagation(); hideFromCatalog(item.id); }}
+                                                                        title="Eliminar de la Tienda (Para Siempre)"
+                                                                    >
+                                                                        <X className="w-4 h-4 text-slate-400 group-hover:text-red-500" />
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+
+                                                            {owned && (
+                                                                <div className="absolute top-4 right-4 z-50">
+                                                                    <Button
+                                                                        size="icon"
+                                                                        variant="destructive"
+                                                                        className="w-10 h-10 rounded-full shadow-lg border-2 border-white hover:scale-110 active:scale-95 transition-all group-hover:opacity-100 opacity-0 bg-rose-500 hover:bg-rose-600"
+                                                                        onClick={(e) => { e.stopPropagation(); deleteAccessory(item.id); }}
+                                                                        title="Eliminar de mi baúl"
+                                                                    >
+                                                                        <Trash2 className="w-5 h-5 text-white" />
+                                                                    </Button>
+                                                                </div>
+                                                            )}
+
+                                                            <div className="relative z-10 transition-transform duration-500 group-hover:scale-125 group-hover:-translate-y-4">
+                                                                {(() => {
+                                                                    let displayIcon = imageUrlFallback[item.id] || item.icon;
+                                                                    const isUrl = displayIcon.startsWith('/') ||
+                                                                        displayIcon.startsWith('http') ||
+                                                                        displayIcon.startsWith('C:') ||
+                                                                        displayIcon.startsWith('data:') ||
+                                                                        displayIcon.includes('supabase') ||
+                                                                        displayIcon.includes('.png') ||
+                                                                        displayIcon.includes('.jpg') ||
+                                                                        displayIcon.includes('.jpeg');
+
+                                                                    if (isUrl) {
+                                                                        if (failedImageIds[item.id] && !displayIcon.startsWith('C:')) {
+                                                                            return (
+                                                                                <div className="w-24 h-24 flex items-center justify-center rounded-2xl bg-gradient-to-br from-amber-100 to-orange-50 border-2 border-amber-300 text-amber-800 font-black text-[10px] text-center px-2 shadow-inner">
+                                                                                    <span className="uppercase tracking-tighter leading-tight">{item.name.replace(' - ', '\n')}</span>
+                                                                                </div>
+                                                                            );
+                                                                        }
+                                                                        return (
+                                                                            <div className="relative group/img">
+                                                                                {item.rarity === 'legendary' && <div className="absolute inset-0 bg-cyan-400 blur-2xl opacity-40 group-hover/img:opacity-70 animate-pulse transition-opacity" />}
+                                                                                <img
+                                                                                    src={displayIcon}
+                                                                                    alt={item.name}
+                                                                                    className="w-28 h-28 sm:w-32 sm:h-32 object-contain drop-shadow-[0_20px_30px_rgba(0,0,0,0.3)] relative z-10"
+                                                                                    onError={() => {
+                                                                                        const url = imageUrlFallback[item.id] || item.icon;
+                                                                                        if (url.endsWith('.png') && !imageUrlFallback[item.id]) {
+                                                                                            setImageUrlFallback(prev => ({ ...prev, [item.id]: url.replace(/\.png$/i, '.jpg') }));
+                                                                                        } else {
+                                                                                            setFailedImageIds(prev => ({ ...prev, [item.id]: true }));
+                                                                                        }
+                                                                                    }}
+                                                                                    style={{
+                                                                                        filter: item.id.includes('nova_gold')
+                                                                                            ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
+                                                                                            : (item.id.includes('nova_neon')
+                                                                                                ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
+                                                                                                : (item.id.includes('nova_official') || item.id.includes('nova_premium') || item.id.includes('retro') || item.id.includes('spiderman') || item.id.includes('diamond') || item.id.includes('black')
+                                                                                                    ? 'url(#premiumJerseyFilter)'
+                                                                                                    : 'url(#premiumJerseyFilter)'))
+                                                                                    }}
+                                                                                />
+                                                                            </div>
+                                                                        );
+                                                                    }
+                                                                    return <span className="text-7xl drop-shadow-2xl max-w-full break-all inline-block truncate">{item.icon.length > 2 ? item.icon : item.icon}</span>;
+                                                                })()}
+                                                            </div>
+                                                        </div>
+                                                        <div className="absolute bottom-[-30%] left-1/2 -translate-x-1/2 w-40 h-2 bg-cyan-400/20 blur-xl opacity-0 group-hover:opacity-100" />
+                                                    </motion.div>
+                                                );
+                                            })}
+                                        </>
+                                    );
                                 })()}
-                            </div>
+                            </div >
                         </div>
                     </ScrollArea>
                 </div>

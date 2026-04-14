@@ -15,21 +15,102 @@ export interface SpeechOptions {
     pitch?: number;
 }
 
+/**
+ * Preprocesador de símbolos matemáticos para TTS.
+ * Convierte notación matemática a español hablado natural.
+ * Ejemplo: "2/3 + 1/4 = 5/6" → "dos tercios más un cuarto es igual a cinco sextos"
+ */
+export function preprocessMathForSpeech(text: string): string {
+    let result = text;
+
+    // ─── Operadores básicos ───
+    result = result.replace(/\s*\+\s*/g, ' más ');
+    result = result.replace(/\s*-\s*/g, ' menos ');
+    result = result.replace(/\s*[×x✕]\s*/gi, ' por ');
+    result = result.replace(/\s*[÷/]\s*(?=\d)/g, ' entre ');
+    result = result.replace(/\s*=\s*/g, ' es igual a ');
+    result = result.replace(/\s*≠\s*/g, ' no es igual a ');
+    result = result.replace(/\s*≈\s*/g, ' es aproximadamente ');
+    result = result.replace(/\s*≥\s*/g, ' es mayor o igual que ');
+    result = result.replace(/\s*≤\s*/g, ' es menor o igual que ');
+    result = result.replace(/\s*>\s*/g, ' es mayor que ');
+    result = result.replace(/\s*<\s*/g, ' es menor que ');
+    
+    // ─── Flechas de relación (ej: Regla de tres) ───
+    result = result.replace(/\s*(→|->|=>)\s*/g, ', son, ');
+
+    // ─── Raíz cuadrada ───
+    result = result.replace(/√(\d+)/g, 'raíz cuadrada de $1');
+    result = result.replace(/√/g, 'raíz cuadrada de ');
+
+    // ─── Potencias ───
+    result = result.replace(/(\d+)²/g, '$1 al cuadrado');
+    result = result.replace(/(\d+)³/g, '$1 al cubo');
+    result = result.replace(/(\d+)\^(\d+)/g, '$1 elevado a la $2');
+
+    // ─── Pi ───
+    result = result.replace(/π/g, 'pi');
+    result = result.replace(/∞/g, 'infinito');
+
+    // ─── Fracciones comunes habladas ───
+    result = result.replace(/\b1\/2\b/g, 'un medio');
+    result = result.replace(/\b1\/3\b/g, 'un tercio');
+    result = result.replace(/\b2\/3\b/g, 'dos tercios');
+    result = result.replace(/\b1\/4\b/g, 'un cuarto');
+    result = result.replace(/\b3\/4\b/g, 'tres cuartos');
+    result = result.replace(/\b1\/5\b/g, 'un quinto');
+    result = result.replace(/\b2\/5\b/g, 'dos quintos');
+    result = result.replace(/\b3\/5\b/g, 'tres quintos');
+    result = result.replace(/\b4\/5\b/g, 'cuatro quintos');
+    result = result.replace(/\b1\/6\b/g, 'un sexto');
+    result = result.replace(/\b5\/6\b/g, 'cinco sextos');
+    result = result.replace(/\b1\/8\b/g, 'un octavo');
+    result = result.replace(/\b3\/8\b/g, 'tres octavos');
+    result = result.replace(/\b1\/10\b/g, 'un décimo');
+
+    // ─── Fracciones genéricas (a/b) ───
+    const fractionNames: Record<string, string> = {
+        '2': 'medios', '3': 'tercios', '4': 'cuartos', '5': 'quintos',
+        '6': 'sextos', '7': 'séptimos', '8': 'octavos', '9': 'novenos',
+        '10': 'décimos', '12': 'dozavos', '100': 'centésimos'
+    };
+    result = result.replace(/(\d+)\/(\d+)/g, (_, num, den) => {
+        const denName = fractionNames[den];
+        if (denName) return `${num} ${denName}`;
+        return `${num} sobre ${den}`;
+    });
+
+    // ─── Porcentajes ───
+    result = result.replace(/(\d+)%/g, '$1 por ciento');
+
+    // ─── Paréntesis (sólo pausa visual/auditiva en vez de leer literal) ───
+    result = result.replace(/\(/g, ', ');
+    result = result.replace(/\)/g, ', ');
+
+    // ─── Signos financieros ───
+    result = result.replace(/\$\s*(\d[\d.,]*)/g, '$1 pesos');
+
+    // ─── Cleanup multiple spaces ───
+    result = result.replace(/\s{2,}/g, ' ').trim();
+
+    return result;
+}
+
 // Voces optimizadas para Lina (español colombiano) y Rachelle (inglés americano)
 export const EDGE_VOICES = {
     lina: {
-        name: 'Dalia',
-        altNames: ['Elena', 'Laura', 'mexico', 'latino'],
-        lang: 'es-MX',
-        rate: 1.15, // Faster pace for natural energy
-        pitch: 1.2, // Higher pitch for enthusiasm
+        name: 'Salomé',
+        altNames: ['Dalia', 'Elena', 'Laura', 'colombia', 'latino'],
+        lang: 'es-CO',
+        rate: 1.15, // Faster pace for dynamic explanations
+        pitch: 1.1, // Slightly higher for warmth and energy
         gender: 'female'
     } as EdgeVoiceConfig,
     female: {
-        name: 'Dalia',
-        altNames: ['Elena', 'Laura', 'mexico', 'latino'],
-        lang: 'es-MX',
-        rate: 0.85,
+        name: 'Salomé',
+        altNames: ['Dalia', 'Elena', 'Laura', 'colombia', 'latino'],
+        lang: 'es-CO',
+        rate: 0.9,
         pitch: 1.0,
         gender: 'female'
     } as EdgeVoiceConfig,
@@ -274,12 +355,12 @@ class EdgeTTSService {
             const basePitch = utterance.pitch;
             const baseRate = utterance.rate;
 
-            // Dynamic pitch variation for expressiveness
-            const pitchVariation = (Math.sin(Date.now() * 0.001) * 0.1) + (Math.random() * 0.05);
+            // DYNAMIC pitch variation — wider swings for an energetic teacher
+            const pitchVariation = (Math.sin(Date.now() * 0.0012) * 0.15) + (Math.random() * 0.08);
             utterance.pitch = basePitch + pitchVariation;
 
-            // Dynamic rate variation for energy
-            const rateVariation = (Math.sin(Date.now() * 0.0008) * 0.08) + (Math.random() * 0.03);
+            // DYNAMIC rate variation — faster cycling for rapid explanations
+            const rateVariation = (Math.sin(Date.now() * 0.001) * 0.12) + (Math.random() * 0.05);
             utterance.rate = baseRate + rateVariation;
         } else if (tutor === 'rachelle') {
             const basePitch = utterance.pitch;
@@ -315,16 +396,24 @@ class EdgeTTSService {
         }
 
         return new Promise((resolve) => {
+            const config = EDGE_VOICES[tutor];
+
             // Clean emojis and weird characters from text so TTS doesn't read them
-            const cleanText = text
+            let cleanText = text
                 .replace(/[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2700}-\u{27BF}\u{1F900}-\u{1F9FF}\u{1F018}-\u{1F0F5}\u{1F200}-\u{1F270}\u{2600}-\u{26FF}\u{2300}-\u{23FF}]/gu, '')
                 .replace(/\*\*/g, '')
+                .replace(/#+\s*/g, '') // Remove markdown headers
+                .replace(/`[^`]*`/g, (m) => m.replace(/`/g, '')) // Remove backticks
                 .replace(/\s+/g, ' ')
                 .trim();
 
+            // Apply math symbol preprocessing for Spanish speech
+            if (config.lang.startsWith('es')) {
+                cleanText = preprocessMathForSpeech(cleanText);
+            }
+
             if (!cleanText) { resolve(); return; }
 
-            const config = EDGE_VOICES[tutor];
             const utterance = new SpeechSynthesisUtterance(cleanText);
 
             // CRITICAL: Set the language explicitly so the browser knows how to pronounce it!

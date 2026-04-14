@@ -108,10 +108,11 @@ export const GamificationProvider: React.FC<{ children: ReactNode }> = ({ childr
                 getUserEconomy(userId),
                 getLearningProgress(userId)
             ]);
-            const coins = economy?.coins ?? 0;
-            const savingsBalance = economy?.savings_balance ?? 0;
-            const totalXp = progress?.total_xp ?? 0;
-            const level = totalXp < 100 ? 1 : Math.min(11, Math.floor(totalXp / 1000) + 1);
+            const isAdmin = sessionUser.email === 'rickhazur@gmail.com';
+            const coins = isAdmin ? 999999 : (economy?.coins ?? 0);
+            const savingsBalance = isAdmin ? 999999 : (economy?.savings_balance ?? 0);
+            const totalXp = isAdmin ? 50000 : (progress?.total_xp ?? 0);
+            const level = isAdmin ? 10 : (totalXp < 100 ? 1 : Math.min(11, Math.floor(totalXp / 1000) + 1));
 
             setState(prev => ({
                 ...prev,

@@ -43,6 +43,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
     const [showStudentPassword, setShowStudentPassword] = useState(false);
     const [isHabeasAccepted, setIsHabeasAccepted] = useState(false);
     const [regStep, setRegStep] = useState(1); // 1: Parent, 2: Child, 3: Email, 4: Consent
+    const [isAdultVerified, setIsAdultVerified] = useState(false);
+    const [adultChallenge, setAdultChallenge] = useState({ q: '', a: 0 });
+    const [userAdultAnswer, setUserAdultAnswer] = useState('');
+
+    const generateAdultChallenge = () => {
+        const n1 = Math.floor(Math.random() * 60) + 20;
+        const n2 = Math.floor(Math.random() * 60) + 20;
+        setAdultChallenge({ q: `${n1} + ${n2}`, a: n1 + n2 });
+        setUserAdultAnswer('');
+    };
 
     const [savedAvatarId, setSavedAvatarId] = useState<string | null>(() => {
         return localStorage.getItem('nova_avatar_id');
@@ -98,22 +108,23 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                     isBilingual: formData.isBilingual
                 });
 
-                if (result.session || result.user) {
+                if (result.user) {
+                    const needsEmailMsg = result.emailConfirmationRequired;
                     toast.message(
-                        language === 'es' ? "Solicitud de Cuenta Enviada" : "Account Request Sent",
+                        language === 'es'
+                            ? (needsEmailMsg ? "📧 Verifica tu correo" : "Solicitud de Cuenta Enviada")
+                            : (needsEmailMsg ? "📧 Verify your email" : "Account Request Sent"),
                         {
                             description: language === 'es'
-                                ? "⏳ Tu cuenta ha sido creada y está pendiente de aprobación por el Administrador. Intenta ingresar más tarde."
-                                : "⏳ Your account works pending Admin approval. Please try logging in later.",
-                            duration: 8000,
-                            icon: <ShieldCheck className="w-5 h-5 text-amber-500" />
+                                ? (needsEmailMsg
+                                    ? "Hemos enviado un enlace a tu correo. Debes confirmarlo para que el Administrador pueda activar tu cuenta."
+                                    : "⏳ Tu cuenta ha sido creada y está pendiente de aprobación por el Administrador. Intenta ingresar más tarde.")
+                                : (needsEmailMsg
+                                    ? "We sent a link to your email. You must confirm it before the Admin can activate your account."
+                                    : "⏳ Your account works pending Admin approval. Please try logging in later."),
+                            duration: 10000,
+                            icon: needsEmailMsg ? <BookOpen className="w-5 h-5 text-indigo-500" /> : <ShieldCheck className="w-5 h-5 text-amber-500" />
                         }
-                    );
-                    setIsRegistering(false);
-                } else {
-                    toast.message(
-                        language === 'es' ? "Verifica tu correo" : "Check your email",
-                        { description: language === 'es' ? "Hemos enviado un enlace de confirmación." : "We sent a confirmation link." }
                     );
                     setIsRegistering(false);
                 }
@@ -179,13 +190,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                         }
                     }
                     toast.message(
-                        language === 'es' ? "Registro Familiar Recibido" : "Family Registration Received",
+                        language === 'es' ? "📧 Revisa tu bandeja de entrada" : "📧 Check your inbox",
                         {
                             description: language === 'es'
-                                ? "⏳ Las cuentas de Padre e Hijo han sido creadas y están en espera de aprobación por el Administrador."
-                                : "⏳ Parent and Student accounts created and awaiting Admin approval.",
-                            duration: 8000,
-                            icon: <ShieldCheck className="w-5 h-5 text-amber-500" />
+                                ? "Se han enviado enlaces de confirmación a los correos registrados. Una vez confirmados, el Administrador podrá activar las cuentas."
+                                : "Confirmation links have been sent to the registered emails. Once confirmed, the Admin can activate the accounts.",
+                            duration: 10000,
+                            icon: <ShieldCheck className="w-5 h-5 text-indigo-500" />
                         }
                     );
                     setIsRegistering(false);
@@ -311,49 +322,89 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                     {/* Parent Multi-step Steps */}
                                     {mode === 'PARENT' && regStep === 1 && (
                                         <div className="space-y-4">
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Tu Nombre Completo</label>
-                                                <input
-                                                    type="text"
-                                                    value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
-                                                    placeholder="Nombre del Padre/Madre"
-                                                />
-                                            </div>
-                                            <div className="space-y-1">
-                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Tu Correo Electrónico</label>
-                                                <input
-                                                    type="email"
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
-                                                    placeholder="ejemplo@correo.com"
-                                                />
-                                            </div>
-                                            <div className="space-y-1 relative">
-                                                <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Contraseña Segura</label>
-                                                <input
-                                                    type={showPassword ? "text" : "password"}
-                                                    value={formData.password}
-                                                    onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                    className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
-                                                    placeholder="Mínimo 6 caracteres"
-                                                />
-                                                <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 bottom-3.5 text-slate-500">
-                                                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                                                </button>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (formData.name && formData.email && formData.password.length >= 6) setRegStep(2);
-                                                    else toast.error("Completa todos los campos.");
-                                                }}
-                                                className="w-full h-12 bg-cyan-600 font-bold rounded-xl"
-                                            >
-                                                SIGUIENTE: DATOS DEL NIÑO →
-                                            </Button>
+                                            {!isAdultVerified ? (
+                                                <div className="bg-slate-900/40 p-6 rounded-2xl border border-white/5 space-y-6 animate-in fade-in zoom-in duration-300">
+                                                    <div className="flex items-center gap-3 border-b border-white/5 pb-4">
+                                                        <ShieldCheck className="w-8 h-8 text-amber-500" />
+                                                        <div>
+                                                            <p className="font-black text-white text-xs uppercase">Control Parental</p>
+                                                            <p className="text-[9px] text-slate-400 font-bold uppercase tracking-tighter">Solo para Madres y Padres</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="text-center space-y-4 py-2">
+                                                        <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Resuelve para entrar:</p>
+                                                        <p className="text-4xl font-black text-white">{adultChallenge.q}</p>
+                                                        <input
+                                                            type="number"
+                                                            value={userAdultAnswer}
+                                                            onChange={(e) => setUserAdultAnswer(e.target.value)}
+                                                            className="w-24 bg-slate-800 border-2 border-slate-700 text-white text-center text-2xl font-black rounded-xl p-3 focus:border-cyan-500 focus:outline-none"
+                                                            placeholder="?"
+                                                        />
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (parseInt(userAdultAnswer) === adultChallenge.a) {
+                                                                setIsAdultVerified(true);
+                                                                toast.success("Verificado.");
+                                                            } else {
+                                                                toast.error("Error. Intenta de nuevo.");
+                                                                generateAdultChallenge();
+                                                            }
+                                                        }}
+                                                        className="w-full h-12 bg-white text-slate-900 font-black rounded-xl shadow-lg active:scale-95 transition-all"
+                                                    >
+                                                        VALIDAR →
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Tu Nombre Completo</label>
+                                                        <input
+                                                            type="text"
+                                                            value={formData.name}
+                                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                            className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                            placeholder="Nombre del Padre/Madre"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1">
+                                                        <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Tu Correo Electrónico</label>
+                                                        <input
+                                                            type="email"
+                                                            value={formData.email}
+                                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                            className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                            placeholder="ejemplo@correo.com"
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-1 relative">
+                                                        <label className="text-[10px] text-stone-400 font-bold uppercase ml-1">Contraseña Segura</label>
+                                                        <input
+                                                            type={showPassword ? "text" : "password"}
+                                                            value={formData.password}
+                                                            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                            className="w-full bg-slate-800/60 border border-white/5 text-white rounded-xl px-5 py-3.5 focus:outline-none focus:border-cyan-500 transition-all font-bold placeholder:text-slate-600"
+                                                            placeholder="Mínimo 6 caracteres"
+                                                        />
+                                                        <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-4 bottom-3.5 text-slate-500">
+                                                            {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                                                        </button>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (formData.name && formData.email && formData.password.length >= 6) setRegStep(2);
+                                                            else toast.error("Completa todos los campos.");
+                                                        }}
+                                                        className="w-full h-12 bg-cyan-600 font-bold rounded-xl"
+                                                    >
+                                                        SIGUIENTE: DATOS DEL NIÑO →
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </div>
                                     )}
 
@@ -530,8 +581,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                         {mode === 'PARENT' && (
                             <button
                                 onClick={() => {
-                                    setIsRegistering(!isRegistering);
+                                    const nextReg = !isRegistering;
+                                    setIsRegistering(nextReg);
                                     setRegStep(1);
+                                    setIsAdultVerified(false);
+                                    if (nextReg && mode === 'PARENT') generateAdultChallenge();
                                 }}
                                 className="text-slate-400 text-sm font-medium hover:text-white transition-colors"
                             >
@@ -675,51 +729,107 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                     {/* STEP 1: Parent Info */}
                                     {regStep === 1 && (
                                         <motion.div initial={{ x: 30, opacity: 0 }} animate={{ x: 0, opacity: 1 }} className="space-y-4">
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentName}</label>
-                                                <input
-                                                    type="text"
-                                                    value={formData.name}
-                                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
-                                                    placeholder={text.placeholderName}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentEmail}</label>
-                                                <input
-                                                    type="email"
-                                                    value={formData.email}
-                                                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                                    className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
-                                                    placeholder={text.placeholderEmail}
-                                                />
-                                            </div>
-                                            <div className="space-y-2">
-                                                <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.password}</label>
-                                                <div className="relative">
-                                                    <input
-                                                        type={showParentPassword ? "text" : "password"}
-                                                        value={formData.password}
-                                                        onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                                        className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
-                                                        placeholder="Mínimo 6 caracteres"
-                                                    />
-                                                    <button type="button" onClick={() => setShowParentPassword(!showParentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400">
-                                                        {showParentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
-                                                    </button>
+                                            {!isAdultVerified ? (
+                                                <div className="space-y-6 animate-in fade-in zoom-in duration-300">
+                                                    <div className="flex items-center gap-4 p-5 bg-amber-50 rounded-3xl border border-amber-200 shadow-sm shadow-amber-100">
+                                                        <div className="bg-amber-100 p-2.5 rounded-2xl">
+                                                            <ShieldCheck className="w-7 h-7 text-amber-600" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="font-black text-amber-900 leading-tight text-sm uppercase">Control Parental</p>
+                                                            <p className="text-[10px] text-amber-700 font-bold opacity-80 mt-0.5">ESTA SECCIÓN ES SOLO PARA PADRES. RESUELVE PARA CONTINUAR.</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="space-y-5 p-8 bg-stone-50/50 rounded-[2rem] border border-stone-100 text-center">
+                                                        <p className="text-[10px] font-black text-stone-400 uppercase tracking-[0.2em]">Reto de Acceso</p>
+                                                        <p className="text-5xl font-black text-indigo-600 drop-shadow-sm font-fredoka">{adultChallenge.q}</p>
+                                                        <div className="max-w-[140px] mx-auto">
+                                                            <input
+                                                                type="number"
+                                                                value={userAdultAnswer}
+                                                                onChange={(e) => setUserAdultAnswer(e.target.value)}
+                                                                className="w-full bg-white border-2 border-stone-200 text-center text-3xl font-black rounded-2xl p-4 focus:border-indigo-500 focus:outline-none shadow-inner transition-all"
+                                                                placeholder="?"
+                                                                onKeyDown={(e) => {
+                                                                    if (e.key === 'Enter') {
+                                                                        e.preventDefault();
+                                                                        if (parseInt(userAdultAnswer) === adultChallenge.a) {
+                                                                            setIsAdultVerified(true);
+                                                                            toast.success("Verificado. Puedes continuar.");
+                                                                        } else {
+                                                                            toast.error("Respuesta incorrecta. Intenta de nuevo.");
+                                                                            generateAdultChallenge();
+                                                                        }
+                                                                    }
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (parseInt(userAdultAnswer) === adultChallenge.a) {
+                                                                setIsAdultVerified(true);
+                                                                toast.success("Verificado. Puedes continuar.");
+                                                            } else {
+                                                                toast.error("Respuesta incorrecta. Hemos generado un nuevo reto.");
+                                                                generateAdultChallenge();
+                                                            }
+                                                        }}
+                                                        className="w-full h-16 bg-slate-900 hover:bg-black text-white font-black rounded-2xl text-lg shadow-xl shadow-stone-200 transform transition-transform active:scale-95"
+                                                    >
+                                                        VALIDAR Y CONTINUAR →
+                                                    </Button>
                                                 </div>
-                                            </div>
-                                            <Button
-                                                type="button"
-                                                onClick={() => {
-                                                    if (formData.name && formData.email && formData.password.length >= 6) setRegStep(2);
-                                                    else toast.error("Completa todos los campos de padre.");
-                                                }}
-                                                className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg mt-4"
-                                            >
-                                                SIGUIENTE: DATOS DEL ESTUDIANTE →
-                                            </Button>
+                                            ) : (
+                                                <div className="space-y-4">
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentName}</label>
+                                                        <input
+                                                            type="text"
+                                                            value={formData.name}
+                                                            onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                                            className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                            placeholder={text.placeholderName}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.parentEmail}</label>
+                                                        <input
+                                                            type="email"
+                                                            value={formData.email}
+                                                            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                                                            className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                            placeholder={text.placeholderEmail}
+                                                        />
+                                                    </div>
+                                                    <div className="space-y-2">
+                                                        <label className="text-xs font-bold text-stone-500 uppercase ml-1">{text.password}</label>
+                                                        <div className="relative">
+                                                            <input
+                                                                type={showParentPassword ? "text" : "password"}
+                                                                value={formData.password}
+                                                                onChange={(e) => setFormData({ ...formData, password: e.target.value })}
+                                                                className="w-full bg-stone-50 border border-stone-200 text-stone-900 rounded-xl px-4 py-3.5 focus:outline-none focus:border-indigo-500 transition-all font-bold"
+                                                                placeholder="Mínimo 6 caracteres"
+                                                            />
+                                                            <button type="button" onClick={() => setShowParentPassword(!showParentPassword)} className="absolute right-4 top-1/2 -translate-y-1/2 text-stone-400">
+                                                                {showParentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={() => {
+                                                            if (formData.name && formData.email && formData.password.length >= 6) setRegStep(2);
+                                                            else toast.error("Completa todos los campos de padre.");
+                                                        }}
+                                                        className="w-full h-14 bg-indigo-600 hover:bg-indigo-700 text-white font-black rounded-2xl shadow-lg mt-4"
+                                                    >
+                                                        SIGUIENTE: DATOS DEL ESTUDIANTE →
+                                                    </Button>
+                                                </div>
+                                            )}
                                         </motion.div>
                                     )}
 
@@ -976,8 +1086,11 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                         <button
                                             type="button"
                                             onClick={() => {
-                                                setIsRegistering(!isRegistering);
+                                                const nextReg = !isRegistering;
+                                                setIsRegistering(nextReg);
                                                 setRegStep(1);
+                                                setIsAdultVerified(false);
+                                                if (nextReg && mode === 'PARENT') generateAdultChallenge();
                                             }}
                                             className="text-indigo-600 font-bold hover:underline"
                                         >

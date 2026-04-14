@@ -265,6 +265,7 @@ const PaymentsManagement: React.FC = () => {
                             <th className="px-6 py-4">Plan</th>
                             <th className="px-6 py-4">Coins</th>
                             <th className="px-6 py-4">Estado</th>
+                            <th className="px-6 py-4">Prueba</th>
                             <th className="px-6 py-4 text-center">Acciones</th>
                         </tr>
                     </thead>
@@ -309,6 +310,21 @@ const PaymentsManagement: React.FC = () => {
                                         <option className="text-stone-800 bg-white" value="Activo">Activo</option>
                                         <option className="text-stone-800 bg-white" value="Inactivo">Inactivo</option>
                                     </select>
+                                </td>
+                                <td className="px-6 py-4">
+                                    {s.subscription_status === 'trial' && s.trial_ends_at ? (
+                                        <div className="flex flex-col">
+                                            <span className="text-[10px] font-bold text-indigo-600 uppercase">Trial</span>
+                                            <span className="text-xs font-black text-stone-700">
+                                                {(() => {
+                                                    const diff = Math.ceil((new Date(s.trial_ends_at).getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24));
+                                                    return diff > 0 ? `${diff} días` : 'Expirado';
+                                                })()}
+                                            </span>
+                                        </div>
+                                    ) : (
+                                        <span className="text-stone-300 text-xs">—</span>
+                                    )}
                                 </td>
                                 <td className="px-6 py-4 flex justify-center gap-4 text-stone-400">
                                     <button className="hover:text-stone-800 flex items-center gap-1 text-xs font-bold text-stone-600">

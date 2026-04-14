@@ -7,6 +7,7 @@ import { callGeminiSocratic } from '@/services/gemini';
 import { callOpenAI } from '@/services/openai';
 import { Brain, Zap, Loader2, BookOpen, Trophy, CheckCircle2, ArrowRight, RefreshCw, AlertCircle } from 'lucide-react';
 import { VirtualBlocks } from './VirtualBlocks';
+import { AlgebraBalance } from './AlgebraBalance';
 import { useGamification } from '@/context/GamificationContext';
 
 interface SocraticQuestion {
@@ -17,6 +18,8 @@ interface SocraticQuestion {
   followUp: string;
   type: 'extraction' | 'reasoning' | 'verification';
   imagePrompt?: string; // Optional prompt for an AI generated image
+  leftExpr?: string; // For Algebra Balance
+  rightExpr?: string; // For Algebra Balance
 }
 
 interface WordProblemData {
@@ -59,7 +62,11 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
       const expected = normalize(expectedRaw);
 
       // 1. Direct or Partial Match
-      if (user === expected || user.includes(expected) || (user.length >= 4 && expected.includes(user))) return true;
+      if (user === expected || user.includes(expected)) return true;
+      // If user is a variable or single digit, check if it's in expected string
+      if ((user.length === 1 && /[xyz0-9]/.test(user)) || user.length >= 4) {
+        if (expected.includes(user)) return true;
+      }
 
       // 1.5 Match all digits ignoring text/separators (e.g., handles "356" matching "3, 5 y 6")
       const uDigits = user.match(/\d/g)?.join("");
@@ -133,11 +140,12 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const [analysisError, setAnalysisError] = useState<string | null>(null);
+  const [lastFollowUp, setLastFollowUp] = useState<string | null>(null);
 
   // 🎓 PROFESSOR: Detect frustration/emotional distress patterns
   const detectFrustration = (input: string): boolean => {
     const t = input.trim().toLowerCase();
-    return /no\s+(entiendo|puedo|se|sé)\s+(nada|esto|hacerlo)|es\s+(muy|demasiado)\s+dif[ií]cil|me\s+rindo|odio|esto\s+no\s+sirve|no\s+me\s+gusta|estoy\s+cansad[oa]|ya\s+no\s+quiero|es\s+imposible|no\s+puedo\s+más|i\s+give\s+up|too\s+hard|i\s+hate|impossible/i.test(t);
+    return /no\s+(entiendo|puedo|se|sé)\s+(nada|esto|hacerlo|de\s+donde\s+salio)|es\s+(muy|demasiado)\s+dif[ií]cil|me\s+rindo|odio|esto\s+no\s+sirve|no\s+me\s+gusta|estoy\s+cansad[oa]|ya\s+no\s+quiero|es\s+imposible|no\s+puedo\s+más|i\s+give\s+up|too\s+hard|i\s+hate|impossible|te\s+saltaste\s+pasos|no\s+explicas|de\s+donde\s+vino|ayuda|help|socorro|dime|explicame|explícame/i.test(t);
   };
 
   // --- BRAIN: ANALYZE PROBLEM USING AI ---
@@ -147,7 +155,8 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
     try {
       const isFraction = problem.includes('/') || problem.toLowerCase().includes('fracción') || problem.toLowerCase().includes('fraccion');
       const isDecimal = problem.includes('.') || problem.toLowerCase().includes('decimal');
-      const topic = isFraction ? 'Fracciones' : isDecimal ? 'Decimales' : 'Aritmética';
+      const isAlgebra = problem.includes('=') || problem.toLowerCase().includes('ecuación') || problem.toLowerCase().includes('ecuacion') || (/[xyz]/.test(problem.toLowerCase()) && !problem.toLowerCase().includes('ana'));
+      const topic = isAlgebra ? 'Álgebra' : isFraction ? 'Fracciones' : isDecimal ? 'Decimales' : 'Aritmética';
 
       const systemPrompt = `
           Eres PROFESORA LINA, una eminencia en METODOLOGÍA DE SINGAPUR y MÉTODO SOCRÁTICO.
@@ -155,9 +164,12 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
           Tu objetivo es guiar al estudiante a resolver problemas matemáticos de ${topic} usando un razonamiento lógico paso a paso.
           
           🌟 PRINCIPIOS DE LINA:
-          1. **Concreto (C)**: Para grados 1-3, USA bloques de base 10, objetos (manzanas, tesoros) y analogías físicas.
-          2. **Tono**: Usa "mi vida", "corazón", "pequeño detective/matemático". JAMÁS uses "flaca" o jerga.
-          3. **Socrática**: Haz preguntas que inviten a descubrir.
+          1. **Concreto (C)**: Para grados 1-3 de PRIMARIA, USA bloques de base 10, objetos (manzanas, tesoros) y analogías físicas.
+          2. **Abstracto (A)**: Si el problema es de Álgebra o para grados superiores (4º o 5º), evita representaciones infantiles y enfócate en la lógica simbólica.
+          3. **Tono**: 
+             - Para grados 1-5: Usa "mi vida", "corazón", "pequeño detective/matemático".
+             - Para grados 6-8 o Álgebra: Evita términos de endearment. Sé profesional, motivadora y clara. JAMÁS uses "flaca" o jerga.
+          4. **Socrática**: Haz preguntas que inviten a descubrir.
           
           Misión 1: Entender los Datos 🧐
           - Identifica personajes y cantidades. Usa colores para resaltar.
@@ -167,27 +179,34 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
           
           Misión 3: Resolver y Verificar ✏️
           - Traduce a la operación final.
-          4. 'expectedAnswer' DEBE ser un ARRAY con MUCHAS POSIBILIDADES aceptables.
-          5. 'problemData': Extrae character (personaje), initialAmount (cantidad), action (acción que pasa), actionAmount.
-          6. Máximo 2-3 preguntas por misión para mantener el dinamismo.
+          - 🚨 REGLA DE ORO PARA ÁLGEBRA: ¡PROHIBIDO SALTAR PASOS! 
+          - Debes guiar al estudiante por CADA pequeña transformación. Por ejemplo, si la ecuación es 3x - 7 = 2x + 5:
+            1. Pregunta sobre mover '2x' a la izquierda (restar 2x).
+            2. Muestra cómo queda: (3x - 2x) - 7 = 5 -> x - 7 = 5 en el followUp.
+            3. Pregunta sobre mover '-7' a la derecha (sumar 7).
+            4. Muestra x = 5 + 7 en el followUp.
+            5. Pregunta el resultado final.
+          - En cada 'followUp', explica EXPLÍCITAMENTE qué pasó con la ecuación usando lenguaje de "balanza" (lo que hacemos a un lado, lo hacemos al otro).
+          - Para Álgebra, ignora el límite de 3 preguntas. Usa todas las que necesites para que sea IMPOSIBLE perderse.
+          - 🧬 CLAVE VISUAL: Para cada pregunta de Misión 3 en Álgebra, incluye 'leftExpr' y 'rightExpr' con el estado ACTUAL de la ecuación (ej: leftExpr: "3x-7", rightExpr: "2x+5").
+          - 'expectedAnswer' DEBE ser un ARRAY con MUCHAS POSIBILIDADES aceptables (incluyendo palabras y números).
+          - 'problemData': Extrae character (personaje), initialAmount (cantidad), action (acción que pasa), actionAmount.
 
           Responde ÚNICAMENTE con un JSON con la siguiente estructura exacta:
           {
-            "problemData": {
-              "character": "...",
-              "initialAmount": "...",
-              "action": "...",
-              "actionAmount": "...",
-              "questions": ["..."]
-            },
-            "m1": [
-              { "id": "m1q1", "question": "...", "expectedAnswer": ["respuesta1"], "hints": ["Pista 1: ...", "Pista 2: ..."], "followUp": "...", "imagePrompt": "optional english prompt" }
-            ],
-            "m2": [
-              { "id": "m2q1", "question": "...", "expectedAnswer": ["respuesta1"], "hints": ["Pista 1...", "Pista 2..."], "followUp": "..." }
-            ],
+            "problemData": { ... },
+            "m1": [ ... ],
+            "m2": [ ... ],
             "m3": [
-              { "id": "m3q1", "question": "...", "expectedAnswer": ["respuesta1"], "hints": ["Pista 1...", "Pista 2..."], "followUp": "..." }
+              { 
+                "id": "m3q1", 
+                "question": "...", 
+                "expectedAnswer": ["..."], 
+                "hints": ["..."], 
+                "followUp": "...",
+                "leftExpr": "...", 
+                "rightExpr": "..."
+              }
             ]
           }
 
@@ -295,6 +314,21 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
 
     // 🎓 PROFESSOR: Check for frustration BEFORE validation
     if (detectFrustration(answer)) {
+      const currentLevel = hintLevel[currentQuestion.id] || 0;
+      const isStuckWithoutHints = currentLevel >= (currentQuestion.hints?.length || 1);
+
+      if (isStuckWithoutHints) {
+        const rescueMessages = [
+          `💡 No te preocupes, mi vida. Fíjate: lo que buscamos es que **${currentQuestion.expectedAnswer[0]}**. ¿Lo ves ahora? Inténtalo, no pasa nada si fallas.`,
+          `🤗 ¡Respira! Mira, la idea es esta: **${currentQuestion.expectedAnswer[0]}**. Escríbelo para que podamos avanzar juntos.`,
+          `🌟 No quiero que te sientas sol@. Mira, aquí el truco es **${currentQuestion.expectedAnswer[0]}**. ¿Qué te parece?`
+        ];
+        const msg = rescueMessages[Math.floor(Math.random() * rescueMessages.length)];
+        setFeedback(msg);
+        edgeTTS.speak('No te preocupes. Mira lo que te escribí para ayudarte.', 'lina');
+        return;
+      }
+
       const empathyMessages = [
         '💛 **¡Tranquilo/a!** Esto no es una carrera. Vamos a hacerlo juntos, paso a paso. Mira las pistas de abajo 👇',
         '🤗 **¡Respira hondo!** Todos nos trabamos a veces. Mira: te voy a dar una pista más fácil...',
@@ -304,7 +338,6 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
       setFeedback(msg);
       edgeTTS.speak('Tranquilo, vamos paso a paso. Mira las pistas.', 'lina');
       // Auto-reveal next hint to reduce their frustration
-      const currentLevel = hintLevel[currentQuestion.id] || 0;
       if (currentLevel < (currentQuestion.hints?.length || 1)) {
         showNextHint(currentQuestion.id);
       }
@@ -363,6 +396,7 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
 
   const handleCorrectAnswer = async (question: SocraticQuestion) => {
     // Lina celebrates and explains
+    setLastFollowUp(question.followUp);
     // AWAIT the speech so she finishes before moving on
     await edgeTTS.speak(question.followUp, 'lina');
 
@@ -749,13 +783,52 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
               )}
 
               {/* Show VirtualBlocks for Mission 1 & 2 directly, utilizing the extracted problem data */}
-              {dynamicProblemData && (currentMission === 1 || currentMission === 2) && (
-                <VirtualBlocks
-                  initialAmount={dynamicProblemData.initialAmount}
-                  actionAmount={dynamicProblemData.actionAmount}
-                  action={dynamicProblemData.action}
-                />
-              )}
+              {/* Only show for lower grades (<= 2) and if it's NOT direct algebra/equation (as requested by user) */}
+              {dynamicProblemData &&
+                (currentMission === 1 || currentMission === 2) &&
+                gradeLevel <= 2 &&
+                !problem.includes('=') &&
+                !/[xyz]/.test(problem.toLowerCase()) && (
+                  <VirtualBlocks
+                    initialAmount={dynamicProblemData.initialAmount}
+                    actionAmount={dynamicProblemData.actionAmount}
+                    action={dynamicProblemData.action}
+                  />
+                )}
+
+              {/* Show Algebra Balance if available */}
+              {(() => {
+                const question = getCurrentQuestions()[currentStep];
+                let l = question?.leftExpr;
+                let r = question?.rightExpr;
+
+                // Fallback: If it's an equation problem but the AI didn't provide side expressions, try to parse the problem string
+                if (!l && !r && problem.includes('=')) {
+                  const items = problem.split('=');
+                  if (items.length === 2) {
+                    // Filter specifically for math tokens: numbers, x, and operators.
+                    const leftTokens = items[0].trim().split(/\s+/);
+                    const rightTokens = items[1].trim().split(/\s+/);
+
+                    // Take the last token of the left side (the expression) 
+                    // and the first token of the right side.
+                    l = leftTokens[leftTokens.length - 1];
+                    r = rightTokens[0];
+
+                    // If the token is just a number but the word before it was part of the expression (like '3x - 7')
+                    // we need to be smarter. Let's join tokens that look like math.
+                    const isMath = (t: string) => /[0-9x+\-*/=]/.test(t);
+
+                    l = leftTokens.filter(isMath).join('') || l;
+                    r = rightTokens.filter(isMath).join('') || r;
+                  }
+                }
+
+                if (l && r) {
+                  return <AlgebraBalance leftExpr={l} rightExpr={r} />;
+                }
+                return null;
+              })()}
 
               {/* Show the image only if it's NOT the fallback "Virtual Classroom" SVG, or just hide the image if VirtualBlocks is active */}
               {questionImages[getCurrentQuestions()[currentStep]?.id] &&
@@ -775,6 +848,22 @@ export const SocraticWordProblemSolver: React.FC<SocraticWordProblemSolverProps>
                     }`}
                 >
                   {feedback}
+                </motion.div>
+              )}
+
+              {/* Progress Detail (Follow-up from last step) */}
+              {lastFollowUp && (
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="mb-6 p-4 bg-indigo-50 border-2 border-indigo-100 rounded-2xl flex gap-3 items-center"
+                >
+                  <div className="bg-indigo-500 p-2 rounded-lg text-white">
+                    <RefreshCw size={16} />
+                  </div>
+                  <p className="text-indigo-900 font-medium italic text-base">
+                    {lastFollowUp}
+                  </p>
                 </motion.div>
               )}
 

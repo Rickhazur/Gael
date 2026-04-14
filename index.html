@@ -1,34 +1,31 @@
 <!DOCTYPE html>
 <html lang="es">
-<!-- Build ID: 2026-02-23-FIX-101 -->
 
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
 
   <!-- SEO Meta Tags -->
-  <title>Nova Schola | Plataforma Educativa con IA - Tutorías Personalizadas</title>
+  <title>Academia Gael | Valida tu Bachillerato — Preparación ICFES con IA</title>
   <meta name="description"
-    content="Nova Schola: Plataforma educativa inteligente con tutores de IA, gamificación y seguimiento de progreso para estudiantes de primaria y secundaria." />
+    content="Prepárate para el examen ICFES de validación del bachillerato. Diseñado para mamás ocupadas, estudia a tu ritmo desde el celular, con la voz y sin usar las manos." />
   <meta name="keywords"
-    content="educación, IA, tutoría, matemáticas, inglés, ciencias, gamificación, aprendizaje adaptativo" />
-  <meta name="author" content="Nova Schola Team" />
+    content="ICFES, validar bachillerato, Gael, mamás, preparación ICFES, preicfes gratis, bachillerato Colombia, Saber 11" />
+  <meta name="author" content="Academia Gael" />
   <meta name="robots" content="index, follow" />
 
   <!-- Open Graph / Facebook -->
   <meta property="og:type" content="website" />
-  <meta property="og:url" content="https://novaschola.com/" />
-  <meta property="og:title" content="Nova Schola | Plataforma Educativa con IA" />
+  <meta property="og:url" content="https://academiagael.com/" />
+  <meta property="og:title" content="Academia Gael | Valida tu Bachillerato" />
   <meta property="og:description"
-    content="Aprende con tutores de IA personalizados. Matemáticas, Inglés, Ciencias y más." />
+    content="Tu bachillerato SIN descuidar a tu bebé. Estudia a tu ritmo con la Academia Gael." />
   <meta property="og:image" content="/icons/icon-512x512.png" />
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:url" content="https://novaschola.com/" />
-  <meta name="twitter:title" content="Nova Schola | Plataforma Educativa con IA" />
-  <meta name="twitter:description" content="Aprende con tutores de IA personalizados." />
-  <meta name="twitter:image" content="/icons/icon-512x512.png" />
+  <meta name="twitter:title" content="Academia Gael | Valida tu Bachillerato" />
+  <meta name="twitter:description" content="La mejor herramienta diseñada para mamás. Prepárate para el ICFES con clases interactivas por voz." />
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" sizes="192x192" href="/icons/icon-192x192.png" />
@@ -37,76 +34,44 @@
 
   <!-- PWA & Mobile Optimization -->
   <link rel="manifest" href="/manifest.json" />
-  <meta name="theme-color" content="#0f172a" />
+  <meta name="theme-color" content="#1B4D3E" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-  <meta name="apple-mobile-web-app-title" content="Nova Schola" />
+  <meta name="apple-mobile-web-app-title" content="Gael" />
   <meta name="format-detection" content="telephone=no" />
-  <link rel="apple-touch-icon" sizes="192x192" href="/icons/icon-192x192.png" />
-  <link rel="apple-touch-icon" sizes="512x512" href="/icons/icon-512x512.png" />
 
-  <!-- Splash Screens (iOS) -->
-  <link rel="apple-touch-startup-image" href="/icons/icon-512x512.png" />
-
-  <!-- Fonts: loaded async to prevent render-blocking -->
+  <!-- Fonts: Inter for legibility -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-
   <link rel="preload" as="style"
-    href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap" />
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
   <link
-    href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
     rel="stylesheet" media="print" onload="this.media='all'" />
   <noscript>
-    <link
-      href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@400;700&family=Fredoka:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700;800&family=Press+Start+2P&family=Orbitron:wght@400;700;900&display=swap"
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
       rel="stylesheet" />
   </noscript>
-
 </head>
 
-<body class="bg-stone-50 text-stone-900 antialiased selection:bg-teal-100 selection:text-teal-800">
+<body class="bg-[#FAFAF8] text-slate-900 antialiased selection:bg-emerald-100 selection:text-emerald-900">
   <div id="root">
-    <!-- Pre-rendered Hero Section for FCP/LCP Optimization -->
-    <div class="min-h-screen bg-white font-poppins overflow-x-hidden">
-      <main>
-        <section class="relative pt-24 pb-12 lg:pt-48 lg:pb-32 z-10">
-          <div class="container mx-auto px-6 text-center">
-            <div
-              class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-50 border border-purple-100 mb-8 shadow-sm">
-              <span class="text-xs sm:text-sm font-medium text-purple-600 text-left sm:text-center">¡La revolución
-                bilingüe ha llegado para transformar tu aprendizaje!</span>
-            </div>
-
-            <h1
-              class="text-4xl sm:text-5xl lg:text-7xl font-bold text-slate-900 tracking-tight mb-6 lg:mb-8 leading-[1.1]">
-              El Compañero de Aprendizaje <br class="hidden sm:block" />
-              <span class="block sm:inline mt-2 sm:mt-0 text-cyan-500">más Inteligente del Mundo</span>
-            </h1>
-
-            <p
-              class="text-lg sm:text-xl text-gray-600 max-w-3xl mx-auto mb-8 sm:mb-10 leading-relaxed font-medium px-2">
-              Tutoría personalizada impulsada por IA, inmersión bilingüe total y el mapa al éxito escolar garantizado.
-              <strong>Bienvenidos a la app del siglo 21.</strong>
-            </p>
-
-            <div
-              class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-4 w-full max-w-md sm:max-w-none mx-auto opacity-50">
-              <div
-                class="w-full sm:w-auto h-14 px-8 sm:px-10 bg-blue-700 text-white font-bold rounded-full text-lg sm:text-xl flex items-center justify-center">
-                Probar Demo
-              </div>
-            </div>
-          </div>
-        </section>
-      </main>
+    <!-- Pre-rendered Hero for FCP/LCP -->
+    <div class="min-h-screen bg-[#FAFAF8] font-sans overflow-x-hidden flex items-center justify-center">
+      <div class="text-center px-6">
+        <div class="w-16 h-16 mx-auto mb-6 rounded-2xl bg-gradient-to-br from-[#1B4D3E] to-[#2D7A5F] flex items-center justify-center">
+          <span class="text-white text-2xl font-bold">G</span>
+        </div>
+        <h1 class="text-3xl font-bold text-slate-800 mb-2">Gael</h1>
+        <p class="text-slate-500">Cargando tu ruta al bachillerato...</p>
+      </div>
     </div>
   </div>
   <noscript>
     <div style="padding: 2rem; text-align: center;">
-      <h1>Nova Schola requiere JavaScript</h1>
-      <p>Por favor, activa JavaScript para utilizar esta aplicación educativa.</p>
+      <h1>Academia Gael requiere JavaScript</h1>
+      <p>Por favor, activa JavaScript para utilizar esta aplicación.</p>
     </div>
   </noscript>
   <script type="module" src="./index.tsx"></script>

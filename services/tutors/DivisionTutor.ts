@@ -49,8 +49,12 @@ export class DivisionTutor {
             if (grade <= 1) {
                 introEs = `¡Hola! 🌈 Soy la **Profesora Lina**. ¡Vamos a aprender a repartir!\n\nRepartir es la base de la división. Nos ayuda a compartir dulces con amigos para que todos tengan la misma cantidad. 🍬\n\nMira la pizarra: el número grande (**${dividend}**) está adentro de la casita, y el pequeño (**${divisor}**) está afuera. ¿Los ves listos?`;
                 introEn = `Hi! 🌈 I'm **Professor Lina**. Let's learn to share!\n\nSharing is the basis of division. It helps us share candies with friends so everyone has the same amount. 🍬\n\nLook at the board: the big number (**${dividend}**) is inside the house, and the small one (**${divisor}**) is outside. Ready?`;
-                speechEs = `¡Hola, corazón! Soy la profe Lina. Hoy vamos a jugar a repartir cosas ricas. Repartir es dividir. Mira la pizarra: el número grande va adentro de la casita y el pequeño afuera. ¿Ya los viste?`;
-                speechEn = `Hi, sweetie! I'm Professor Lina. Today we're going to play at sharing yummy things. Sharing is dividing. Look at the board: the big number goes inside the house and the small one outside. Do you see them?`;
+                speechEs = grade >= 6
+                    ? `Hola. Soy la profesora Lina. Hoy vamos a trabajar el concepto de división. Mira la pizarra: el dividendo va adentro y el divisor afuera. ¿Lo tienes?`
+                    : `¡Hola, corazón! Soy la profe Lina. Hoy vamos a jugar a repartir cosas ricas. Repartir es dividir. Mira la pizarra: el número grande va adentro de la casita y el pequeño afuera. ¿Ya los viste?`;
+                speechEn = grade >= 6
+                    ? `Hello. I'm Professor Lina. Today we'll work on division. Look at the board: the dividend goes inside and the divisor outside. Ready?`
+                    : `Hi, sweetie! I'm Professor Lina. Today we're going to play at sharing yummy things. Sharing is dividing. Look at the board: the big number goes inside the house and the small one outside. Do you see them?`;
             } else {
                 introEs = `¡Hola! 👋 Soy la **Profesora Lina**. ¡Lista para la Misión División!\n\nDividir es un súper poder que usamos para organizar grupos, repartir premios y calcular tiempos ⏳.\n\nPara empezar, recuerda: **el número más grande (${dividend}) va adentro de la casita, y el más pequeño (${divisor}) va afuera.** ¿Están bien colocaditos?`;
                 introEn = `Hi! 👋 I'm **Professor Lina**. Ready for the Division Mission!\n\nDivision is a superpower we use to organize groups, share prizes, and calculate times ⏳.\n\nTo start, remember: **the larger number (${dividend}) goes inside the house, and the smaller one (${divisor}) goes outside.** Are they in their places?`;
@@ -115,8 +119,12 @@ export class DivisionTutor {
             if (take === 1) {
                 breakdownEs = `¡Misión de División Larga! 🚀\n\nComo el ${dividend} es un número ${sizeWordEs}, lo dividiremos por partes.\n\nPrimero miramos el **${part}**. Piensa: ¿Cuántas veces cabe el **${divisor}** en el **${part}**?`;
                 breakdownEn = `Long Division Mission! 🚀\n\nSince ${dividend} is a ${sizeWordEn} number, we'll do it step by step.\n\nWe take **${part}**. How many times does **${divisor}** fit in **${part}** without going over?`;
-                breakdownSpeechEs = `¡Misión División Activada! 🚀 El número ${dividend} es ${sizeWordEs}, ¡pero no te asustes que lo haremos por partes! Tomemos el ${part}. ¿Cuántas veces nos cabe el ${divisor} ahí adentro? Miremos bien...`;
-                breakdownSpeechEn = `Long Division Mission! 🚀 The number ${dividend} is ${sizeWordEn}, but don't worry, we'll do it bit by bit, champ! Let's take ${part}. How many times does ${divisor} fit in there? Let's see...`;
+                breakdownSpeechEs = grade >= 6
+                    ? `Analicemos los datos. El número ${dividend} es de varias cifras, así que lo haremos por pasos. Tomemos el ${part}. ¿Cuántas veces cabe el ${divisor} en ese valor?`
+                    : `¡Misión División Activada! 🚀 El número ${dividend} es ${sizeWordEs}, ¡pero no te asustes que lo haremos por partes! Tomemos el ${part}. ¿Cuántas veces nos cabe el ${divisor} ahí adentro? Miremos bien...`;
+                breakdownSpeechEn = grade >= 6
+                    ? `Let's analyze the data. Since ${dividend} is multi-digit, we'll do it step by step. Let's take ${part}. How many times does ${divisor} fit?`
+                    : `Long Division Mission! 🚀 The number ${dividend} is ${sizeWordEn}, but don't worry, we'll do it bit by bit, champ! Let's take ${part}. How many times does ${divisor} fit in there? Let's see...`;
             } else {
                 // Explain skip logic
                 const skipped = dividendStr.substring(0, take - 1);
@@ -179,7 +187,7 @@ export class DivisionTutor {
         // 🟢 GRADE 3, 4, 5: ALGORITHM (Integer & Decimal)
         // =========================================================
 
-        return this.processAlgorithmSteps(input, dividendStr, divisorStr, style, historyWork, quotient, col, phase, lastState?.tempVal, lang, lastState, history, studentName);
+        return this.processAlgorithmSteps(input, dividendStr, divisorStr, style, historyWork, quotient, col, phase, lastState?.tempVal, lang, lastState, history, studentName, grade);
     }
 
     private static processAlgorithmSteps(
@@ -195,7 +203,8 @@ export class DivisionTutor {
         lang: 'es' | 'en',
         lastState: any,
         fullHistory: any[],
-        studentName?: string
+        studentName?: string,
+        grade: GradeLevel = 3
     ): StepResponse | null {
         const divisor = parseInt(dvrStr);
         let currentValStr = "";
@@ -228,8 +237,8 @@ export class DivisionTutor {
                                 ? `¡Excelente! Cabe **${expectedDigit}** veces. ✨\n\nAhora multiplicamos: **${expectedDigit} × ${divisor}**.`
                                 : `Excellent! It fits **${expectedDigit}** times. ✨\n\nNow we multiply: **${expectedDigit} × ${divisor}**.`,
                             speech: lang === 'es'
-                                ? `¡Eso! ¡Fantástico! Cabe ${expectedDigit} veces perfectamente. Ahora multipliquemos ese ${expectedDigit} por el ${divisor} para ver qué tanto nos da.`
-                                : `That's it, champ! Fantastic! It fits ${expectedDigit} times perfectly. Now let's multiply that ${expectedDigit} by ${divisor} to see what we get.`,
+                                ? (grade >= 6 ? `Excelente. Cabe ${expectedDigit} veces. Ahora multiplicamos ${expectedDigit} por ${divisor}.` : `¡Eso! ¡Fantástico! Cabe ${expectedDigit} veces perfectamente. Ahora multipliquemos ese ${expectedDigit} por el ${divisor} para ver qué tanto nos da.`)
+                                : (grade >= 6 ? `Excellent. It fits ${expectedDigit} times. Now multiply ${expectedDigit} by ${divisor}.` : `That's it, champ! Fantastic! It fits ${expectedDigit} times perfectly. Now let's multiply that ${expectedDigit} by ${divisor} to see what we get.`),
                             visualType: "division",
                             visualData: {
                                 ...lastState,
@@ -251,8 +260,8 @@ export class DivisionTutor {
                     if (!isNaN(wrongVal)) {
                         if (wrongVal > expectedDigit) {
                             feedback = lang === 'es'
-                                ? `¡Uy, te pasaste un poquito! 😅 **${divisor} × ${wrongVal} = ${divisor * wrongVal}**, y eso ya es más grande que el **${currentVal}**. ¡Hágale pues con uno más chiquito!`
-                                : `Too high! 😅 **${divisor} × ${wrongVal} = ${divisor * wrongVal}**, which is bigger than **${currentVal}**. Try a smaller number, champ!`;
+                                ? (grade >= 6 ? `Te has pasado. **${divisor} × ${wrongVal} = ${divisor * wrongVal}**, que es mayor que **${currentVal}**. Prueba con un número menor.` : `¡Uy, te pasaste un poquito! 😅 **${divisor} × ${wrongVal} = ${divisor * wrongVal}**, y eso ya es más grande que el **${currentVal}**. ¡Hágale pues con uno más chiquito!`)
+                                : (grade >= 6 ? `Too high. **${divisor} × ${wrongVal} = ${divisor * wrongVal}**, which is larger than **${currentVal}**. Try a smaller number.` : `Too high! 😅 **${divisor} × ${wrongVal} = ${divisor * wrongVal}**, which is bigger than **${currentVal}**. Try a smaller number, champ!`);
                         } else {
                             feedback = lang === 'es'
                                 ? `¡Casi! Pero cabe más veces. **${divisor} × ${wrongVal} = ${divisor * wrongVal}**. Aún nos sobra mucho. ¡Prueba uno mayor!`
@@ -271,7 +280,7 @@ export class DivisionTutor {
                     return {
                         steps: [{
                             text: feedback + hint,
-                            speech: lang === 'es' ? `¡Ah carachas! Piénsalo bien. ${feedback.split('.')[0]}.` : `Oops! Think about it, champ. ${feedback.split('.')[0]}.`,
+                            speech: lang === 'es' ? (grade >= 6 ? `Piénsalo de nuevo. ${feedback.split('.')[0]}.` : `¡Ah carachas! Piénsalo bien. ${feedback.split('.')[0]}.`) : `Oops! Think about it. ${feedback.split('.')[0]}.`,
                             visualType: "division",
                             visualData: { ...lastState, context: boardHint, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                             detailedExplanation: { es: "Error estimación cociente", en: "Quotient estimation error" }
@@ -529,7 +538,7 @@ export class DivisionTutor {
                         text: lang === 'es'
                             ? `¿Qué prefieres hacer? ✨\n\nEscribe **"punto"** para seguir dividiendo con decimales o **"fin"** para terminar aquí con el residuo.`
                             : `What would you like to do? ✨\n\nType **"point"** to continue dividing with decimals or **"end"** to finish here with the remainder.`,
-                        speech: lang === 'es' ? `Piénsalo bien: ¿Punto para seguir o fin para terminar?` : `Think about it, champ: Point to continue or end to finish?`,
+                        speech: lang === 'es' ? (grade >= 6 ? `Selecciona: ¿continuar con decimales o terminar aquí?` : `Piénsalo bien: ¿Punto para seguir o fin para terminar?`) : `Think about it: Point to continue or end to finish?`,
                         visualType: "division",
                         visualData: { ...lastState, divisionStyle: lastState?.divisionStyle ?? style, isNew: false },
                         detailedExplanation: { es: "Decisión decimal persistente", en: "Persistent decimal decision" }

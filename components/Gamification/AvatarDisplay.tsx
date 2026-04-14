@@ -53,7 +53,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
     accessoryOffsetsOverride,
     showName = false
 }) => {
-    const { currentAvatar, studentName, equippedAccessories: localAccessories, accessoryOffsets, grade } = useAvatar();
+    const { currentAvatar, studentName, equippedAccessories: localAccessories, accessoryOffsets, grade, fullCatalog } = useAvatar();
     const { level } = useGamification();
     const filterPrefix = React.useId().replace(/:/g, '');
     const whiteToAlphaId = `whiteToAlpha-${filterPrefix}`;
@@ -100,7 +100,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
 
     // Only show items that actually exist in the current catalog and if not forced to hide accessories
     const equippedItems = Object.values(equippedAccessories)
-        .map(id => ACCESSORIES.find(a => a.id === id))
+        .map(id => fullCatalog.find(a => a.id === id))
         .filter((a): a is Accessory => !!a && !forceNoAccessories);
 
     const hasLegendary = equippedItems.some(i => i?.rarity === 'legendary' || i?.rarity === 'epic');
@@ -132,8 +132,9 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
 
         switch (item.type) {
             case 'head':
-                yPos = '12%';
-                sizeClass = isSmall ? 'text-[1.2em]' : 'text-[3.2em]';
+                yPos = '14%';
+                sizeClass = isSmall ? 'text-[0.95em]' : 'text-[2.8em]';
+                totalRotate = 2;
                 break;
             case 'face':
             case 'glasses':
@@ -209,7 +210,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                 isSocks ? (isSmall ? '1.3em' : '2.6em') :
                     isCleats ? (isSmall ? '1.3em' : '2.6em') :
                         (isFace || isGlasses) ? (isSmall ? '1.2em' : '2.5em') :
-                            isHead ? (isSmall ? '1.5em' : '3.5em') :
+                            isHead ? (isSmall ? '1.2em' : '2.8em') :
                                 isHand ? (isSmall ? '1.0em' : '2.5em') :
                                     isBack ? (isSmall ? '3.5em' : '6em') :
                                         isPet ? (isSmall ? '1.5em' : '3.5em') :
@@ -270,7 +271,7 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                     // Use sizeClass unless it's a specialty item that handles its own sizing strictly via baseWidth
                     (!isJersey && !isShorts && !isSocks && !isCleats) && sizeClass
                 )}>
-                    {iconToUse.startsWith('/') || iconToUse.startsWith('http') ? (
+                    {iconToUse.startsWith('/') || iconToUse.startsWith('http') || iconToUse.includes('supabase') || iconToUse.includes('.png') || iconToUse.includes('.jpg') ? (
                         <img
                             src={iconToUse}
                             className={cn(
@@ -287,18 +288,16 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                             )}
                             style={{
                                 ...((isJersey || isWatch || isFace || isHead || isHand || isBack || isPet || isGlasses || isSticker) ? {
-                                    filter: (isJersey || isWatch) ? (
-                                        isAutoBackCollar
-                                            ? 'brightness(0.6) contrast(1.2) saturate(0.8)'
-                                            : (isWatch && item.id.includes('nova_chroma')
-                                                ? getChromaWatchFilter(item.id, extraCleanJerseyId)
-                                                : (item.id.includes('nova_gold')
-                                                    ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
-                                                    : (item.id.includes('nova_neon')
-                                                        ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
-                                                        : `url(#${extraCleanJerseyId})`)))
-                                    ) : undefined,
-                                    mixBlendMode: isBack ? 'multiply' : undefined,
+                                    filter: isAutoBackCollar
+                                        ? 'brightness(0.6) contrast(1.2) saturate(0.8)'
+                                        : (isWatch && item.id.includes('nova_chroma')
+                                            ? getChromaWatchFilter(item.id, extraCleanJerseyId)
+                                            : (item.id.includes('nova_gold')
+                                                ? 'sepia(1) saturate(3) hue-rotate(10deg) brightness(0.9) contrast(1.2)'
+                                                : (item.id.includes('nova_neon')
+                                                    ? 'hue-rotate(280deg) saturate(2) contrast(1.1) brightness(1.2)'
+                                                    : `url(#${whiteToAlphaId})`))),
+                                    mixBlendMode: (isBack || isHead || isFace || isHand) ? 'multiply' : undefined,
                                     clipPath: isBack ? 'none'
                                         : isJersey
                                             ? (isTiny
@@ -432,10 +431,10 @@ export const AvatarDisplay: React.FC<AvatarDisplayProps> = ({
                             1 0 0 0 0
                             0 1 0 0 0
                             0 0 1 0 0
-                            -4 -4 -4 0 11.5
+                            -3 -3 -3 0 8.8
                         " />
                         <feComponentTransfer>
-                            <feFuncA type="linear" slope="25" intercept="-22" />
+                            <feFuncA type="linear" slope="30" intercept="-29" />
                         </feComponentTransfer>
                     </filter>
                 </svg>

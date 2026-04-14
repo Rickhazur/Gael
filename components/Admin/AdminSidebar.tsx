@@ -10,7 +10,8 @@ import {
     Settings,
     LogOut,
     Bell,
-    Gift
+    Gift,
+    Package
 } from 'lucide-react';
 
 interface AdminSidebarProps {
@@ -25,7 +26,8 @@ const AdminSidebar: React.FC<AdminSidebarProps> = ({ currentView, onViewChange, 
         { id: ViewState.DASHBOARD, label: 'Panel de Control', icon: LayoutDashboard },
         { id: ViewState.GUARDIANS, label: 'Gestión Estudiantes', icon: Users },
         { id: ViewState.PAYMENTS, label: 'Gestión de Pagos', icon: CreditCard },
-        { id: ViewState.STORE, label: 'Tienda Nova', icon: Gift }, // Added Store
+        { id: ViewState.STORE, label: 'Gestión Inventario', icon: Package },
+        { id: ViewState.REWARDS, label: 'Vista Tienda (Prueba)', icon: Gift }, // Synchronized with student view
         { id: ViewState.T_SESSIONS, label: 'Sesiones de Tutoría', icon: Calendar },
         { id: ViewState.METRICS, label: 'Analíticas', icon: BarChart3 },
         { id: ViewState.LAB_DEV, label: 'Lab Dev', icon: Zap }, // The requested feature

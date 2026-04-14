@@ -21,6 +21,7 @@ import { useDemoTour } from '@/context/DemoTourContext';
 import { MathBlockWorkspace } from '@/components/MathLab/BlocklyWorkspace'; // NEW IMPORT
 import { recordMathTutorCompletion } from '../../../services/learningProgress';
 import { recordMathAttempt } from '../../../services/mathPerformance';
+import { SingapurMathBoard } from './SingapurMathBoard';
 import { MathProgressWidget } from '../MathProgressWidget';
 import { MultiStarRunner } from '../games/MultiStarRunner';
 import MathPhoenix from '../games/MathPhoenix/MathPhoenix';
@@ -329,6 +330,8 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate,
     const [lastDivisionProps, setLastDivisionProps] = useState<any | null>(null);
     const [showStylePicker, setShowStylePicker] = useState(false);
     const [masteryMode, setMasteryMode] = useState(false); // NEW STATE for choice flow
+    // SINGAPUR METHOD STATE (Grade 1 manipulatives)
+    const [singapurProblem, setSingapurProblem] = useState<{ n1: number; n2: number; operator: '+' | '-' } | null>(null);
     const [showGrid, setShowGridState] = useState(true);
     const [boardScale, setBoardScale] = useState(1.0); // NEW: Board zoom/scale state
     const [toolMode, setToolMode] = useState<'pen' | 'hand'>('pen'); // Restored for Mobile Scroll vs Draw
@@ -619,14 +622,27 @@ export function MathTutorBoard({ initialGrade = 3, userName, userId, onNavigate,
             whiteboardRef.current?.drawDivisionStep(dividend, divisor, '', '', '', undefined, divisionStyle);
         } else if (addMatch) {
             const [_, n1, n2] = addMatch;
-            const useHelpers = (grade <= 1 || (parseInt(n1) < 10 && parseInt(n2) < 10 && n1.indexOf('.') === -1));
+            const num1 = parseInt(n1);
+            const num2 = parseInt(n2);
+            // 🎓 SINGAPUR METHOD: Grade 1 simple addition/subtraction → interactive manipulatives
+            if (grade <= 1 && num1 >= 1 && num1 <= 9 && num2 >= 1 && num2 <= 9 && n1.indexOf('.') === -1) {
+                setSingapurProblem({ n1: num1, n2: num2, operator: '+' });
+                // Still draw on whiteboard as background
+            }
+            const useHelpers = (grade <= 1 || (num1 < 10 && num2 < 10 && n1.indexOf('.') === -1));
             const helpers = useHelpers ? [
-                { content: "🍎".repeat(parseInt(n1)), row: 0, col: 0 },
-                { content: "🍎".repeat(parseInt(n2)), row: 1, col: 0 }
+                { content: "🍎".repeat(num1), row: 0, col: 0 },
+                { content: "🍎".repeat(num2), row: 1, col: 0 }
             ] : undefined;
             whiteboardRef.current?.drawVerticalOp(n1, n2, '', '+', '', undefined, undefined, helpers);
         } else if (subMatch) {
             const [_, n1, n2] = subMatch;
+            const num1s = parseInt(n1);
+            const num2s = parseInt(n2);
+            // 🎓 SINGAPUR METHOD: Grade 1 simple subtraction → interactive manipulatives
+            if (grade <= 1 && num1s >= 1 && num1s <= 9 && num2s >= 1 && num2s <= 9 && n1.indexOf('.') === -1 && num1s >= num2s) {
+                setSingapurProblem({ n1: num1s, n2: num2s, operator: '-' });
+            }
             whiteboardRef.current?.drawVerticalOp(n1, n2, '', '-', '', undefined);
         } else if (mulMatch) {
             const [_, n1, n2] = mulMatch;
@@ -864,6 +880,27 @@ ${fullContext}${orgInstruction}${no3x4Instruction}`;
 
     return (
         <div className="flex flex-col h-screen bg-slate-950 font-nunito selection:bg-cyan-500/30 selection:text-cyan-100 overflow-hidden">
+
+            {/* 🎓 SINGAPUR METHOD OVERLAY (Grade 1 manipulatives) */}
+            {singapurProblem && (
+                <SingapurMathBoard
+                    n1={singapurProblem.n1}
+                    n2={singapurProblem.n2}
+                    operator={singapurProblem.operator}
+                    language={effectiveLanguage}
+                    onClose={() => setSingapurProblem(null)}
+                    onComplete={(correct) => {
+                        setSingapurProblem(null);
+                        if (correct) {
+                            toast.success(effectiveLanguage === 'es' ? '¡Muy bien! ¡Sigue así, campeón!' : 'Great job! Keep going, champion!');
+                            // Record completion for gamification
+                            if (userId) {
+                                recordMathTutorCompletion(userId, singapurProblem.operator === '+' ? 'addition' : 'subtraction', true);
+                            }
+                        }
+                    }}
+                />
+            )}
 
             {/* ... (Header and Background) ... */}
 

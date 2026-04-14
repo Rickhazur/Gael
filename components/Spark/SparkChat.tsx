@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { SparkAvatar } from './SparkAvatar';
 import { ChronosAvatar } from './ChronosAvatar';
+import { RachelleAvatar } from '@/components/MathMaestro/tutor/RachelleAvatar';
 import { CuriosityMenu } from './CuriosityMenu';
 import { ConversationSaved } from './ConversationSaved';
 import { VictoryCelebration } from './VictoryCelebration';
@@ -146,6 +147,9 @@ export const SparkChat: React.FC = () => {
     const [isDragging, setIsDragging] = useState(false);
     const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
 
+    // Recognition Ref to prevent multiple instances
+
+
     // Safety & User Info
     const [userProfile, setUserProfile] = useState<any>(null);
     const [lastPronunciationConfidence, setLastPronunciationConfidence] = useState<number | null>(null);
@@ -153,6 +157,8 @@ export const SparkChat: React.FC = () => {
 
     // Track the current message ID to avoid state leaks
     const [currentStepId, setCurrentStepId] = useState<string | null>(null);
+
+    const [lastError, setLastError] = useState<string | null>(null);
 
     // Conversation saved confirmation
     const [showSavedConfirmation, setShowSavedConfirmation] = useState(false);
@@ -165,12 +171,18 @@ export const SparkChat: React.FC = () => {
     // Victory celebration
     const [showVictoryCelebration, setShowVictoryCelebration] = useState(false);
     const [celebrationCoins, setCelebrationCoins] = useState(0);
-
-    const scrollRef = useRef<HTMLDivElement>(null);
+    const [noSpeechCount, setNoSpeechCount] = useState(0);
+    const [transcriptPreview, setTranscriptPreview] = useState('');
+    const [volume, setVolume] = useState(0);
+    const recognitionRef = useRef<any>(null);
+    const audioMeterRef = useRef<{ stream: MediaStream, context: AudioContext, source: MediaStreamAudioSourceNode } | null>(null);
+    const isStartingMicRef = useRef(false);
     const audioIncomingRef = useRef<HTMLAudioElement | null>(null);
     const audioConnectedRef = useRef<HTMLAudioElement | null>(null);
     const audioAmbientRef = useRef<HTMLAudioElement | null>(null);
     const audioEpicRef = useRef<HTMLAudioElement | null>(null);
+
+    const scrollRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         audioIncomingRef.current = new Audio('https://assets.mixkit.co/active_storage/sfx/1359/1359-preview.mp3');
@@ -216,9 +228,10 @@ export const SparkChat: React.FC = () => {
             if (!supabase) return;
             const { data: { user } } = await supabase.auth.getUser();
             if (user) {
+                // [FIX] Simplificado: Solo traer datos del perfil sin joins complejos que dan Error 400
                 const { data: profile } = await supabase
                     .from('profiles')
-                    .select('*, parent:parent_id(name, email)') // If linked via parent_id
+                    .select('*')
                     .eq('id', user.id)
                     .single();
                 setUserProfile(profile);
@@ -228,6 +241,10 @@ export const SparkChat: React.FC = () => {
 
         return () => {
             clearTimeout(gateTimer);
+            // [FIX] Detener micrófono al desmontar
+            if (recognitionRef.current) {
+                try { recognitionRef.current.stop(); } catch (e) { }
+            }
         };
     }, []);
 
@@ -256,6 +273,26 @@ export const SparkChat: React.FC = () => {
         };
     }, []);
 
+    // 🎙️ AUTO-LISTEN: Trigger mic automatically when tutor finishes speaking in a call
+    useEffect(() => {
+        // [FIX] REDUCED RETRIES: If we fail 3 times, stop auto-triggering and ask user to use keyboard
+        const maxRetries = 3;
+        if (isCallConnected && sparkState === 'idle' && !isThinking && !isListening && noSpeechCount < maxRetries && !isStartingMicRef.current) {
+            const delay = noSpeechCount === 0 ? 1500 : 3000;
+            const autoMicTimer = setTimeout(() => {
+                if (isCallConnected && sparkState === 'idle' && !isThinking && !isListening && !isStartingMicRef.current) {
+                    console.log(`🎤 Auto-triggering mic (Attempt ${noSpeechCount + 1}/${maxRetries})...`);
+                    toggleMic();
+                }
+            }, delay);
+            return () => clearTimeout(autoMicTimer);
+        } else if (noSpeechCount >= maxRetries && isListening) {
+            // If we reached max retries, stop the current listening to avoid getting stuck
+            setIsListening(false);
+            stopAudioMeter();
+        }
+    }, [sparkState, isCallConnected, isThinking, isListening, noSpeechCount]);
+
     // 📞 Handle Triggered Placement Call (Phase 2: Oral)
     useEffect(() => {
         const onTriggerCall = (e: any) => {
@@ -266,7 +303,7 @@ export const SparkChat: React.FC = () => {
                 gender: "female",
                 en: "Hello! I saw your placement results. Now, let's talk for a few minutes to complete your test. Are you ready?",
                 es: "¡Hola! Vi tus resultados del test. Ahora, hablemos por unos minutos para completar tu evaluación. ¿Estás listo?",
-                greeting: "Hello! I saw your placement results. Now, let's talk for a few minutes to complete your test. ¡Hola! Vi tus resultados del test. Ahora, hablemos por unos minutos para completar tu evaluación.",
+                greeting: "Hello! I saw your placement results. Now, let's talk for a few minutes to complete your test.",
                 suggestions: ["Hello Rachelle!", "I am ready!", "Let's start!"],
                 avatarPrompt: "3D Pixar style female teacher, red hair, futuristic radio station",
                 isAssessment: isAssessment,
@@ -327,9 +364,22 @@ export const SparkChat: React.FC = () => {
         try {
             const response = await getSparkResponse("¡Hola Miss Rachelle! Estoy listo para mi clase de hoy.", [], englishLevel);
 
+            // Use English transcription as chat content for Rachelle, strip Spanish if present
+            let initialChatText = (response.callCharacter?.name === 'Rachelle' && response.callCharacter.en)
+                ? response.callCharacter.en
+                : response.sparkResponse;
+
+            // Aggressive Spanish stripping: remove anything after the first Spanish punctuation or the word '¡'
+            if (response.callCharacter?.name === 'Rachelle') {
+                const spanishMarkers = /[¡¿]/;
+                if (spanishMarkers.test(initialChatText)) {
+                    initialChatText = initialChatText.split(spanishMarkers)[0].trim();
+                }
+            }
+
             setMessages([{
                 role: 'spark',
-                content: response.sparkResponse,
+                content: initialChatText,
                 data: response
             }]);
 
@@ -342,7 +392,12 @@ export const SparkChat: React.FC = () => {
             setCurrentNarrator(initialVoice);
 
             if (!isMuted) {
-                edgeTTS.speak(response.sparkResponse, initialVoice as any);
+                let introVoice = initialVoice;
+                if (response.callCharacter && response.callCharacter.name === 'Rachelle') {
+                    // Prevent English voice from reading Spanish intro
+                    introVoice = 'spark';
+                }
+                edgeTTS.speak(response.sparkResponse, introVoice as any);
             }
 
             // Handle Character Call for Initial Session
@@ -361,9 +416,9 @@ export const SparkChat: React.FC = () => {
                     }
                     audioIncomingRef.current?.play().catch(console.error);
 
-                    // Announcement from Spark (Robot)
+                    // Announcement from Spark (Robot) - Removed to avoid American voice speaking Spanish
                     if (response.callCharacter.name === 'Rachelle') {
-                        edgeTTS.speak("¡Hola! Tienes una llamada de Rachelle para practicar tu inglés. ¿Deseas contestarla?", "spark");
+                        // edgeTTS.speak("¡Hola! Tienes una llamada de Rachelle para practicar tu inglés. ¿Deseas contestarla?", "spark");
                     }
                 }
 
@@ -426,48 +481,198 @@ export const SparkChat: React.FC = () => {
         }
     }, []);
 
+    const stopAudioMeter = () => {
+        if (audioMeterRef.current) {
+            audioMeterRef.current.stream.getTracks().forEach(t => t.stop());
+            try {
+                audioMeterRef.current.context.close();
+            } catch (e) { }
+            audioMeterRef.current = null;
+        }
+        setVolume(0);
+    };
+
+    const startAudioMeter = async () => {
+        try {
+            stopAudioMeter();
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            const AudioContextClass = (window as any).AudioContext || (window as any).webkitAudioContext;
+            const context = new AudioContextClass();
+            const analyser = context.createAnalyser();
+            const source = context.createMediaStreamSource(stream);
+            source.connect(analyser);
+            analyser.fftSize = 64;
+            const dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+            audioMeterRef.current = { stream, context, source };
+
+            const update = () => {
+                if (!audioMeterRef.current) return;
+                analyser.getByteFrequencyData(dataArray);
+                const sum = dataArray.reduce((a, b) => a + b, 0);
+                const avg = sum / dataArray.length;
+                // Scale volume for visualization (0 to 100)
+                setVolume(Math.min(100, avg * 2));
+                requestAnimationFrame(update);
+            };
+            update();
+        } catch (e) {
+            console.error("🎤 Audio Meter Error:", e);
+        }
+    };
+
     const toggleMic = () => {
         if (!('webkitSpeechRecognition' in window)) {
             alert("Tu navegador no soporta reconocimiento de voz. ¡Usa Chrome o Edge!");
             return;
         }
 
+        // 1. If already listening, stop it.
         if (isListening) {
+            if (recognitionRef.current) {
+                recognitionRef.current.stop();
+            }
             setIsListening(false);
+            setTranscriptPreview('');
+            stopAudioMeter();
             return;
         }
 
-        const recognition = new (window as any).webkitSpeechRecognition();
+        if (isStartingMicRef.current) return;
 
-        // Auto-detect language: If in a call with Rachelle, listen for English.
-        const isRachelleCall = isCallConnected && callData?.name === 'Rachelle';
+        // 2. Cleanup existing instances
+        if (recognitionRef.current) {
+            try {
+                recognitionRef.current.stop();
+            } catch (e) { }
+        }
+
+        const recognition = new (window as any).webkitSpeechRecognition();
+        recognitionRef.current = recognition;
+        isStartingMicRef.current = true;
+
+        // Force English if it's Rachelle's call or an assessment
+        const isRachelleCall = (isCalling && callData?.name === 'Rachelle') || callData?.isAssessment;
         recognition.lang = isRachelleCall ? 'en-US' : 'es-MX';
 
+        console.log(`🎤 Starting Mic (Lang: ${recognition.lang}, Assessment: ${!!callData?.isAssessment})`);
+
+        // Force continuous=false. It's much more stable across browsers for single-turn interactions.
         recognition.continuous = false;
-        recognition.interimResults = false;
+        recognition.interimResults = true;
+        recognition.maxAlternatives = 1;
 
-        recognition.onstart = () => setIsListening(true);
-        recognition.onend = () => setIsListening(false);
-        recognition.onresult = (event: any) => {
-            const transcript = event.results[0][0].transcript;
-            const confidence = event.results[0][0].confidence;
+        recognition.onstart = () => {
+            setIsListening(true);
+            isStartingMicRef.current = false;
+            setLastError(null);
+            setTranscriptPreview('');
+            startAudioMeter();
+        };
 
-            setInput(transcript);
+        // Safety timeout in case browser never fires onstart
+        const safetyTimer = setTimeout(() => {
+            if (isStartingMicRef.current) {
+                console.warn("🎤 Mic start timeout - forcing state reset");
+                isStartingMicRef.current = false;
+                setIsListening(false);
+                stopAudioMeter();
+            }
+        }, 5000);
 
-            // Store confidence in a ref or local state to be used in handleSend
-            setLastPronunciationConfidence(confidence);
+        recognition.onsoundstart = () => {
+            // User is making sound! Reset silence count
+            if (noSpeechCount > 0) setNoSpeechCount(0);
+        };
 
-            // Optional: Show a small toast or visual indicator of confidence
-            if (confidence < 0.6) {
-                console.warn("Low pronunciation confidence:", confidence);
+        recognition.onend = () => {
+            setIsListening(false);
+            isStartingMicRef.current = false;
+            recognitionRef.current = null;
+            clearTimeout(safetyTimer);
+            stopAudioMeter();
+            // Clear preview after a short delay
+            setTimeout(() => setTranscriptPreview(''), 1000);
+        };
+
+        recognition.onerror = (event: any) => {
+            console.error("🎤 Speech Recognition Error:", event.error);
+            setIsListening(false);
+            isStartingMicRef.current = false;
+            setLastError(event.error);
+            stopAudioMeter();
+
+            if (event.error === 'no-speech') {
+                setNoSpeechCount(prev => prev + 1);
+                // [FIX] Give immediate feedback in chat if mic fails repeatedly
+                if (noSpeechCount >= 2) {
+                    setMessages(prev => [...prev, {
+                        role: 'spark',
+                        content: "⚠️ **Interferencia en el micrófono detectada.** No logro escucharte bien. Por favor, asegúrate de estar en un lugar silencioso o **escribe tu respuesta con el teclado** abajo. ✨"
+                    }]);
+                }
+            }
+
+            if (event.error === 'not-allowed') {
+                alert("Permiso de micrófono denegado. Por favor actívalo en tu navegador.");
             }
         };
 
-        recognition.start();
+        recognition.onresult = (event: any) => {
+            let finalTranscript = '';
+            let interimTranscript = '';
+
+            for (let i = event.resultIndex; i < event.results.length; ++i) {
+                if (event.results[i].isFinal) {
+                    finalTranscript += event.results[i][0].transcript;
+                } else {
+                    interimTranscript += event.results[i][0].transcript;
+                }
+            }
+
+            if (interimTranscript) {
+                setTranscriptPreview(interimTranscript);
+                // Also reset silence count if we detect any sound/words
+                if (noSpeechCount > 0) setNoSpeechCount(0);
+            }
+
+            if (finalTranscript) {
+                setTranscriptPreview(finalTranscript);
+                const confidence = event.results[0][0].confidence;
+
+                // Stop immediately after result
+                recognition.stop();
+                setIsListening(false);
+                setNoSpeechCount(0); // Reset cooldown on success!
+                stopAudioMeter();
+
+                if (!finalTranscript.trim()) return;
+
+                setInput(finalTranscript);
+                setLastPronunciationConfidence(confidence);
+
+                // 🎯 AUTO-SEND logic for Calls/Assessment
+                if (isCallConnected || callData?.isAssessment) {
+                    handleSend(finalTranscript);
+                }
+            }
+        };
+
+        try {
+            recognition.start();
+        } catch (e) {
+            console.error("🎤 Failed to start recognition:", e);
+            setIsListening(false);
+            isStartingMicRef.current = false;
+            stopAudioMeter();
+        }
     };
 
     const handleSend = async (text: string) => {
         if (!text.trim() || isThinking) return;
+
+        // Stop listening immediately when sending
+        if (isListening) setIsListening(false);
 
         const userMsg: Message = {
             role: 'user',
@@ -486,11 +691,33 @@ export const SparkChat: React.FC = () => {
             if (userMsg.pronunciationConfidence !== undefined) {
                 finalPrompt = `[STT CONFIDENCE: ${Math.round(userMsg.pronunciationConfidence * 100)}%] ${text}`;
             }
-
             const response = await getSparkResponse(finalPrompt, [...messages, userMsg], englishLevel);
+
+            // 🚥 QUOTA CHECK: If we hit a 429 or similar error from AI
+            if (response.sparkResponse.includes("429") || response.sparkResponse.includes("quota") || response.sparkResponse.includes("error 429")) {
+                const quotaMsg = "🚀 ¡Oh no! Mis antenas cósmicas están sobrecargadas de tanto aprendizaje. **Descansaré 20 segundos** y estaré lista de nuevo. ¡Habla conmigo en un momento! ✨";
+                setMessages(prev => [...prev, {
+                    role: 'spark',
+                    content: quotaMsg,
+                    data: { ...response, sparkResponse: quotaMsg }
+                }]);
+                edgeTTS.speak("Mis antenas están un poco cansadas. ¡Dame un momento y vuelvo contigo!", 'spark');
+                setIsThinking(false);
+                setSparkState('idle');
+                return;
+            }
+            let chatText = (response.callCharacter?.name === 'Rachelle' && response.callCharacter.en)
+                ? response.callCharacter.en
+                : response.sparkResponse;
+
+            // Strip Spanish part if both are present in the transcription (cleaner English-only view)
+            if (response.callCharacter?.name === 'Rachelle' && chatText.includes('¡')) {
+                chatText = chatText.split(/[¡¿]/)[0].trim();
+            }
+
             setMessages(prev => [...prev, {
                 role: 'spark',
-                content: response.sparkResponse,
+                content: chatText,
                 data: response
             }]);
 
@@ -515,10 +742,16 @@ export const SparkChat: React.FC = () => {
                     }
                 } else {
                     // Normal behavior for other characters or spark system
-                    const textToSpeak = (isActiveCall && response.callCharacter?.greeting)
+                    let textToSpeak = (isActiveCall && response.callCharacter?.greeting)
                         ? response.callCharacter.greeting
                         : response.sparkResponse;
-                    edgeTTS.speak(textToSpeak, voiceToUse as any);
+
+                    let finalVoice = voiceToUse;
+                    // Prevent rachelle from speaking spanish intro on new call
+                    if (response.callCharacter?.name === 'Rachelle' && !isActiveCall) {
+                        finalVoice = 'spark';
+                    }
+                    edgeTTS.speak(textToSpeak, finalVoice as any);
                 }
             }
 
@@ -546,7 +779,22 @@ export const SparkChat: React.FC = () => {
 
                 if (!isSamePerson) {
                     // NEW CALL (First time or different person)
-                    setCallData(response.callCharacter);
+                    // Character update with transcription sync
+                    let assessmentGreeting = response.callCharacter.en || response.callCharacter.greeting;
+                    if (response.callCharacter.name === 'Rachelle') {
+                        const spanishMarkers = /[¡¿]/;
+                        if (spanishMarkers.test(assessmentGreeting)) {
+                            assessmentGreeting = assessmentGreeting.split(spanishMarkers)[0].trim();
+                        }
+                    }
+
+                    const updatedChar = {
+                        ...response.callCharacter,
+                        // Ensure greeting on screen matches what is heard (English transcription)
+                        greeting: assessmentGreeting
+                    };
+
+                    setCallData(updatedChar);
                     setIsCalling(true);
                     setIsCallConnected(false); // Reset to "incoming" state
                     setCallStartTime(null); // Reset call timer
@@ -561,14 +809,19 @@ export const SparkChat: React.FC = () => {
                         }
                         audioIncomingRef.current?.play().catch(console.error);
 
-                        // Announcement from Spark (Robot) in robotic voice
+                        // Announcement from Spark (Robot) in robotic voice - Removed to prevent American accent in Spanish
                         if (response.callCharacter.name === 'Rachelle') {
-                            edgeTTS.speak("¡Hola! Tienes una llamada de Rachelle para practicar tu inglés. ¿Deseas contestarla?", "spark");
+                            // edgeTTS.speak("¡Hola! Tienes una llamada de Rachelle para practicar tu inglés. ¿Deseas contestarla?", "spark");
                         }
                     }
                 } else {
-                    // CONTINUING CONVERSATION (Same person, no animation)
-                    setCallData(response.callCharacter);
+                    // Ensure greeting updates to the current English transcription
+                    const updatedChar = {
+                        ...response.callCharacter,
+                        greeting: response.callCharacter.en || response.callCharacter.greeting
+                    };
+                    setCallData(updatedChar);
+
                     // 🎤 IMPORTANT: Ensure narrator state matches Rachelle or the character's gender
                     setCurrentNarrator(response.callCharacter.name === 'Rachelle' ? 'rachelle' : (response.callCharacter.gender === 'female' ? 'female' : 'diego'));
                     // Track this as a question in the conversation
@@ -1197,7 +1450,7 @@ export const SparkChat: React.FC = () => {
                                                     {/* Glow behind character */}
                                                     <div className="absolute inset-x-0 bottom-0 h-32 bg-cyan-500/40 blur-[120px] rounded-full" />
 
-                                                    <div className="w-full h-full rounded-full border-[6px] border-cyan-400/50 p-2 overflow-hidden shadow-[0_0_80px_rgba(34,211,238,0.5)] bg-black/40 backdrop-blur-sm">
+                                                    <div className="w-full h-full rounded-full border-[6px] border-cyan-400/50 p-2 overflow-hidden shadow-[0_0_80px_rgba(34,211,238,0.5)] bg-black/40 backdrop-blur-sm relative">
                                                         {avatarUrl ? (
                                                             <motion.img
                                                                 initial={{ opacity: 0 }}
@@ -1208,6 +1461,26 @@ export const SparkChat: React.FC = () => {
                                                         ) : (
                                                             <div className="w-full h-full bg-slate-900 rounded-full flex items-center justify-center">
                                                                 <User className="w-24 h-24 text-cyan-800" />
+                                                            </div>
+                                                        )}
+
+                                                        {/* LIVE VOLUME METER ON AVATAR */}
+                                                        {isListening && (
+                                                            <div className="absolute inset-x-0 bottom-4 flex items-end justify-center gap-1 h-12 px-8 overflow-hidden">
+                                                                {[...Array(12)].map((_, i) => (
+                                                                    <motion.div
+                                                                        key={i}
+                                                                        animate={{
+                                                                            height: [
+                                                                                `${10 + Math.random() * 20}%`,
+                                                                                `${Math.max(20, volume * (0.5 + Math.random()))}%`,
+                                                                                `${10 + Math.random() * 20}%`
+                                                                            ]
+                                                                        }}
+                                                                        transition={{ duration: 0.2, repeat: Infinity, delay: i * 0.05 }}
+                                                                        className="w-1.5 bg-cyan-400 rounded-full shadow-[0_0_8px_rgba(34,211,238,0.8)]"
+                                                                    />
+                                                                ))}
                                                             </div>
                                                         )}
                                                     </div>
@@ -1257,23 +1530,20 @@ export const SparkChat: React.FC = () => {
                                                     {/* Object 3D DISABLED */}
 
                                                     {callData?.isAssessment ? (
-                                                        <div className="flex flex-col items-center gap-4 py-8 bg-black/20 rounded-2xl border-2 border-cyan-500/20 px-12">
-                                                            <div className="flex gap-2">
+                                                        <div className="flex flex-col items-center gap-4 py-8 bg-black/40 rounded-2xl border-2 border-cyan-500/40 px-12 backdrop-blur-md shadow-[0_0_30px_rgba(6,182,212,0.2)]">
+                                                            <p className="text-cyan-100 text-2xl font-bold italic leading-relaxed max-w-2xl text-center">
+                                                                "{callData?.greeting || "Listening..."}"
+                                                            </p>
+                                                            <div className="flex gap-1.5 opacity-50 mt-2">
                                                                 {[...Array(3)].map((_, i) => (
                                                                     <motion.div
                                                                         key={i}
-                                                                        animate={{ scale: [1, 1.5, 1], opacity: [0.3, 1, 0.3] }}
-                                                                        transition={{ duration: 1, repeat: Infinity, delay: i * 0.2 }}
-                                                                        className="w-3 h-3 bg-cyan-400 rounded-full shadow-[0_0_10px_cyan]"
+                                                                        animate={{ scale: [1, 1.3, 1], opacity: [0.4, 1, 0.4] }}
+                                                                        transition={{ duration: 1.2, repeat: Infinity, delay: i * 0.3 }}
+                                                                        className="w-2 h-2 bg-cyan-400 rounded-full shadow-[0_0_8px_cyan]"
                                                                     />
                                                                 ))}
                                                             </div>
-                                                            <p className="text-cyan-400 font-black uppercase tracking-[0.3em] text-sm animate-pulse">
-                                                                Listening & Evaluating...
-                                                            </p>
-                                                            <p className="text-white/40 text-[10px] uppercase font-bold tracking-widest">
-                                                                Text hidden to test your Listening Skills
-                                                            </p>
                                                         </div>
                                                     ) : (
                                                         <p className="text-cyan-200 text-2xl font-bold italic leading-relaxed max-w-3xl border-l-4 border-cyan-500 pl-6 mx-auto bg-cyan-500/10 py-4 pr-12 rounded-r-2xl">
@@ -1308,11 +1578,78 @@ export const SparkChat: React.FC = () => {
 
                                                 <div className="w-full max-w-4xl space-y-6">
                                                     {callData?.isAssessment && (
-                                                        <div className="flex flex-col items-center gap-2 py-4">
-                                                            <div className="w-12 h-12 bg-red-500 rounded-full animate-pulse border-4 border-black flex items-center justify-center">
-                                                                <Mic className="text-white w-6 h-6" />
-                                                            </div>
-                                                            <span className="text-red-400 font-black text-[10px] uppercase tracking-widest">Micrófono Activo: ¡Habla ahora!</span>
+                                                        <div className="flex flex-col items-center gap-4 py-4">
+                                                            <motion.button
+                                                                whileHover={{ scale: 1.1 }}
+                                                                whileTap={{ scale: 0.9 }}
+                                                                onClick={() => {
+                                                                    setNoSpeechCount(0);
+                                                                    toggleMic();
+                                                                }}
+                                                                className={`w-24 h-24 rounded-full border-8 border-black flex items-center justify-center transition-all duration-500 shadow-comic relative overflow-hidden ${isListening ? 'bg-red-500 shadow-[0_0_30px_rgba(239,68,68,0.8)]' : 'bg-slate-700 hover:bg-slate-600'}`}
+                                                            >
+                                                                {/* Volume Meter Overlay */}
+                                                                {isListening && (
+                                                                    <motion.div
+                                                                        initial={{ height: 0 }}
+                                                                        animate={{ height: `${volume}%` }}
+                                                                        className="absolute bottom-0 left-0 right-0 bg-white/20 pointer-events-none"
+                                                                    />
+                                                                )}
+
+                                                                {/* Dynamic Aura when speaking */}
+                                                                {isListening && volume > 10 && (
+                                                                    <motion.div
+                                                                        animate={{ scale: [1, 1.2 + volume / 100, 1] }}
+                                                                        transition={{ duration: 0.2, repeat: Infinity }}
+                                                                        className="absolute inset-0 rounded-full border-4 border-white opacity-50 pointer-events-none"
+                                                                    />
+                                                                )}
+
+                                                                <Mic className={`w-10 h-10 relative z-10 ${isListening ? 'text-white' : 'text-slate-300'} ${isListening && volume > 20 ? 'animate-bounce' : ''}`} />
+                                                            </motion.button>
+                                                            <span className={`font-black text-xs uppercase tracking-[0.2em] transition-colors py-2 px-6 rounded-full bg-black/40 border-2 ${isListening ? 'text-red-400 border-red-500/50' : (noSpeechCount >= 4 ? 'text-orange-400 border-orange-500/50' : 'text-slate-500 border-white/10')}`}>
+                                                                {isListening ? (transcriptPreview ? `"${transcriptPreview}"` : (volume > 5 ? 'Te escucho...' : '¡Habla ahora!')) : (noSpeechCount >= 4 ? 'Escribe tu respuesta abajo 👇' : 'Click para Hablar')}
+                                                            </span>
+
+                                                            {noSpeechCount >= 3 && (
+                                                                <motion.div
+                                                                    initial={{ opacity: 0, scale: 0.9 }}
+                                                                    animate={{ opacity: 1, scale: 1 }}
+                                                                    className="flex flex-col items-center gap-4 mt-2 px-8 py-4 bg-black/60 rounded-3xl border-2 border-yellow-500/30 backdrop-blur-xl shadow-2xl max-w-md w-full"
+                                                                >
+                                                                    <div className="flex items-center gap-3">
+                                                                        <AlertTriangle className="w-6 h-6 text-yellow-500 animate-pulse" />
+                                                                        <p className="text-yellow-400 text-xs font-black uppercase tracking-widest leading-relaxed">
+                                                                            {noSpeechCount >= 4
+                                                                                ? "El micrófono no responde. ¡Usa el teclado abajo!"
+                                                                                : "No te escuchamos bien. ¿Tu micro está activo?"}
+                                                                        </p>
+                                                                    </div>
+
+                                                                    {noSpeechCount >= 4 && (
+                                                                        <div className="w-full space-y-3">
+                                                                            <div className="flex gap-2">
+                                                                                <input
+                                                                                    type="text"
+                                                                                    value={input}
+                                                                                    onChange={(e) => setInput(e.target.value)}
+                                                                                    onKeyDown={(e) => e.key === 'Enter' && handleSend(input)}
+                                                                                    placeholder="Escribe tu respuesta aquí..."
+                                                                                    className="flex-1 bg-white/10 border-2 border-cyan-500/30 rounded-full px-6 py-3 text-white placeholder-cyan-500/40 focus:outline-none focus:border-cyan-500 transition-all font-bold"
+                                                                                />
+                                                                                <button
+                                                                                    onClick={() => handleSend(input)}
+                                                                                    className="p-3 bg-cyan-500 rounded-full text-black hover:scale-110 active:scale-95 transition-all"
+                                                                                >
+                                                                                    <Send size={20} />
+                                                                                </button>
+                                                                            </div>
+                                                                            <p className="text-[10px] text-cyan-400/60 text-center font-bold">Lamentamos la falla técnica. ¡Sigamos por escrito!</p>
+                                                                        </div>
+                                                                    )}
+                                                                </motion.div>
+                                                            )}
                                                         </div>
                                                     )}
 
@@ -1482,13 +1819,15 @@ export const SparkChat: React.FC = () => {
                         <div className="relative mb-6">
                             {currentNarrator === 'spark' ? (
                                 <SparkAvatar size={110} state={isThinking ? 'thinking' : sparkState} />
+                            ) : currentNarrator === 'rachelle' ? (
+                                <RachelleAvatar size={110} state={isThinking ? 'thinking' : sparkState} />
                             ) : (
                                 <ChronosAvatar size={110} state={sparkState === 'speaking' ? 'narrating' : (isThinking ? 'thinking' : 'idle')} />
                             )}
                             <div className="absolute -bottom-1 right-3 w-6 h-6 bg-green-500 rounded-full border-4 border-black shadow-[0_0_15px_#22c55e]" />
                         </div>
                         <h3 className={`text-xl font-black uppercase italic ${theaterDark ? 'text-white' : 'text-slate-800'}`}>
-                            {currentNarrator === 'spark' ? 'Spark Guardian' : 'Chronos Archivist'}
+                            {currentNarrator === 'spark' ? 'Spark Guardian' : (currentNarrator === 'rachelle' ? 'Miss Rachelle' : 'Chronos Archivist')}
                         </h3>
                     </div>
 
@@ -1504,9 +1843,9 @@ export const SparkChat: React.FC = () => {
                                 <div className={`
                                     max-w-[90%] p-5 rounded-3xl text-sm font-bold border-4 border-black shadow-comic
                                     ${m.role === 'user' ? 'bg-kid-yellow' : 'bg-slate-800 text-white'}
-                                    ${callData?.isAssessment ? 'blur-md select-none opacity-40' : ''}
+                                    ${callData?.isAssessment && m.role === 'user' ? 'blur-md select-none opacity-40' : ''}
                                 `}>
-                                    {callData?.isAssessment ? (
+                                    {callData?.isAssessment && m.role === 'user' ? (
                                         <div className="flex items-center gap-2 italic text-[10px] uppercase opacity-60">
                                             <Mic className="w-3 h-3" /> Evaluating your Listening...
                                         </div>

@@ -82,7 +82,7 @@ const LandingPage: React.FC<LandingPageProps> = ({ onLogin, onEnterIcfes }) => {
                                 { label: 'Cómo Funciona', href: '#features' },
                                 { label: 'Módulos', href: '#modules' },
                                 { label: 'Precios', href: '#pricing' },
-                                { label: 'Contacto', href: 'mailto:novaschola25@gmail.com' }
+                                { label: 'Contacto', href: 'mailto:rickhazur@gmail.com' }
                             ].map((item) => (
                                 <a
                                     key={item.label}
