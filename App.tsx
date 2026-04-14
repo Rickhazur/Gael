@@ -331,6 +331,7 @@ const App: React.FC = () => {  // Authentication State
         localStorage.setItem('nova_user_name', 'Danna Sofia');
         localStorage.setItem('nova_student_grade', '11');
         setCurrentView(ViewState.DASHBOARD);
+        setShowLogin(false);
         return;
       }
 
