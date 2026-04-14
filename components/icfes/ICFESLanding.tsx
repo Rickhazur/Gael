@@ -21,7 +21,7 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
   }, []);
 
   return (
-    <div className="min-h-screen bg-[#FDFEFC] overflow-x-hidden selection:bg-emerald-100 selection:text-emerald-900 selection:bg-rose-100" style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}>
+    <div className="min-h-screen bg-[#FDFEFC] overflow-x-hidden selection:bg-rose-100 selection:text-emerald-900" style={{ fontFamily: "'Outfit', 'Inter', sans-serif" }}>
       
       {/* ─── Immersive Floating Universe ─── */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
@@ -46,14 +46,12 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
             </div>
             <div className="flex flex-col">
                 <span className="font-black text-xl text-slate-900 leading-none tracking-tight">Academia <span className="text-[#1B4D3E]">Gael</span></span>
-                <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase mt-1">Élite Educational</span>
+                <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase mt-1">Tu Espacio Privado</span>
             </div>
           </div>
           
           <div className="hidden md:flex items-center gap-10">
-            {['Metodología', 'Profesora Lina', 'Planes', 'Inscribirse'].map((item) => (
-              <a key={item} href="#" className="text-sm font-bold text-slate-500 hover:text-[#1B4D3E] transition-colors">{item}</a>
-            ))}
+            {/* Nav links removed for a cleaner, personal feel */}
           </div>
 
           <div className="flex items-center gap-6">
@@ -79,18 +77,18 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
            <div className="space-y-10">
               {/* Badge */}
               <div className="inline-flex items-center gap-3 px-6 py-2 rounded-full glass-card-luxe border-luxe animate-fade-in-up">
-                <Heart className="w-4 h-4 text-emerald-500 animate-pulse-heart fill-current" />
-                <span className="text-xs font-black text-[#1B4D3E] tracking-widest uppercase">El futuro de tu bebé empieza hoy</span>
+                <Heart className="w-4 h-4 text-rose-500 animate-pulse-heart fill-current" />
+                <span className="text-xs font-black text-[#1B4D3E] tracking-widest uppercase">Para ti, de parte de Gael</span>
               </div>
 
               <h1 className="text-6xl sm:text-7xl lg:text-9xl font-black text-slate-900 leading-[0.85] tracking-tighter animate-fade-in-up">
-                Gael<span className="text-emerald-500">.</span><br/>
+                Gael<span className="text-rose-400">.</span><br/>
                 <span className="text-[#1B4D3E]">Validación</span><br/>
-                <span className="text-slate-300">Inteligente.</span>
+                <span className="text-slate-300">Con Amor.</span>
               </h1>
 
               <p className="text-xl sm:text-2xl text-slate-500 leading-relaxed max-w-xl animate-fade-in-up stagger-1">
-                La herramienta de bachillerato diseñada <span className="text-[#1B4D3E] font-bold">exclusivamente</span> para mamás. Estudia con tu voz, libres de manos, mientras cuidas lo que más amas.
+                La herramienta de bachillerato diseñada <span className="text-[#1B4D3E] font-bold italic">exclusivamente</span> para mamás. Logra tu meta sin sacrificar un solo segundo con tu bebé.
               </p>
 
               <div className="flex flex-col sm:flex-row items-center gap-6 animate-fade-in-up stagger-2">
@@ -98,16 +96,13 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
                   onClick={onLogin}
                   className="w-full sm:w-auto px-10 py-6 bg-[#1B4D3E] text-white rounded-[2.5rem] font-black text-xl shadow-2xl shadow-emerald-200 hover:bg-[#2D7A5F] transform hover:-translate-y-1 transition-all flex items-center justify-center gap-3"
                 >
-                  Empezar Mi Preparación
-                  <ArrowRight className="w-6 h-6" />
+                  Entrar a Mi Cuenta
+                  <ArrowRight className="w-6 h-6 text-rose-300" />
                 </button>
                 <div className="flex flex-col sm:flex-row items-center gap-4">
-                    <div className="flex -space-x-4">
-                        {[1,2,3].map(i => <div key={i} className={`w-12 h-12 rounded-full border-4 border-white bg-emerald-${i*100} shadow-sm`} />)}
-                    </div>
-                    <div className="text-sm">
-                        <p className="font-bold text-slate-800">+2.5k Mamás Graduadas</p>
-                        <p className="text-slate-500/80">Únete hoy mismo</p>
+                    <div className="flex items-center gap-3 bg-emerald-50 px-5 py-3 rounded-full border border-emerald-100">
+                        <Baby className="w-5 h-5 text-emerald-600" />
+                        <span className="text-sm font-bold text-emerald-800">100% Manos Libres</span>
                     </div>
                 </div>
               </div>
@@ -118,7 +113,6 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
               <div className="aspect-[4/5] bg-gradient-to-br from-emerald-100 via-white to-rose-50 rounded-[4rem] shadow-2xl relative overflow-hidden border-[16px] border-white">
                  <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
                  
-                 {/* Representación de Gael / Bebé */}
                  <div className="absolute inset-0 flex items-center justify-center">
                      <div className="relative">
                         <Baby className="w-48 h-48 text-emerald-200/50" />
@@ -129,12 +123,12 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
                  {/* Interactive UI Overlays */}
                  <div className="absolute top-10 left-10 right-10 flex flex-col gap-4">
                     <div className="glass-card-luxe p-5 rounded-3xl border-luxe flex items-center gap-4 animate-fade-in-up">
-                        <div className="w-10 h-10 rounded-full bg-emerald-500 flex items-center justify-center">
+                        <div className="w-10 h-10 rounded-full bg-rose-400 flex items-center justify-center">
                             <Mic className="w-5 h-5 text-white" />
                         </div>
                         <div className="text-xs">
-                            <p className="font-black text-slate-800 uppercase tracking-tighter">Escuchando...</p>
-                            <p className="text-slate-500 font-medium italic">"Lina, explícame la metáfora"</p>
+                            <p className="font-black text-slate-800 uppercase tracking-tighter">Lina te escucha...</p>
+                            <p className="text-slate-500 font-medium italic">"Explícame esto, Lina"</p>
                         </div>
                     </div>
                     <div className="glass-card-luxe p-5 rounded-3xl border-luxe flex items-center gap-4 self-end bg-[#1B4D3E] border-none shadow-emerald-900/10 animate-fade-in-up stagger-1">
@@ -143,41 +137,37 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
                         </div>
                         <div className="text-xs text-white">
                             <p className="font-black uppercase tracking-tighter opacity-70">Lina responde</p>
-                            <p className="font-medium">"Es una comparación poética..."</p>
+                            <p className="font-medium">"Claro Danna, escucha..."</p>
                         </div>
                     </div>
                  </div>
 
                  <div className="absolute bottom-10 left-10 flex items-center gap-3 glass-card-luxe p-4 rounded-full border-luxe">
-                     <div className="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></div>
-                     <span className="text-[10px] font-black uppercase tracking-widest text-[#1B4D3E]">Clase en vivo 24/7</span>
+                     <Heart className="w-4 h-4 text-rose-500 fill-current" />
+                     <span className="text-[10px] font-black uppercase tracking-widest text-[#1B4D3E]">Hecho para Danna & Gael</span>
                  </div>
               </div>
-
-              {/* Outside elements */}
-              <div className="absolute -top-10 -right-10 w-40 h-40 bg-emerald-400 opacity-20 blur-[80px] rounded-full"></div>
-              <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-rose-400 opacity-10 blur-[80px] rounded-full"></div>
            </div>
         </div>
       </section>
 
-      {/* ─── The Socratic Advantage ─── */}
+      {/* ─── The Socratic Advantage — PERSONALIZED ─── */}
       <section className="py-32 bg-slate-900 text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6 relative z-10">
            <div className="max-w-3xl mb-24">
-              <h2 className="text-4xl sm:text-6xl font-black mb-8 leading-tight">No memorices respuestas.<br/><span className="text-emerald-400 italic">Aprende a pensar.</span></h2>
-              <p className="text-xl text-slate-400 leading-relaxed">Nuestra metodología socrática no te da el resultado; te hace las preguntas correctas para que tú lo descubras. </p>
+              <div className="w-16 h-1 bg-rose-500 mb-8" />
+              <h2 className="text-4xl sm:text-6xl font-black mb-8 leading-tight">No estás sola.<br/><span className="text-emerald-400 italic">Lina es tu mentora.</span></h2>
+              <p className="text-xl text-slate-400 leading-relaxed">Olvídate de clases aburridas de 2 horas. Aquí aprendes en mini-sesiones de 5 minutos mientras tu bebé duerme o juega a tu lado.</p>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { icon: <MessageCircle/>, title: "Chat de Voz", desc: "Interactúa como en una llamada real con la Profesora Lina." },
-                { icon: <Zap/>, title: "Resultados", desc: "Aprobación del 98% en el examen de validación oficial." },
-                { icon: <Award/>, title: "Curriculum", desc: "Cubrimos las 5 áreas del ICFES con rigor y empatía." },
-                { icon: <Lightbulb/>, title: "Técnicas", desc: "Te enseñamos los trucos del examen: el descarte y la tesis." }
+                { icon: <MessageCircle/>, title: "Habla con Voz", desc: "No necesitas escribir. Cuéntale tus dudas a Lina como si fuera una amiga." },
+                { icon: <Smartphone/>, title: "En tu Celular", desc: "Desde la cama, el sofá o el parque. Academia Gael va contigo siempre." },
+                { icon: <Lightbulb/>, title: "Paso a Paso", desc: "Lina te explica todo de forma sencilla, socrática y amorosa." }
               ].map((f, i) => (
-                <div key={i} className="p-10 rounded-[3rem] bg-white/5 border border-white/10 hover:bg-white/10 transition-all group">
-                   <div className="w-16 h-16 bg-emerald-500/20 text-emerald-400 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-all">
+                <div key={i} className="p-10 rounded-[3rem] bg-indigo-50/5 border border-white/5 hover:bg-white/10 transition-all group">
+                   <div className="w-16 h-16 bg-rose-500/20 text-rose-400 rounded-2xl flex items-center justify-center mb-8 group-hover:scale-110 transition-all">
                       {React.cloneElement(f.icon as React.ReactElement, { className: "w-8 h-8" })}
                    </div>
                    <h3 className="text-2xl font-bold mb-4">{f.title}</h3>
@@ -188,25 +178,25 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
         </div>
       </section>
 
-      {/* ─── Proof & Confidence — The Story ─── */}
+      {/* ─── Proof & Confidence — EMOTIONAL ─── */}
       <section className="py-40 bg-[#FDFEFC] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
            <div className="flex flex-col lg:flex-row gap-24 items-center">
               <div className="flex-1 space-y-12 animate-fade-in-up">
                  <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-50 border border-rose-100 mb-2">
                     <Heart className="w-4 h-4 text-rose-500 fill-current" />
-                    <span className="text-[10px] font-black text-rose-700 tracking-widest uppercase">Testimonios Reales</span>
+                    <span className="text-[10px] font-black text-rose-700 tracking-widest uppercase">Tu Futuro</span>
                  </div>
                  <h2 className="text-6xl sm:text-7xl font-black text-slate-900 leading-[0.85] tracking-tighter">
-                   Tú puedes ser la<br/>
-                   <span className="text-emerald-500 italic">próxima mamá</span><br/>
-                   graduada.
+                   Tu título es un<br/>
+                   <span className="text-rose-400 italic">regalo</span> para<br/>
+                   toda la vida.
                  </h2>
                  
                  <div className="grid grid-cols-1 gap-4">
                     {[
-                      { t: "Material oficial alineado al ICFES 2026", c: "bg-emerald-50 text-emerald-700" },
-                      { t: "Adaptable a tu tiempo (clases de 5 min)", c: "bg-blue-50 text-blue-700" },
+                      { t: "Estudia mientras amamantas", c: "bg-emerald-50 text-emerald-700" },
+                      { t: "Clases cortas de 5 minutos", c: "bg-blue-50 text-blue-700" },
                       { t: "Acompañamiento por voz 24/7", c: "bg-rose-50 text-rose-700" }
                     ].map((item, i) => (
                       <div key={i} className={`flex items-center gap-5 p-6 rounded-[2rem] ${item.c} border border-white shadow-cute transform hover:scale-[1.02] transition-all`}>
@@ -227,26 +217,26 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
                             <img 
                                 src="/images/studying_mom_baby_gael.png" 
                                 alt="Mamá estudiando" 
-                                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700"
+                                className="w-full h-full object-cover"
                                 onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544126592-807daa215a05?auto=format&fit=crop&q=80&w=800'}
                             />
                             <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/60 to-transparent flex flex-col justify-end p-8 text-white">
-                                <p className="font-black text-2xl leading-tight">"Lo logré amamantando a Gael"</p>
-                                <p className="text-emerald-200 text-sm mt-2">Danna Sofia — Estudiante</p>
+                                <p className="font-black text-2xl leading-tight">Por su futuro.</p>
+                                <p className="text-emerald-200 text-sm mt-2">Danna & Gael</p>
                             </div>
                         </div>
                         <div className="p-8 bg-white rounded-[2.5rem] shadow-cute border border-emerald-50">
-                             <Quote className="w-8 h-8 text-emerald-100 mb-4 fill-current" />
-                             <p className="text-slate-600 font-medium italic">"Nunca pensé que podría estudiar con un bebé de 3 meses. Lina es como una amiga que me enseña mientras Gael duerme."</p>
+                             <Quote className="w-8 h-8 text-rose-100 mb-4 fill-current" />
+                             <p className="text-slate-600 font-medium italic">"Esto es para ti, para que te sientas orgullosa de lo que puedes lograr."</p>
                         </div>
                     </div>
 
                     {/* Story Card 2 */}
                     <div className="space-y-8 animate-float pt-16" style={{ animationDelay: '1.5s' }}>
-                        <div className="p-8 bg-[#1B4D3E] text-white rounded-[2.5rem] shadow-2xl">
-                             <Stars className="w-10 h-10 text-emerald-400 mb-6 fill-current animate-sparkle" />
-                             <h3 className="text-2xl font-black mb-4">98% de Éxito</h3>
-                             <p className="text-emerald-100/80 text-sm leading-relaxed">Nuestra metodología está diseñada para que apruebes el examen en el primer intento.</p>
+                        <div className="p-8 bg-[#1B4D3E] text-white rounded-[2.5rem] shadow-2xl border-l-8 border-rose-400">
+                             <Stars className="w-10 h-10 text-rose-300 mb-6 fill-current animate-sparkle" />
+                             <h3 className="text-2xl font-black mb-4">Todo a tu ritmo</h3>
+                             <p className="text-emerald-100/80 text-sm leading-relaxed">Sin presiones. Sin horarios. Solo tú, Gael y tus sueños.</p>
                         </div>
                         <div className="aspect-[4/5] rounded-[3.5rem] overflow-hidden border-8 border-white shadow-2xl relative group">
                             <img 
@@ -255,66 +245,47 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
                                 className="w-full h-full object-cover"
                                 onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800'}
                             />
-                            <div className="absolute inset-0 bg-gradient-to-b from-[#1B4D3E]/40 to-transparent" />
                         </div>
                     </div>
                  </div>
-
-                 {/* Decoration */}
-                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-rose-200 opacity-20 blur-[80px] rounded-full" />
               </div>
            </div>
         </div>
       </section>
 
-      {/* ─── Final Invitation ─── */}
-      <section className="py-40 bg-emerald-50/50">
+      {/* ─── Final Invitation — PERSONAL ─── */}
+      <section className="py-40 bg-rose-50/20">
         <div className="max-w-4xl mx-auto px-6 text-center space-y-12">
-           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white border border-emerald-100 shadow-sm animate-bounce-soft">
-              <Stars className="w-5 h-5 text-amber-500 fill-current" />
-              <span className="text-xs font-black text-[#1B4D3E] tracking-widest uppercase">Matrículas Abiertas - Cupos Limitados</span>
+           <div className="inline-flex items-center gap-3 px-6 py-3 rounded-full bg-white border border-rose-100 shadow-sm animate-bounce-soft">
+              <Stars className="w-5 h-5 text-rose-400 fill-current" />
+              <span className="text-xs font-black text-rose-600 tracking-widest uppercase">Tu Portal Privado</span>
            </div>
            
            <h2 className="text-6xl sm:text-8xl font-black text-[#1B4D3E] leading-[0.8] tracking-tighter">
-             Transforma tu mundo<br/>
-             <span className="text-slate-300">desde casa.</span>
+             Empieza tu<br/>
+             <span className="text-rose-400">gran sueño.</span>
            </h2>
 
            <p className="text-xl text-slate-500 max-w-xl mx-auto">
-             Entra a la Academia Gael y descubre por qué somos la herramienta preferida de las nuevas mamás en Colombia.
+             Entra a tu cuenta y comienza este camino hoy mismo. Estamos felices de tenerte aquí.
            </p>
 
            <button 
              onClick={onLogin}
-             className="px-16 py-8 bg-[#1B4D3E] text-white rounded-full font-black text-2xl shadow-[0_20px_60px_-15px_rgba(27,77,62,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 mx-auto"
+             className="px-16 py-8 bg-[#1B4D3E] text-white rounded-full font-black text-2xl shadow-[0_20px_60px_-15px_rgba(27,77,62,0.4)] hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-4 mx-auto border-b-8 border-[#143A2F]"
            >
-              Entrar Ahora
-              <ArrowRight className="w-8 h-8" />
+              ENTRAR AHORA
+              <ArrowRight className="w-8 h-8 text-rose-300" />
            </button>
         </div>
       </section>
-
-      <footer className="py-20 border-t border-emerald-50 bg-white">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-10">
+      
+      <footer className="py-20 bg-white">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col items-center gap-6">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-[#1B4D3E] flex items-center justify-center shadow-lg">
-              <span className="text-white font-black text-lg">G</span>
-            </div>
-            <span className="font-black text-xl text-slate-900 tracking-tight italic">Academia Gael</span>
+             <Heart className="w-8 h-8 text-rose-400 fill-current animate-pulse-heart" />
           </div>
-
-          <div className="flex items-center gap-8 text-xs font-bold text-slate-400">
-             <a href="#" className="hover:text-[#1B4D3E] transition-colors">POLÍTICAS</a>
-             <a href="#" className="hover:text-[#1B4D3E] transition-colors">SOPORTE</a>
-             <a href="#" className="hover:text-[#1B4D3E] transition-colors">INSTITUCIONAL</a>
-          </div>
-
-          <div className="flex items-center gap-4">
-             <div className="w-10 h-10 rounded-full bg-indigo-50 flex items-center justify-center">
-                <Globe className="w-5 h-5 text-indigo-400" />
-             </div>
-             <p className="text-[10px] font-black uppercase text-slate-300 tracking-widest">&copy; 2026 Academia Gael. Élite en Validación.</p>
-          </div>
+          <p className="text-xs font-black uppercase text-slate-300 tracking-widest">Academia Gael &bull; Hecho con Amor</p>
         </div>
       </footer>
     </div>
