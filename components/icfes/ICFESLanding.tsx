@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Heart, Sparkles, ChevronRight, CheckCircle2, Users, Smartphone, 
   Baby, ShieldCheck, Stars, Globe, ArrowRight, Play, Mic, Brain,
-  MessageCircle, Award, Lightbulb, UserCheck, Zap
+  MessageCircle, Award, Lightbulb, UserCheck, Zap, Quote
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -188,51 +188,80 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
         </div>
       </section>
 
-      {/* ─── Proof & Confidence ─── */}
-      <section className="py-32 bg-[#FDFEFC]">
+      {/* ─── Proof & Confidence — The Story ─── */}
+      <section className="py-40 bg-[#FDFEFC] relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-6">
-           <div className="flex flex-col lg:flex-row gap-20 items-center">
-              <div className="flex-1 space-y-12">
-                 <h2 className="text-5xl sm:text-6xl font-black text-slate-900 leading-[0.9]">Tú puedes ser la siguiente.</h2>
+           <div className="flex flex-col lg:flex-row gap-24 items-center">
+              <div className="flex-1 space-y-12 animate-fade-in-up">
+                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-rose-50 border border-rose-100 mb-2">
+                    <Heart className="w-4 h-4 text-rose-500 fill-current" />
+                    <span className="text-[10px] font-black text-rose-700 tracking-widest uppercase">Testimonios Reales</span>
+                 </div>
+                 <h2 className="text-6xl sm:text-7xl font-black text-slate-900 leading-[0.85] tracking-tighter">
+                   Tú puedes ser la<br/>
+                   <span className="text-emerald-500 italic">próxima mamá</span><br/>
+                   graduada.
+                 </h2>
                  
-                 <div className="space-y-8">
+                 <div className="grid grid-cols-1 gap-4">
                     {[
-                      "Material oficial alineado al ICFES 2026",
-                      "Adaptable a tu tiempo (clases de 5 min)",
-                      "Funciona en móviles antiguos y gama alta",
-                      "Acompañamiento por voz 24/7"
-                    ].map(text => (
-                      <div key={text} className="flex items-center gap-4 p-5 rounded-3xl bg-white shadow-cute border border-emerald-50">
-                        <CheckCircle2 className="w-6 h-6 text-emerald-500" />
-                        <span className="font-bold text-slate-700">{text}</span>
+                      { t: "Material oficial alineado al ICFES 2026", c: "bg-emerald-50 text-emerald-700" },
+                      { t: "Adaptable a tu tiempo (clases de 5 min)", c: "bg-blue-50 text-blue-700" },
+                      { t: "Acompañamiento por voz 24/7", c: "bg-rose-50 text-rose-700" }
+                    ].map((item, i) => (
+                      <div key={i} className={`flex items-center gap-5 p-6 rounded-[2rem] ${item.c} border border-white shadow-cute transform hover:scale-[1.02] transition-all`}>
+                        <div className="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm">
+                            <CheckCircle2 className="w-5 h-5" />
+                        </div>
+                        <span className="font-bold text-lg">{item.t}</span>
                       </div>
                     ))}
                  </div>
-
-                 <button 
-                  onClick={onLogin}
-                  className="px-10 py-5 bg-[#1B4D3E] text-white rounded-full font-black flex items-center gap-3 shadow-xl shadow-emerald-100"
-                 >
-                    Ver Planes Disponibles
-                    <ChevronRight />
-                 </button>
               </div>
 
-              <div className="flex-1 grid grid-cols-2 gap-6">
-                 <div className="space-y-6">
-                    <div className="aspect-square bg-emerald-100 rounded-[3rem] animate-float" style={{ animationDelay: '0s' }}></div>
-                    <div className="aspect-[3/4] bg-slate-100 rounded-[3rem] p-8 flex flex-col justify-end">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#1B4D3E] mb-2">Caso de Éxito</p>
-                        <p className="text-xl font-bold text-slate-800">"Validé mi bachillerato amamantando a mi hijo."</p>
+              <div className="flex-1 relative">
+                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                    {/* Story Card 1 */}
+                    <div className="space-y-8 animate-float">
+                        <div className="aspect-[4/5] rounded-[3.5rem] overflow-hidden border-8 border-white shadow-2xl relative group">
+                            <img 
+                                src="/images/studying_mom_baby_gael.png" 
+                                alt="Mamá estudiando" 
+                                className="w-full h-full object-cover grayscale-[20%] group-hover:grayscale-0 transition-all duration-700"
+                                onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1544126592-807daa215a05?auto=format&fit=crop&q=80&w=800'}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-t from-emerald-900/60 to-transparent flex flex-col justify-end p-8 text-white">
+                                <p className="font-black text-2xl leading-tight">"Lo logré amamantando a Gael"</p>
+                                <p className="text-emerald-200 text-sm mt-2">Danna Sofia — Estudiante</p>
+                            </div>
+                        </div>
+                        <div className="p-8 bg-white rounded-[2.5rem] shadow-cute border border-emerald-50">
+                             <Quote className="w-8 h-8 text-emerald-100 mb-4 fill-current" />
+                             <p className="text-slate-600 font-medium italic">"Nunca pensé que podría estudiar con un bebé de 3 meses. Lina es como una amiga que me enseña mientras Gael duerme."</p>
+                        </div>
+                    </div>
+
+                    {/* Story Card 2 */}
+                    <div className="space-y-8 animate-float pt-16" style={{ animationDelay: '1.5s' }}>
+                        <div className="p-8 bg-[#1B4D3E] text-white rounded-[2.5rem] shadow-2xl">
+                             <Stars className="w-10 h-10 text-emerald-400 mb-6 fill-current animate-sparkle" />
+                             <h3 className="text-2xl font-black mb-4">98% de Éxito</h3>
+                             <p className="text-emerald-100/80 text-sm leading-relaxed">Nuestra metodología está diseñada para que apruebes el examen en el primer intento.</p>
+                        </div>
+                        <div className="aspect-[4/5] rounded-[3.5rem] overflow-hidden border-8 border-white shadow-2xl relative group">
+                            <img 
+                                src="/images/graduation_success_academy_gael.png" 
+                                alt="Graduación exitosa" 
+                                className="w-full h-full object-cover"
+                                onError={(e) => (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=800'}
+                            />
+                            <div className="absolute inset-0 bg-gradient-to-b from-[#1B4D3E]/40 to-transparent" />
+                        </div>
                     </div>
                  </div>
-                 <div className="space-y-6 pt-12">
-                    <div className="aspect-[3/4] bg-stone-100 rounded-[3rem] p-8 flex flex-col justify-end">
-                        <p className="text-xs font-black uppercase tracking-widest text-[#1B4D3E] mb-2">Metodología</p>
-                        <p className="text-xl font-bold text-slate-800">Aprendizaje 10x más rápido que un instituto.</p>
-                    </div>
-                    <div className="aspect-square bg-rose-50 rounded-[3rem] animate-float" style={{ animationDelay: '1s' }}></div>
-                 </div>
+
+                 {/* Decoration */}
+                 <div className="absolute -top-10 -right-10 w-40 h-40 bg-rose-200 opacity-20 blur-[80px] rounded-full" />
               </div>
            </div>
         </div>
