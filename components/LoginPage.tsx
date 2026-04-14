@@ -264,12 +264,12 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
 
                 {/* Header */}
                 <div className="flex flex-col items-center z-10 mb-8 w-full max-w-sm">
-                    <div className="w-24 h-24 bg-gradient-to-br from-indigo-500 via-purple-500 to-cyan-500 rounded-3xl flex items-center justify-center shadow-[0_0_50px_rgba(99,102,241,0.6)] mb-6 transform rotate-3 border border-white/20 relative group">
+                    <div className="w-24 h-24 bg-gradient-to-br from-[#1B4D3E] via-emerald-600 to-[#2D7A5F] rounded-3xl flex items-center justify-center shadow-[0_0_50px_rgba(27,77,62,0.6)] mb-6 transform rotate-3 border border-white/20 relative group">
                         <div className="absolute inset-0 bg-white/20 rounded-3xl blur-xl opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                        <Brain className="w-12 h-12 text-white relative z-10 drop-shadow-md" />
+                        <span className="text-white text-5xl font-bold relative z-10 drop-shadow-md">G</span>
                     </div>
-                    <h1 className="text-4xl font-black text-white text-center leading-none mb-2 tracking-tight">NOVA SCHOLA</h1>
-                    <p className="text-cyan-400 font-bold tracking-[0.3em] text-[10px] uppercase glow-text">Nano Edition v2.0</p>
+                    <h1 className="text-4xl font-black text-white text-center leading-none mb-2 tracking-tight">ACADEMIA GAEL</h1>
+                    <p className="text-emerald-400 font-bold tracking-[0.2em] text-[10px] uppercase glow-text">Validación de Bachillerato</p>
                 </div>
 
                 {/* Auth Container */}
@@ -628,16 +628,16 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                             <AvatarDisplay avatarId={savedAvatarId} size="xl" showBackground={false} className="drop-shadow-2xl" />
                         </div>
                     ) : (
-                        <div className="w-24 h-24 bg-gradient-to-br from-indigo-600 to-violet-600 rounded-3xl flex items-center justify-center shadow-2xl shadow-indigo-200 mb-8 mx-auto lg:mx-0 animate-float">
-                            <Brain className="w-12 h-12 text-white" />
+                        <div className="w-24 h-24 bg-gradient-to-br from-[#1B4D3E] to-[#2D7A5F] rounded-3xl flex items-center justify-center shadow-2xl shadow-emerald-200 mb-8 mx-auto lg:mx-0 animate-float">
+                            <span className="text-white text-5xl font-bold">G</span>
                         </div>
                     )}
 
                     <h1 className="text-5xl font-bold text-stone-900 mb-2 tracking-tight">
-                        Nova Schola
+                        Academia Gael
                     </h1>
-                    <p className="text-xl text-indigo-600 font-medium mb-12 italic">
-                        {language === 'es' ? 'Primaria Bilingüe Inteligente' : 'Smart Bilingual Elementary'}
+                    <p className="text-xl text-[#1B4D3E] font-medium mb-12">
+                        {language === 'es' ? 'Validación de Bachillerato con IA' : 'High School Validation with AI'}
                     </p>
                 </div>
             </div>
