@@ -17,8 +17,8 @@ interface LoginPageProps {
     intent?: any;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'ADMIN' }) => {
-    const [mode, setMode] = useState<'STUDENT' | 'ADMIN' | 'PARENT'>('ADMIN');
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'STUDENT' }) => {
+    const [mode, setMode] = useState<'STUDENT' | 'ADMIN' | 'PARENT'>(defaultMode);
     const [isRegistering, setIsRegistering] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const { startTour } = useDemoTour();
@@ -287,10 +287,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'A
                             ESTUDIANTE
                         </button>
                         <button
-                            onClick={() => { setMode('PARENT'); setIsRegistering(false); setRegStep(1); }}
-                            className={`flex-1 py-3 text-xs font-black relative z-10 transition-colors ${mode === 'PARENT' ? 'text-white' : 'text-slate-500'}`}
+                            onClick={() => { setMode('ADMIN'); setIsRegistering(false); }}
+                            className={`flex-1 py-3 text-xs font-black relative z-10 transition-colors ${mode === 'ADMIN' ? 'text-white' : 'text-slate-500'}`}
                         >
-                            PADRES
+                            ADMIN
                         </button>
                     </div>
 
@@ -578,7 +578,20 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'A
 
                     <div className="mt-6 flex flex-col items-center gap-4">
                         <div className="w-full h-px bg-white/10 my-2"></div>
-                        <p className="text-slate-500 text-xs">Acceso Restringido - Academia Gael</p>
+                             {mode === 'STUDENT' && (
+                                <div className="flex flex-col items-center gap-4 mt-4">
+                                    <div className="flex items-center gap-1 text-sm text-stone-500">
+                                        <span>{isRegistering ? text.hasAccount : text.noAccount}</span>
+                                        <button
+                                            type="button"
+                                            onClick={() => setIsRegistering(!isRegistering)}
+                                            className="text-indigo-400 font-bold hover:underline ml-2"
+                                        >
+                                            {isRegistering ? text.loginLink : text.createAccount}
+                                        </button>
+                                    </div>
+                                </div>
+                            )}
                     </div>
                 </div>
             </div>
@@ -633,10 +646,28 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'A
             <div className="flex-1 flex items-center justify-center p-6 relative z-10">
                 <div className="w-full max-w-[480px]">
 
-                    {/* Admin Access Panel Header */}
-                    <div className="bg-indigo-600/10 p-3 rounded-2xl flex items-center justify-center gap-2 mb-8 border border-indigo-600/20 shadow-sm">
-                        <ShieldCheck className="w-5 h-5 text-indigo-600" />
-                        <span className="text-indigo-600 font-bold text-sm tracking-wide">CAJA FUERTE - SOLO ADMIN</span>
+                    {/* Role Toggle Switch */}
+                    <div className="bg-white p-1.5 rounded-full flex mb-8 border border-stone-200 shadow-sm">
+                        <button
+                            onClick={() => { setMode('STUDENT'); setIsRegistering(false); }}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all duration-300 ${mode === 'STUDENT'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                : 'text-stone-500 hover:text-stone-700'
+                                }`}
+                        >
+                            <Smartphone className="w-4 h-4" />
+                            Estudiante
+                        </button>
+                        <button
+                            onClick={() => { setMode('ADMIN'); setIsRegistering(false); }}
+                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all duration-300 ${mode === 'ADMIN'
+                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
+                                : 'text-stone-500 hover:text-stone-700'
+                                }`}
+                        >
+                            <ShieldCheck className="w-4 h-4" />
+                            Administrador
+                        </button>
                     </div>
 
                     {/* Desktop Step Indicator */}
@@ -966,30 +997,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'A
                                 </div>
                             )}
 
-                            {/* DEMO MODE BUTTON */}
-                            <div className="relative my-8">
-                                <div className="absolute inset-0 flex items-center">
-                                    <div className="w-full border-t border-stone-100"></div>
-                                </div>
-                                <div className="relative flex justify-center text-xs uppercase">
-                                    <span className="bg-white px-2 text-stone-400 font-bold tracking-widest">
-                                        {language === 'es' ? 'Presentación Rápida' : 'Quick Demo'}
-                                    </span>
-                                </div>
-                            </div>
 
-                            <button
-                                type="button"
-                                onClick={() => {
-                                    setFormData({ ...formData, email: 'sofia.demo@novaschola.com', password: 'demo2024' });
-                                    onLogin({ email: 'sofia.demo@novaschola.com', password: 'demo2024' }, 'STUDENT');
-                                    setTimeout(() => startTour(), 500);
-                                }}
-                                className="w-full h-14 bg-gradient-to-r from-amber-400 via-orange-500 to-rose-500 hover:from-amber-500 hover:via-orange-600 hover:to-rose-600 text-white font-black rounded-2xl shadow-xl shadow-orange-200 text-base transition-all transform hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 border-2 border-white/20"
-                            >
-                                <span className="text-2xl">🎬</span>
-                                <span>{language === 'es' ? 'VER DEMO INTERACTIVA' : 'VIEW INTERACTIVE DEMO'}</span>
-                            </button>
 
                             {/* Deep Repair Utility: Clears all local state to fix persistent "stuck" issues */}
                             <div className="flex flex-col items-center gap-2 mt-4 pt-4 border-t border-stone-50">
@@ -1023,19 +1031,13 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'A
                                 </button>
                             </div>
 
-                            {mode === 'PARENT' && (
+                            {mode === 'STUDENT' && (
                                 <div className="flex flex-col items-center gap-4 mt-4">
                                     <div className="flex items-center gap-1 text-sm text-stone-500">
                                         <span>{isRegistering ? text.hasAccount : text.noAccount}</span>
                                         <button
                                             type="button"
-                                            onClick={() => {
-                                                const nextReg = !isRegistering;
-                                                setIsRegistering(nextReg);
-                                                setRegStep(1);
-                                                setIsAdultVerified(false);
-                                                if (nextReg && mode === 'PARENT') generateAdultChallenge();
-                                            }}
+                                            onClick={() => setIsRegistering(!isRegistering)}
                                             className="text-indigo-600 font-bold hover:underline"
                                         >
                                             {isRegistering ? text.loginLink : text.createAccount}
