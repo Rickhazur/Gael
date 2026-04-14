@@ -517,7 +517,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                             <div className="space-y-4">
                                 <div className="space-y-2">
                                     <input
-                                        type="email"
+                                        type="text"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         required
@@ -923,7 +923,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                             {mode === 'STUDENT' ? text.studentEmail : (mode === 'ADMIN' ? 'Correo de Admin' : text.email)}
                                         </label>
                                         <input
-                                            type="email"
+                                            type="text"
                                             value={formData.email}
                                             onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                             required
