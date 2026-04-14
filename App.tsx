@@ -318,17 +318,23 @@ const App: React.FC = () => {  // Authentication State
       // 👶 ACCESO ESPECIAL: Danna Sofia Corredor (Gael)
       const savedStudentPass = localStorage.getItem('nova_bypass_password') || 'Gael2024*';
       if ((email === 'dannasofiacorredor25@gmail.com' || email === 'danna') && password === savedStudentPass) {
-        const isFirstLogin = !localStorage.getItem('danna_initial_login_done');
+        const isDefaultPass = password === 'Gael2024*';
         setIsAuthenticated(true);
         setUserId('danna-gael-user');
         setUserName('Danna Sofia');
         setUserRole('STUDENT');
-        setGradeLevel(11); // Supongamos grado 11 para validación
+        setGradeLevel(11);
         
-        if (isFirstLogin) {
-          setShowDannaWelcome(true);
+        if (isDefaultPass) {
           setMustChangePassword(true);
-          localStorage.setItem('danna_initial_login_done', 'true');
+        } else {
+          // If they already changed it, maybe they already saw the welcome too,
+          // but let's show it if it's their very first time with the NEW pass too
+          const welcomeDone = localStorage.getItem('danna_welcome_done');
+          if (!welcomeDone) {
+            setShowDannaWelcome(true);
+            localStorage.setItem('danna_welcome_done', 'true');
+          }
         }
         
         localStorage.setItem('nova_user_name', 'Danna Sofia');
@@ -414,14 +420,15 @@ const App: React.FC = () => {  // Authentication State
                 <LearningProvider>
                   <TooltipProvider>
                     <Suspense fallback={<SplashScreen />}>
-                      {showPasswordReset ? (
+                      {(showPasswordReset || mustChangePassword) ? (
                         <ResetPasswordPage
                           onSuccess={() => {
-                            setShowPasswordReset(false);
-                            setIsAuthenticated(false);
-                            window.history.replaceState(null, '', window.location.pathname);
-                            supabase?.auth.signOut().catch(() => { });
-                            window.location.href = '/';
+                            setMustChangePassword(false);
+                            // After changing password, show the Welcome Gael modal
+                            if (userRole === 'STUDENT') {
+                              setShowDannaWelcome(true);
+                              localStorage.setItem('danna_welcome_done', 'true');
+                            }
                           }}
                           onCancel={() => {
                             setShowPasswordReset(false);
