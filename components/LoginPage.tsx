@@ -17,8 +17,8 @@ interface LoginPageProps {
     intent?: any;
 }
 
-const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'STUDENT' }) => {
-    const [mode, setMode] = useState<'STUDENT' | 'ADMIN' | 'PARENT'>(defaultMode);
+const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'ADMIN' }) => {
+    const [mode, setMode] = useState<'STUDENT' | 'ADMIN' | 'PARENT'>('ADMIN');
     const [isRegistering, setIsRegistering] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
     const { startTour } = useDemoTour();
@@ -576,37 +576,9 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                         </Button>
                     </form>
 
-                    {/* Toggle Login/Register */}
                     <div className="mt-6 flex flex-col items-center gap-4">
-                        {mode === 'PARENT' && (
-                            <button
-                                onClick={() => {
-                                    const nextReg = !isRegistering;
-                                    setIsRegistering(nextReg);
-                                    setRegStep(1);
-                                    setIsAdultVerified(false);
-                                    if (nextReg && mode === 'PARENT') generateAdultChallenge();
-                                }}
-                                className="text-slate-400 text-sm font-medium hover:text-white transition-colors"
-                            >
-                                {isRegistering ? "¿Ya tienes cuenta? Inicia Sesión" : "¿No tienes cuenta? Regístrate Gratis"}
-                            </button>
-                        )}
-
                         <div className="w-full h-px bg-white/10 my-2"></div>
-
-                        {/* Quick Demo Button */}
-                        <button
-                            type="button"
-                            onClick={() => {
-                                setFormData({ ...formData, email: 'sofia.demo@novaschola.com', password: 'demo2024' });
-                                onLogin({ email: 'sofia.demo@novaschola.com', password: 'demo2024' }, 'STUDENT');
-                                setTimeout(() => startTour(), 500);
-                            }}
-                            className="w-full py-4 bg-slate-800/50 hover:bg-slate-800 border border-white/5 rounded-xl text-slate-300 hover:text-white font-bold text-xs flex items-center justify-center gap-2 active:scale-95 transition-all group"
-                        >
-                            <span className="text-xl group-hover:scale-110 transition-transform">🎬</span> VER DEMO RÁPIDO
-                        </button>
+                        <p className="text-slate-500 text-xs">Acceso Restringido - Academia Gael</p>
                     </div>
                 </div>
             </div>
@@ -661,38 +633,10 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
             <div className="flex-1 flex items-center justify-center p-6 relative z-10">
                 <div className="w-full max-w-[480px]">
 
-                    {/* Role Toggle Switch */}
-                    <div className="bg-white p-1.5 rounded-full flex mb-8 border border-stone-200 shadow-sm">
-                        <button
-                            onClick={() => { setMode('STUDENT'); setIsRegistering(false); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all duration-300 ${mode === 'STUDENT'
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                                : 'text-stone-500 hover:text-stone-700'
-                                }`}
-                        >
-                            <Smartphone className="w-4 h-4" />
-                            {text.student}
-                        </button>
-                        <button
-                            onClick={() => { setMode('ADMIN'); setIsRegistering(false); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all duration-300 ${mode === 'ADMIN'
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                                : 'text-stone-500 hover:text-stone-700'
-                                }`}
-                        >
-                            <ShieldCheck className="w-4 h-4" />
-                            {text.admin}
-                        </button>
-                        <button
-                            onClick={() => { setMode('PARENT'); setIsRegistering(false); setRegStep(1); }}
-                            className={`flex-1 flex items-center justify-center gap-2 py-3 rounded-full text-sm font-bold transition-all duration-300 ${mode === 'PARENT'
-                                ? 'bg-indigo-600 text-white shadow-lg shadow-indigo-200'
-                                : 'text-stone-500 hover:text-stone-700'
-                                }`}
-                        >
-                            <Brain className="w-4 h-4" />
-                            {text.parent}
-                        </button>
+                    {/* Admin Access Panel Header */}
+                    <div className="bg-indigo-600/10 p-3 rounded-2xl flex items-center justify-center gap-2 mb-8 border border-indigo-600/20 shadow-sm">
+                        <ShieldCheck className="w-5 h-5 text-indigo-600" />
+                        <span className="text-indigo-600 font-bold text-sm tracking-wide">CAJA FUERTE - SOLO ADMIN</span>
                     </div>
 
                     {/* Desktop Step Indicator */}

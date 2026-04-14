@@ -42,7 +42,7 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
               className="nova-btn-primary text-sm !py-2.5 !px-5 !min-h-0 rounded-xl"
               id="btn-start-hero"
             >
-              Empezar Gratis
+              Empezar
             </button>
           </div>
         </div>
@@ -57,7 +57,7 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
           {/* Badge */}
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 mb-6 animate-fade-in-up">
             <span className="w-2 h-2 bg-[#059669] rounded-full animate-pulse-gentle" />
-            <span className="text-sm font-medium text-[#1B4D3E]">100% gratis — Sin tarjeta de crédito</span>
+            <span className="text-sm font-medium text-[#1B4D3E]">Acceso Institucional Privado</span>
           </div>
 
           {/* Title */}
@@ -260,7 +260,7 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
         <div className="max-w-3xl mx-auto">
           <h2 className="text-3xl font-bold text-slate-900 mb-8 text-center">Preguntas frecuentes</h2>
           {[
-            { q: "¿Realmente es gratis?", a: "Sí. La preparación básica, el diagnóstico y los simulacros son 100% gratis. No pedimos tarjeta de crédito." },
+            { q: "¿Es una plataforma abierta?", a: "No, Academia Gael es una herramienta de preparación privada de acceso cerrado e intensivo." },
             { q: "¿Necesito computador?", a: "No. Funciona perfecto desde tu celular. Incluso funciona offline si descargas las lecciones con WiFi." },
             { q: "¿Cuánto tiempo necesito para prepararme?", a: "Con 15-30 minutos diarios, en 8-12 semanas estarás listo. Pero puedes ir a tu ritmo, sin presión." },
             { q: "¿Las preguntas son como las del examen real?", a: "Sí. Seguimos la estructura oficial del ICFES: selección múltiple con única respuesta en las 5 áreas." },
@@ -292,7 +292,7 @@ export const ICFESLanding: React.FC<ICFESLandingProps> = ({ onStart, onLogin }) 
               className="nova-btn nova-btn-accent text-lg !px-10 !py-4 rounded-2xl"
               id="btn-final-cta"
             >
-              Empezar Mi Preparación Gratis
+              Empezar Mi Preparación
               <ChevronRight className="w-5 h-5" />
             </button>
           </div>
