@@ -300,13 +300,16 @@ const App: React.FC = () => {  // Authentication State
     const password = (data?.password ?? '').toString().trim();
 
     try {
-      // 🚨 EMERGENCY BYPASS: Admin
-      if (email === 'rickhazur@gmail.com' && password === 'Gael2024*') {
+      // 🚨 EMERGENCY BYPASS: Admin (Rickhazur)
+      if ((email === 'rickhazur@gmail.com' || email === 'admin') && 
+          (password === 'Gael2024*' || password === 'admin')) {
+        console.log('🛡️ Admin Bypass Triggered');
         setIsAuthenticated(true);
         setUserId('admin-bypass-uid');
         setUserName('Rickhazur (Admin)');
         setUserRole('ADMIN');
         setCurrentView(ViewState.DASHBOARD);
+        setShowLogin(false); // Cierra el modal de login
         return;
       }
 
