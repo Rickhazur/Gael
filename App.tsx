@@ -16,6 +16,7 @@ import { PetProvider } from '@/context/PetContext';
 
 // Components - eagerly loaded (small / always visible)
 import SplashScreen from './components/SplashScreen';
+import { WelcomeGael } from './components/WelcomeGael';
 
 // Nova ICFES - New primary app
 import { ICFESApp } from './components/icfes/ICFESApp';
@@ -301,8 +302,9 @@ const App: React.FC = () => {  // Authentication State
 
     try {
       // 🚨 EMERGENCY BYPASS: Admin (Rickhazur)
+      const savedAdminPass = localStorage.getItem('nova_bypass_password') || 'Gael2024*';
       if ((email === 'rickhazur@gmail.com' || email === 'admin') && 
-          (password === 'Gael2024*' || password === 'admin')) {
+          (password === savedAdminPass || password === 'admin')) {
         console.log('🛡️ Admin Bypass Triggered');
         setIsAuthenticated(true);
         setUserId('admin-bypass-uid');
@@ -314,7 +316,8 @@ const App: React.FC = () => {  // Authentication State
       }
 
       // 👶 ACCESO ESPECIAL: Danna Sofia Corredor (Gael)
-      if ((email === 'dannasofiacorredor25@gmail.com' || email === 'danna') && password === 'Gael2024*') {
+      const savedStudentPass = localStorage.getItem('nova_bypass_password') || 'Gael2024*';
+      if ((email === 'dannasofiacorredor25@gmail.com' || email === 'danna') && password === savedStudentPass) {
         const isFirstLogin = !localStorage.getItem('danna_initial_login_done');
         setIsAuthenticated(true);
         setUserId('danna-gael-user');
@@ -436,7 +439,9 @@ const App: React.FC = () => {  // Authentication State
                         </div>
                       ) : (
                         <>
-
+                          {showDannaWelcome && (
+                            <WelcomeGael onClose={() => setShowDannaWelcome(false)} />
+                          )}
                           {isLoading ? (
                             <SplashScreen />
                           ) : isAuthenticated && userRole === 'ADMIN' ? (

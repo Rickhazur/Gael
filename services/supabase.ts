@@ -515,7 +515,8 @@ export const updateUserPassword = async (newPass: string) => {
   if (supabase) {
     const { data: { session } } = await supabase.auth.getSession();
     if (!session) {
-      console.warn("No active session – Mocking password update success for bypass mode.");
+      console.warn("No active session – Persisting password locally for bypass mode.");
+      localStorage.setItem('nova_bypass_password', newPass);
       return { success: true };
     }
     const { error } = await supabase.auth.updateUser({ password: newPass });
