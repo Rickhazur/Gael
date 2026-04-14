@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Heart, Sparkles, ChevronRight, CheckCircle2, Users, Smartphone, 
   Baby, ShieldCheck, Stars, Globe, ArrowRight, Play, Mic, Brain,
-  MessageCircle, Award, Lightbulb, UserCheck
+  MessageCircle, Award, Lightbulb, UserCheck, Zap
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
