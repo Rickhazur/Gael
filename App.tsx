@@ -300,6 +300,16 @@ const App: React.FC = () => {  // Authentication State
     const password = (data?.password ?? '').toString().trim();
 
     try {
+      // 🚨 EMERGENCY BYPASS: Admin
+      if (email === 'rickhazur@gmail.com' && password === 'Gael2024*') {
+        setIsAuthenticated(true);
+        setUserId('admin-bypass-uid');
+        setUserName('Rickhazur (Admin)');
+        setUserRole('ADMIN');
+        setCurrentView(ViewState.DASHBOARD);
+        return;
+      }
+
       // 👶 ACCESO ESPECIAL: Danna Sofia Corredor (Gael)
       if (email === 'dannasofiacorredor25@gmail.com' && password === 'Gael2024*') {
         const isFirstLogin = !localStorage.getItem('danna_initial_login_done');
