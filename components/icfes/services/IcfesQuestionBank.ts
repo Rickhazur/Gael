@@ -799,7 +799,7 @@ export const ALL_QUESTIONS: IcfesQuestion[] = [
     socraticHints: ["Si también cambiaras la luz, ¿sabrías si el efecto es de la temperatura o de la luz?", "¿Por qué en un experimento se cambia UNA sola cosa a la vez?"],
     techniqueTip: "Variables controladas = se mantienen iguales para que el resultado dependa SOLO de la variable independiente. Es la base del método científico."
   },
-  { id: "cie_03", category: "CIENCIAS", difficulty: "medium", competency: "CIE_INTERPRETACION",
+  { id: "cie_03", category: "CIENCIAS", difficulty: "medium", competency: "CIE_USO_COMPRENSIVO",
     passageGroup: "experimento_germinacion",
     context: PASSAGES.ARTICULO_CIENTIFICO,
     text: "Según los resultados, ¿cuál es la temperatura óptima para la germinación del frijol?",
