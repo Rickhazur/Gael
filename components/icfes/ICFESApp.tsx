@@ -253,9 +253,28 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
                 <h2 className="text-xl font-bold text-slate-800 mb-1">{userName || 'Estudiante'}</h2>
                 <p className="text-sm text-slate-500">Preparándose para el ICFES</p>
                 
+                {/* Motivation Card (Gael) */}
+                <div className="mt-6 pt-6 border-t border-slate-100">
+                  <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase mb-4 text-center">Mi Motivación ❤️</p>
+                  <div className="relative group mx-auto w-32 h-32">
+                    <div className="absolute inset-0 bg-rose-200 blur-2xl opacity-20 group-hover:opacity-40 transition-opacity" />
+                    <div className="relative w-full h-full rounded-2xl overflow-hidden border-2 border-white shadow-lg">
+                      <img 
+                        src="/gael.png" 
+                        alt="Gael" 
+                        className="w-full h-full object-cover"
+                        onError={(e) => {
+                          (e.target as HTMLImageElement).src = 'https://images.unsplash.com/photo-1519681393784-d120267933ba?auto=format&fit=crop&q=80&w=400';
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <p className="mt-3 text-xs italic text-slate-400">"Todo esfuerzo hoy es para tu futuro, Gael"</p>
+                </div>
+
                 {/* Student Profile Memory */}
                 {localStorage.getItem('icfes_global_profile') && (
-                  <div className="mt-4 bg-violet-50 border border-violet-100 rounded-xl p-3 text-left">
+                  <div className="mt-6 bg-violet-50 border border-violet-100 rounded-xl p-3 text-left">
                     <p className="text-xs font-bold text-violet-700 mb-1">🧠 Lo que Lina sabe de ti:</p>
                     <p className="text-xs text-violet-600">{localStorage.getItem('icfes_global_profile')}</p>
                   </div>
