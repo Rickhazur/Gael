@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, Loader2, ArrowLeft, Star, Play, Volume2, VolumeX, Mic, MicOff, Zap, HelpCircle, SkipForward, ThumbsUp } from 'lucide-react';
 import { Lesson } from '../../data/curriculumByGrade';
 import { AiTutorService, ChatMessage } from './services/AiTutorService';
+import { orchestrateTutorResponse } from './services/AgentOrchestrator';
 import ReactMarkdown from 'react-markdown';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
@@ -241,7 +242,17 @@ REGLAS PARA TU PRIMER MENSAJE:
     setMessages(newMessages);
     setIsTyping(true);
 
-    const responseText = await AiTutorService.getLinaResponse(newMessages, lesson.title, areaName);
+    // Use Multi-Agent Orchestrator instead of monolithic tutor
+    const lastTutorMessage = messages.slice().reverse().find(m => m.role === 'assistant')?.content || '';
+    
+    // Fallback if orchestrator fails (e.g. rate limit), use single LLM. 
+    // But normally it hits orchestrator.
+    const responseText = await orchestrateTutorResponse({
+      lessonObjective: `${areaName} - ${lesson.title}`,
+      questionText: lastTutorMessage, // The current context/question Lina was asking
+      studentHistory: messages,
+      studentLatestMessage: userMsg
+    });
     
     setMessages(prev => [...prev, { role: 'assistant', content: responseText }]);
     setIsTyping(false);
