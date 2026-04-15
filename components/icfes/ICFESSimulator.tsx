@@ -8,6 +8,7 @@ import {
   getSimulationQuestions, IcfesQuestion, IcfesCategory,
   CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS 
 } from './services/IcfesQuestionBank';
+import { processTestResults } from './services/SpacedRepetition';
 
 interface SimulatorProps {
   mode: 'quick' | 'area' | 'full';
@@ -158,6 +159,9 @@ export const ICFESSimulator: React.FC<SimulatorProps> = ({ mode, category, onExi
       }
     }
     localStorage.setItem('nova_icfes_progress', JSON.stringify(updated));
+
+    // Feed failed questions into spaced repetition
+    processTestResults(questions, answers);
 
     onComplete({
       totalQuestions: questions.length,

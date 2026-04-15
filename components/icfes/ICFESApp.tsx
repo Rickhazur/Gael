@@ -14,9 +14,10 @@ import { ICFESSimulator, SimulationResults } from './ICFESSimulator';
 import { ICFESResultsNew } from './ICFESResultsNew';
 import { ICFESLearningPath } from './ICFESLearningPath';
 import { SocraticClassroom } from './SocraticClassroom';
+import { ReviewMode } from './ReviewMode';
 import { Lesson } from '../../data/curriculumByGrade';
 
-type AppView = 'landing' | 'login' | 'diagnostic' | 'dashboard' | 'simulator' | 'results' | 'learning' | 'profile' | 'quickclass';
+type AppView = 'landing' | 'login' | 'diagnostic' | 'dashboard' | 'simulator' | 'results' | 'learning' | 'profile' | 'quickclass' | 'review';
 
 interface ICFESAppProps {
   // Optional: pass in auth state from parent App.tsx
@@ -182,7 +183,16 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
             onStartDiagnostic={() => setView('diagnostic')}
             onViewProgress={() => setView('learning')}
             onStartQuickClass={handleStartQuickClass}
+            onStartReview={() => setView('review')}
             hasDiagnostic={hasDiagnostic}
+          />
+        );
+
+      case 'review':
+        return (
+          <ReviewMode
+            onBack={() => setView('dashboard')}
+            onComplete={() => setView('dashboard')}
           />
         );
 

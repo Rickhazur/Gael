@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { ChevronRight, ArrowLeft, CheckCircle2, Brain, Star, TrendingUp, Pause, Play, Save, Clock } from 'lucide-react';
 import { getDiagnosticQuestions, IcfesQuestion, CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS, IcfesCategory } from './services/IcfesQuestionBank';
+import { processTestResults } from './services/SpacedRepetition';
 
 interface ICFESDiagnosticProps {
   userName: string;
@@ -159,6 +160,9 @@ export const ICFESDiagnostic: React.FC<ICFESDiagnosticProps> = ({ userName, onCo
       areaScores: Object.fromEntries(areas.map(a => [a, areaScores[a].percent]))
     };
     localStorage.setItem('nova_icfes_progress', JSON.stringify(updatedProgress));
+
+    // Feed failed questions into spaced repetition system
+    processTestResults(questions, answers);
   };
 
   // ─── Resume Notice ───

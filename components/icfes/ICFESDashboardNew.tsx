@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Play, Clock, BarChart3, ChevronRight, Flame, BookOpen, Target,
-  TrendingUp, Award, Zap, Calendar, ArrowRight
+  TrendingUp, Award, Zap, Calendar, ArrowRight, RefreshCw, Brain
 } from 'lucide-react';
 import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS, IcfesCategory } from './services/IcfesQuestionBank';
+import { getRepetitionStats, getReviewSummary } from './services/SpacedRepetition';
 
 interface UserProgress {
   streak: number;
@@ -25,6 +26,7 @@ interface ICFESDashboardNewProps {
   onStartDiagnostic: () => void;
   onViewProgress: () => void;
   onStartQuickClass?: (category?: IcfesCategory) => void;
+  onStartReview?: () => void;
   hasDiagnostic: boolean;
 }
 
@@ -47,7 +49,7 @@ const DEFAULT_PROGRESS: UserProgress = {
 };
 
 export const ICFESDashboardNew: React.FC<ICFESDashboardNewProps> = ({
-  userName, onStartSimulation, onStartLearning, onStartDiagnostic, onViewProgress, onStartQuickClass, hasDiagnostic
+  userName, onStartSimulation, onStartLearning, onStartDiagnostic, onViewProgress, onStartQuickClass, onStartReview, hasDiagnostic
 }) => {
   const [progress, setProgress] = useState<UserProgress>(DEFAULT_PROGRESS);
   
@@ -120,6 +122,60 @@ export const ICFESDashboardNew: React.FC<ICFESDashboardNewProps> = ({
             </div>
           </div>
         )}
+
+        {/* ─── Spaced Repetition Review Card ─── */}
+        {(() => {
+          const reviewSummary = getReviewSummary();
+          const stats = getRepetitionStats();
+          if (reviewSummary.urgency === 'none' && stats.totalCards === 0) return null;
+          
+          const urgencyColors = {
+            none: 'from-emerald-50 to-green-50 border-emerald-200',
+            low: 'from-blue-50 to-indigo-50 border-blue-200',
+            medium: 'from-amber-50 to-yellow-50 border-amber-200',
+            high: 'from-red-50 to-rose-50 border-red-200'
+          };
+          const urgencyText = {
+            none: 'text-emerald-700',
+            low: 'text-blue-700',
+            medium: 'text-amber-700',
+            high: 'text-red-700'
+          };
+          
+          return (
+            <div className={`bg-gradient-to-r ${urgencyColors[reviewSummary.urgency]} border rounded-2xl p-5 mb-4 animate-fade-in-up`}>
+              <div className="flex items-start gap-3">
+                <div className={`p-2 rounded-xl ${reviewSummary.urgency === 'high' ? 'bg-red-100' : 'bg-violet-100'}`}>
+                  <Brain className={`w-6 h-6 ${reviewSummary.urgency === 'high' ? 'text-red-600' : 'text-violet-600'}`} />
+                </div>
+                <div className="flex-1">
+                  <h3 className={`font-bold text-base ${urgencyText[reviewSummary.urgency]}`}>
+                    🔄 Repaso Inteligente
+                    {stats.dueToday > 0 && (
+                      <span className="ml-2 bg-violet-600 text-white text-xs px-2 py-0.5 rounded-full">
+                        {stats.dueToday} pendientes
+                      </span>
+                    )}
+                  </h3>
+                  <p className="text-sm text-slate-600 mt-1">{reviewSummary.message}</p>
+                  {stats.streakDays > 0 && (
+                    <div className="flex items-center gap-1 mt-2 text-xs text-orange-600 font-bold">
+                      <Flame className="w-3 h-3" /> {stats.streakDays} días de racha
+                    </div>
+                  )}
+                </div>
+                {stats.dueToday > 0 && onStartReview && (
+                  <button
+                    onClick={onStartReview}
+                    className="shrink-0 px-4 py-2 bg-violet-600 text-white rounded-xl text-sm font-bold hover:bg-violet-700 transition-colors flex items-center gap-1.5"
+                  >
+                    <RefreshCw className="w-4 h-4" /> Repasar
+                  </button>
+                )}
+              </div>
+            </div>
+          );
+        })()}
 
         {/* ─── Quick Actions ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up stagger-1">
