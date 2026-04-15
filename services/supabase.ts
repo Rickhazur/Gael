@@ -73,8 +73,8 @@ export const loginWithSupabase = async (emailOrUsername: string, password: strin
 
   return {
     uid: data.user!.id,
-    email: normalizedEmail,
-    name: profile?.name || normalizedEmail.split('@')[0],
+    email: email,
+    name: profile?.name || email.split('@')[0],
     role: finalRole,
     level: profile?.level || "TEEN",
     gradeLevel: profile?.grade_level || 3,
@@ -1815,6 +1815,7 @@ export const adminCreateUser = async (emailOrUsername: string, password: string,
     }
   });
 
+  console.log('🚀 Admin: Iniciando registro para:', email);
   // 1. Create auth user
   const { data: authData, error: authError } = await tempClient.auth.signUp({
     email,
