@@ -15,9 +15,10 @@ import { ICFESResultsNew } from './ICFESResultsNew';
 import { ICFESLearningPath } from './ICFESLearningPath';
 import { SocraticClassroom } from './SocraticClassroom';
 import { ReviewMode } from './ReviewMode';
+import { AIQuestionGenerator } from './admin/AIQuestionGenerator';
 import { Lesson } from '../../data/curriculumByGrade';
 
-type AppView = 'landing' | 'login' | 'diagnostic' | 'dashboard' | 'simulator' | 'results' | 'learning' | 'profile' | 'quickclass' | 'review';
+type AppView = 'landing' | 'login' | 'diagnostic' | 'dashboard' | 'simulator' | 'results' | 'learning' | 'profile' | 'quickclass' | 'review' | 'generator';
 
 interface ICFESAppProps {
   // Optional: pass in auth state from parent App.tsx
@@ -262,6 +263,13 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
               </div>
               <div className="space-y-3">
                 <button 
+                  onClick={() => setView('generator')}
+                  className="nova-card p-4 w-full text-left hover:bg-indigo-50 transition-colors border-indigo-100"
+                >
+                  <span className="text-sm font-bold text-indigo-600 flex items-center gap-2">⚡ Creador de Preguntas IA (Admin)</span>
+                  <p className="text-xs text-slate-500 mt-1">Generar preguntas tipo ICFES usando Gemini 2.0 Flash.</p>
+                </button>
+                <button 
                   onClick={() => {
                     localStorage.removeItem('nova_icfes_progress');
                     localStorage.removeItem('nova_icfes_diagnostic');
@@ -286,6 +294,19 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
                   <span className="text-sm font-semibold text-red-600">🚪 Cerrar sesión</span>
                 </button>
               </div>
+            </div>
+          </div>
+        );
+
+      case 'generator':
+        return (
+          <div className="min-h-screen bg-slate-50" style={{ fontFamily: "'Inter', system-ui, sans-serif" }}>
+            <div className="p-4 bg-white border-b sticky top-0 z-10 flex items-center gap-4">
+              <button onClick={() => setView('profile')} className="p-2 bg-slate-100 rounded-lg">Volver</button>
+              <h1 className="font-bold">Panel Admin</h1>
+            </div>
+            <div className="p-4">
+              <AIQuestionGenerator />
             </div>
           </div>
         );
