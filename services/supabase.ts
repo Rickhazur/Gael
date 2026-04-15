@@ -8,8 +8,14 @@ const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 export const isOffline = !SUPABASE_URL || !SUPABASE_KEY;
 export const supabase = isOffline ? null : createClient(SUPABASE_URL, SUPABASE_KEY);
 
-
-/* ===================================================
+// Cliente secundario para acciones de Auth que no deben persistir sesión (ej: crear alumnos desde panel admin)
+export const backgroundAuth = isOffline ? null : createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+    detectSessionInUrl: false
+  }
+});
    AUTH - USUARIOS 100% REALES
    ...
 =================================================== */
@@ -1799,25 +1805,16 @@ export const getAllStudents = async () => {
 // --- ADMIN USER MANAGEMENT ---
 
 export const adminCreateUser = async (emailOrUsername: string, password: string, name: string, guardianPhone: string, gradeLevel: number = 3) => {
-  if (!supabase) return { success: false, error: 'No connection' };
+  if (!backgroundAuth) return { success: false, error: 'No connection' };
 
   let email = emailOrUsername.toLowerCase().trim();
   if (!email.includes('@')) {
     email = `${email}@${AUTH_DOMAIN}`;
   }
 
-  // Crear cliente temporal para no cerrar la sesión del admin principal
-  const tempClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-      detectSessionInUrl: false
-    }
-  });
-
   console.log('🚀 Admin: Iniciando registro para:', email);
   // 1. Create auth user
-  const { data: authData, error: authError } = await tempClient.auth.signUp({
+  const { data: authData, error: authError } = await backgroundAuth.auth.signUp({
     email,
     password,
     options: {
