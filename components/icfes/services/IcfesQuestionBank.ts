@@ -14,17 +14,20 @@ import { supabase } from '../../../services/supabase';
 
 export type IcfesCategory = "LECTURA_CRITICA" | "MATEMATICAS" | "SOCIALES" | "CIENCIAS" | "INGLES";
 
+import { EXTRA_QUESTIONS } from './IcfesQuestionBankExpansion';
+
 export type IcfesCompetency = 
   // Lectura Crítica
-  | 'LC_IDENTIFICAR' | 'LC_COMPRENDER' | 'LC_REFLEXIONAR' | 'LC_EVALUAR'
+  | 'LC_IDENTIFICAR' | 'LC_COMPRENDER' | 'LC_REFLEXIONAR' | 'LC_INFERIR' | 'LC_EVALUAR'
   // Matemáticas
-  | 'MAT_INTERPRETACION' | 'MAT_FORMULACION' | 'MAT_EJECUCION'
+  | 'MAT_INTERPRETACION' | 'MAT_FORMULACION' | 'MAT_EJECUCION' | 'MAT_VALIDACION'
   // Sociales
   | 'SOC_PENSAMIENTO_SOCIAL' | 'SOC_INTERPRETACION_FUENTES' | 'SOC_PENSAMIENTO_SISTEMICO'
+  | 'SOC_PENSAMIENTO' | 'SOC_COMPRENSION' | 'SOC_MULTIPERSPECTIVISMO' | 'SOC_SISTEMATICO'
   // Ciencias
   | 'CIE_USO_COMPRENSIVO' | 'CIE_EXPLICACION' | 'CIE_INDAGACION'
   // Inglés
-  | 'ENG_A1' | 'ENG_A2' | 'ENG_B1';
+  | 'ENG_A1' | 'ENG_A2' | 'ENG_B1' | 'ENG_B1_PLUS';
 
 export interface IcfesQuestion {
   id: string;
@@ -1057,3 +1060,5 @@ export const ALL_QUESTIONS: IcfesQuestion[] = [
     techniqueTip: "Quarter past = :15. Half past = :30. Quarter to = :45. O'clock = :00."
   },
 ];
+
+ALL_QUESTIONS.push(...EXTRA_QUESTIONS);

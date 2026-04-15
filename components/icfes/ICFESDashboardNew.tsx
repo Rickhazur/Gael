@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { 
   Play, Clock, BarChart3, ChevronRight, Flame, BookOpen, Target,
-  TrendingUp, Award, Zap, Calendar, ArrowRight, RefreshCw, Brain
+  TrendingUp, Award, Zap, Calendar, ArrowRight, RefreshCw, Brain, CheckCircle2
 } from 'lucide-react';
 import { CATEGORY_LABELS, CATEGORY_ICONS, CATEGORY_COLORS, IcfesCategory } from './services/IcfesQuestionBank';
 import { getRepetitionStats, getReviewSummary } from './services/SpacedRepetition';
@@ -108,7 +108,7 @@ export const ICFESDashboardNew: React.FC<ICFESDashboardNewProps> = ({
                 </div>
                 <h2 className="text-xl font-bold mb-2">Descubre tu nivel actual</h2>
                 <p className="text-violet-200 text-sm">
-                  15 preguntas rápidas para conocer en qué eres fuerte y qué puedes mejorar. Sin cronómetro. Sin presión.
+                  50 preguntas completas para evaluar las 5 áreas. Guarda tu progreso automáticamente para que puedas pausar y retomar en cualquier momento.
                 </p>
               </div>
               <button 
@@ -176,6 +176,89 @@ export const ICFESDashboardNew: React.FC<ICFESDashboardNewProps> = ({
             </div>
           );
         })()}
+
+        {/* ─── Daily Study Plan ─── */}
+        <div className="mb-6 animate-fade-in-up">
+          <h2 className="text-xl font-bold text-slate-800 mb-3 flex items-center gap-2">
+            <Calendar className="w-5 h-5 text-[#1B4D3E]" /> Tu Plan para Hoy
+          </h2>
+          <div className="bg-white rounded-2xl border border-slate-200 p-1 shadow-sm">
+            
+            {/* Task 1: Spaced Repetition or Diagnostic */}
+            {(() => {
+              const reviewSummary = getReviewSummary();
+              const stats = getRepetitionStats();
+              const needsReview = stats.dueToday > 0;
+              const isDone = !needsReview && stats.totalCards > 0;
+
+              return (
+                <div className={`p-4 flex items-center justify-between border-b border-slate-100 ${isDone ? 'bg-slate-50' : ''}`}>
+                  <div className="flex items-center gap-3">
+                    <button 
+                      onClick={onStartReview}
+                      className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${isDone ? 'bg-green-500 border-green-500' : 'border-slate-300'}`}
+                      disabled={isDone}
+                    >
+                      {isDone && <CheckCircle2 className="w-4 h-4 text-white" />}
+                    </button>
+                    <div>
+                      <h4 className={`font-bold text-sm ${isDone ? 'text-slate-500 line-through' : 'text-slate-800'}`}>
+                        {stats.totalCards === 0 ? 'Completar Diagnóstico' : 'Repaso Inteligente Diario'}
+                      </h4>
+                      <p className="text-xs text-slate-500">
+                        {stats.totalCards === 0 ? 'Evalúa tu nivel base' : (isDone ? '¡Memoria fortalecida hoy!' : `${stats.dueToday} preguntas pendientes`)}
+                      </p>
+                    </div>
+                  </div>
+                  {!isDone && (stats.totalCards > 0 ? (
+                    <button onClick={onStartReview} className="text-xs font-bold text-violet-600 bg-violet-50 px-3 py-1.5 rounded-lg hover:bg-violet-100">Ir</button>
+                  ) : (
+                    <button onClick={onStartDiagnostic} className="text-xs font-bold text-emerald-600 bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100">Ir</button>
+                  ))}
+                </div>
+              );
+            })()}
+
+            {/* Task 2: Quick Class / Concept */}
+            <div className={`p-4 flex items-center justify-between border-b border-slate-100 ${progress.totalCapsules > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] ? 'bg-slate-50' : ''}`}>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => onStartQuickClass?.()}
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${progress.totalCapsules > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] ? 'bg-green-500 border-green-500' : 'border-slate-300'}`}
+                >
+                  {progress.totalCapsules > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] && <CheckCircle2 className="w-4 h-4 text-white" />}
+                </button>
+                <div>
+                  <h4 className={`font-bold text-sm ${progress.totalCapsules > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] ? 'text-slate-500 line-through' : 'text-slate-800'}`}>1 Clase con Ia Profe Lina</h4>
+                  <p className="text-xs text-slate-500">Aprende o repasa un concepto clave</p>
+                </div>
+              </div>
+              {!(progress.totalCapsules > 0 && progress.lastActivity === new Date().toISOString().split('T')[0]) && (
+                <button onClick={() => onStartQuickClass?.()} className="text-xs font-bold text-blue-600 bg-blue-50 px-3 py-1.5 rounded-lg hover:bg-blue-100">Ir</button>
+              )}
+            </div>
+
+            {/* Task 3: Simulación Corta */}
+            <div className={`p-4 flex items-center justify-between ${progress.totalSimulations > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] ? 'bg-slate-50' : ''}`}>
+              <div className="flex items-center gap-3">
+                <button 
+                  onClick={() => onStartSimulation('quick')}
+                  className={`w-6 h-6 rounded border-2 flex items-center justify-center shrink-0 ${progress.totalSimulations > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] ? 'bg-green-500 border-green-500' : 'border-slate-300'}`}
+                >
+                  {progress.totalSimulations > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] && <CheckCircle2 className="w-4 h-4 text-white" />}
+                </button>
+                <div>
+                  <h4 className={`font-bold text-sm ${progress.totalSimulations > 0 && progress.lastActivity === new Date().toISOString().split('T')[0] ? 'text-slate-500 line-through' : 'text-slate-800'}`}>1 Simulacro Corto</h4>
+                  <p className="text-xs text-slate-500">20 preguntas para medir tu progreso</p>
+                </div>
+              </div>
+              {!(progress.totalSimulations > 0 && progress.lastActivity === new Date().toISOString().split('T')[0]) && (
+                <button onClick={() => onStartSimulation('quick')} className="text-xs font-bold text-[#1B4D3E] bg-emerald-50 px-3 py-1.5 rounded-lg hover:bg-emerald-100">Ir</button>
+              )}
+            </div>
+
+          </div>
+        </div>
 
         {/* ─── Quick Actions ─── */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 animate-fade-in-up stagger-1">

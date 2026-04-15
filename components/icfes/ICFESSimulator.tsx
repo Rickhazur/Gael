@@ -194,8 +194,9 @@ export const ICFESSimulator: React.FC<SimulatorProps> = ({ mode, category, onExi
             >
               <BarChart3 className="w-3.5 h-3.5" /> Mapa
             </button>
-            <div className="flex items-center gap-1.5 text-sm text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg font-mono">
-              <Clock className="w-3.5 h-3.5 text-blue-500" /> {formatTime(elapsed)}
+            <div className={`flex items-center gap-1.5 text-sm bg-slate-50 px-3 py-1.5 rounded-lg font-mono ${isRunningLow ? 'text-red-600 font-bold animate-pulse ring-1 ring-red-400 bg-red-50' : 'text-slate-600'}`}>
+              <Clock className={`w-3.5 h-3.5 ${isRunningLow ? 'text-red-500' : 'text-blue-500'}`} /> 
+              {timeLimit > 0 ? formatTime(remaining) : formatTime(elapsed)}
             </div>
           </div>
         </div>
