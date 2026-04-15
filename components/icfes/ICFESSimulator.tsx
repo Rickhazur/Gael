@@ -26,21 +26,55 @@ export interface SimulationResults {
 }
 
 export const ICFESSimulator: React.FC<SimulatorProps> = ({ mode, category, onExit, onComplete }) => {
+  const SIM_SAVE_KEY = `nova_icfes_sim_${mode}_${category || 'all'}`;
+  
+  const loadSavedSession = () => {
+    try {
+      const saved = localStorage.getItem(SIM_SAVE_KEY);
+      if (saved) return JSON.parse(saved);
+    } catch { return null; }
+    return null;
+  };
+
+  const initialSession = loadSavedSession();
+
   const questionCount = mode === 'quick' ? 20 : mode === 'area' ? 15 : 50;
-  const [questions] = useState<IcfesQuestion[]>(() => getSimulationQuestions(questionCount, category));
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [answers, setAnswers] = useState<Record<string, string>>({});
-  const [eliminatedOptions, setEliminatedOptions] = useState<Record<string, string[]>>({});
+  const [questions] = useState<IcfesQuestion[]>(() => {
+    if (initialSession?.questions) return initialSession.questions;
+    return getSimulationQuestions(questionCount, category);
+  });
+  const [currentIndex, setCurrentIndex] = useState(() => initialSession?.currentIndex || 0);
+  const [answers, setAnswers] = useState<Record<string, string>>(() => initialSession?.answers || {});
+  const [eliminatedOptions, setEliminatedOptions] = useState<Record<string, string[]>>(() => initialSession?.eliminatedOptions || {});
+  const [flagged, setFlagged] = useState<Set<string>>(() => new Set(initialSession?.flagged || []));
+  
   const [isEliminationMode, setIsEliminationMode] = useState(false);
   const [showTip, setShowTip] = useState(false);
-  const [flagged, setFlagged] = useState<Set<string>>(new Set());
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [status, setStatus] = useState<'IDLE' | 'CORRECT' | 'WRONG_SOCRATIC'>('IDLE');
   const [showSocratic, setShowSocratic] = useState(false);
-  const [startTime] = useState(Date.now());
-  const [elapsed, setElapsed] = useState(0);
+  
+  const [startTime] = useState(() => {
+    if (initialSession?.elapsed) return Date.now() - (initialSession.elapsed * 1000);
+    return Date.now();
+  });
+  const [elapsed, setElapsed] = useState(() => initialSession?.elapsed || 0);
   const [showMap, setShowMap] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
+
+  // ─── Auto-Save Effect ───
+  useEffect(() => {
+    // We throttle the saving slightly by using an interval or just relying on state updates
+    const sessionToSave = {
+      questions,
+      currentIndex,
+      answers,
+      eliminatedOptions,
+      flagged: Array.from(flagged),
+      elapsed
+    };
+    localStorage.setItem(SIM_SAVE_KEY, JSON.stringify(sessionToSave));
+  }, [questions, currentIndex, answers, eliminatedOptions, flagged, elapsed, SIM_SAVE_KEY]);
 
   // Timer - with countdown for 'full' mode (4h like real ICFES)
   const TIME_LIMITS: Record<string, number> = { quick: 40 * 60, area: 30 * 60, full: 240 * 60 }; // seconds
@@ -160,6 +194,10 @@ export const ICFESSimulator: React.FC<SimulatorProps> = ({ mode, category, onExi
     }
     localStorage.setItem('nova_icfes_progress', JSON.stringify(updated));
 
+    // Cleanup Auto-Save cleanly
+    const SIM_SAVE_KEY = `nova_icfes_sim_${mode}_${category || 'all'}`;
+    localStorage.removeItem(SIM_SAVE_KEY);
+
     // Feed failed questions into spaced repetition
     processTestResults(questions, answers);
 
@@ -244,18 +282,38 @@ export const ICFESSimulator: React.FC<SimulatorProps> = ({ mode, category, onExi
         </div>
       )}
 
-      {/* Exit Confirmation */}
+      {/* Exit Confirm Modal */}
       {showExitConfirm && (
-        <div className="fixed inset-0 bg-black/30 z-50 flex items-center justify-center p-4">
+        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4 z-50 animate-fade-in">
           <div className="bg-white rounded-2xl p-6 max-w-sm w-full shadow-2xl animate-scale-in">
-            <h3 className="font-bold text-slate-800 text-lg mb-2">¿Salir del simulacro?</h3>
-            <p className="text-sm text-slate-500 mb-5">Tu progreso no se guardará si sales ahora.</p>
-            <div className="flex gap-3">
-              <button onClick={() => setShowExitConfirm(false)} className="nova-btn nova-btn-secondary flex-1 rounded-xl text-sm !py-3">
-                Continuar
+            <h2 className="text-xl font-bold text-slate-800 mb-2">¿Pausar Simulacro?</h2>
+            <p className="text-slate-500 text-sm mb-6">
+              Tu progreso se guardará automáticamente de forma local. Podrás retomar este simulacro exactamente donde lo dejaste la próxima vez.
+            </p>
+            <div className="space-y-3">
+              <button 
+                onClick={() => {
+                  onExit();
+                }}
+                className="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-3 rounded-xl transition"
+              >
+                Sí, salir por ahora
               </button>
-              <button onClick={onExit} className="nova-btn bg-red-50 text-red-600 border-2 border-red-200 flex-1 rounded-xl text-sm !py-3 hover:bg-red-100">
-                Salir
+              <button 
+                onClick={() => {
+                  const SIM_SAVE_KEY = `nova_icfes_sim_${mode}_${category || 'all'}`;
+                  localStorage.removeItem(SIM_SAVE_KEY);
+                  onExit();
+                }}
+                className="w-full bg-red-50 hover:bg-red-100 text-red-600 font-bold py-3 rounded-xl transition"
+              >
+                Salir y descartar simulacro
+              </button>
+              <button 
+                onClick={() => setShowExitConfirm(false)}
+                className="w-full text-slate-500 font-bold py-3 hover:bg-slate-50 rounded-xl transition"
+              >
+                Cancelar
               </button>
             </div>
           </div>
