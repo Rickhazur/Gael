@@ -14,9 +14,7 @@ const PaymentsManagement: React.FC = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
-        whatsapp: '',
         password: '',
-        gradeLevel: DEFAULT_GRADE
     });
 
     const loadStudents = async () => {
@@ -43,7 +41,13 @@ const PaymentsManagement: React.FC = () => {
         e.preventDefault();
 
         try {
-            const res = await adminCreateUser(formData.email, formData.password, formData.name, formData.whatsapp, formData.gradeLevel);
+            const res = await adminCreateUser(
+                formData.email,
+                formData.password,
+                formData.name,
+                "no-email@gael.app", // Default guardian phone/email
+                11 // Default grade level for ICFES
+            );
             if (res.success) {
                 if (res.isVerified) {
                     toast({ title: "Estudiante inscrito", description: "El usuario ha sido creado y está listo." });
@@ -55,7 +59,7 @@ const PaymentsManagement: React.FC = () => {
                     });
                 }
                 setIsModalOpen(false);
-                setFormData({ name: '', email: '', whatsapp: '', password: '', gradeLevel: DEFAULT_GRADE });
+                setFormData({ name: '', email: '', password: '' });
                 loadStudents();
             } else {
                 toast({ title: "Error", description: res.error || "No se pudo inscribir.", variant: "destructive" });
@@ -133,31 +137,6 @@ const PaymentsManagement: React.FC = () => {
                                     onChange={handleInputChange}
                                     className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                     placeholder="Ej: ricardo2024"
-                                />
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Grado Escolar</label>
-                                <select
-                                    name="gradeLevel"
-                                    value={formData.gradeLevel}
-                                    onChange={handleInputChange}
-                                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500 font-bold"
-                                >
-                                    {AVAILABLE_GRADES.map(g => (
-                                        <option key={g} value={g}>Grado {g}°</option>
-                                    ))}
-                                </select>
-                            </div>
-                            <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Email del Acudiente</label>
-                                <input
-                                    name="whatsapp"
-                                    type="email"
-                                    required
-                                    value={formData.whatsapp}
-                                    onChange={handleInputChange}
-                                    className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                                    placeholder="correo@ejemplo.com"
                                 />
                             </div>
                             <div>
