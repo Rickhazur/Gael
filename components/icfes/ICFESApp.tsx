@@ -153,8 +153,8 @@ export const ICFESApp: React.FC<ICFESAppProps> = ({
       case 'landing':
         return (
           <ICFESLanding 
-            onStart={handleDemoLogin}
-            onLogin={() => externalLogin ? externalLogin('STUDENT') : handleDemoLogin()}
+            onStart={() => externalLogin ? externalLogin('STUDENT') : null}
+            onLogin={() => externalLogin ? externalLogin('STUDENT') : null}
           />
         );
 
