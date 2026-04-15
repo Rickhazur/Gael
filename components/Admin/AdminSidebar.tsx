@@ -24,8 +24,7 @@ interface AdminSidebarProps {
 const AdminSidebar: React.FC<AdminSidebarProps> = ({ currentView, onViewChange, onLogout, userName }) => {
     const menuItems = [
         { id: ViewState.DASHBOARD, label: 'Panel de Control', icon: LayoutDashboard },
-        { id: ViewState.GUARDIANS, label: 'Gestión Estudiantes', icon: Users },
-        { id: ViewState.PAYMENTS, label: 'Gestión de Pagos', icon: CreditCard },
+        { id: ViewState.PAYMENTS, label: 'Gestión Estudiantes / Pagos', icon: Users },
         { id: ViewState.STORE, label: 'Gestión Inventario', icon: Package },
         { id: ViewState.REWARDS, label: 'Vista Tienda (Prueba)', icon: Gift }, // Synchronized with student view
         { id: ViewState.T_SESSIONS, label: 'Sesiones de Tutoría', icon: Calendar },

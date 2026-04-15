@@ -522,7 +522,7 @@ const LoginPage: React.FC<LoginPageProps> = ({ onLogin, onBack, defaultMode = 'S
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                                         required
                                         className="w-full bg-slate-800/60 border border-white/10 text-white rounded-xl px-5 py-4 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all placeholder:text-slate-500 font-bold"
-                                        placeholder={mode === 'STUDENT' ? "Tu Correo" : "Tu Correo (Padre)"}
+                                        placeholder={mode === 'STUDENT' ? "Nombre de Usuario" : "Tu Correo (Padre)"}
                                     />
                                     <div className="relative">
                                         <input

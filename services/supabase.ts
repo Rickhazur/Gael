@@ -14,25 +14,30 @@ export const supabase = isOffline ? null : createClient(SUPABASE_URL, SUPABASE_K
    ...
 =================================================== */
 
-export const loginWithSupabase = async (email: string, password: string, intendedRole: string = 'STUDENT') => {
+const AUTH_DOMAIN = 'academia-gael.com';
+
+export const loginWithSupabase = async (emailOrUsername: string, password: string, intendedRole: string = 'STUDENT') => {
   if (!supabase) throw new Error("Sistema desconectado.");
 
-  const normalizedEmail = email.toLowerCase().trim();
-  const isAdminEmail = normalizedEmail === 'rickhazur@gmail.com';
+  let email = emailOrUsername.toLowerCase().trim();
+  // Si no contiene @, asumimos que es un nombre de usuario y le añadimos el dominio interno
+  if (!email.includes('@')) {
+    email = `${email}@${AUTH_DOMAIN}`;
+  }
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error) {
     console.error('Login error:', error);
     if (error.message.includes('Invalid login credentials')) {
-      throw new Error('Correo o contraseña incorrectos. Inténtalo de nuevo.');
+      throw new Error('Usuario o contraseña incorrectos. Inténtalo de nuevo.');
     }
     if (error.message.includes('Email not confirmed')) {
-      throw new Error('⚠️ Tu correo no ha sido verificado. Por favor revisa tu bandeja de entrada y haz clic en el enlace de confirmación antes de entrar.');
+      throw new Error('⚠️ Tu cuenta no ha sido verificada. Por favor revisa tu bandeja de entrada o contacta al administrador.');
     }
     throw error;
   }
 
-  // Fetch profile — handle errors gracefully (RLS may block, profile may not exist)
+  // Fetch profile — handle errors gracefully
   let profile: any = null;
   try {
     const { data: profileData, error: profileError } = await supabase
@@ -41,10 +46,7 @@ export const loginWithSupabase = async (email: string, password: string, intende
       .eq("id", data.user!.id)
       .maybeSingle();
 
-    if (profileError) {
-      console.warn('Profile fetch during login:', profileError.message);
-      // For admin, continue with null profile
-    } else {
+    if (!profileError) {
       profile = profileData;
     }
   } catch (profileErr) {
@@ -52,8 +54,8 @@ export const loginWithSupabase = async (email: string, password: string, intende
   }
 
   let finalRole = profile?.role || intendedRole;
+  const isAdminEmail = email === 'rickhazur@gmail.com';
 
-  // Emergency bypass for primary admin — always override role
   if (isAdminEmail) {
     finalRole = 'ADMIN';
   }
@@ -104,9 +106,14 @@ export const sendPasswordReset = async (email: string) => {
 export const registerStudent = async (data: { email: string; password: string; name: string; gradeLevel: number; guardianPhone?: string; isBilingual?: boolean }) => {
   if (!supabase) throw new Error("Sistema desconectado.");
 
+  let finalEmail = data.email.toLowerCase().trim();
+  if (!finalEmail.includes('@')) {
+    finalEmail = `${finalEmail}@${AUTH_DOMAIN}`;
+  }
+
   // 1. SignUp en Auth
   const { data: authData, error: authError } = await supabase.auth.signUp({
-    email: data.email,
+    email: finalEmail,
     password: data.password,
     options: {
       emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
@@ -306,9 +313,14 @@ export const registerParentAndStudent = async (data: {
 }) => {
   if (!supabase) throw new Error("Sistema desconectado.");
 
+  let finalStudentEmail = data.studentEmail.toLowerCase().trim();
+  if (!finalStudentEmail.includes('@')) {
+    finalStudentEmail = `${finalStudentEmail}@${AUTH_DOMAIN}`;
+  }
+
   // 1. Registrar Estudiante
   const { data: studentAuth, error: studentError } = await supabase.auth.signUp({
-    email: data.studentEmail,
+    email: finalStudentEmail,
     password: data.studentPassword,
     options: {
       data: {
@@ -342,7 +354,7 @@ export const registerParentAndStudent = async (data: {
       grade_level: data.studentGradeLevel,
       is_bilingual: data.isBilingual,
       account_status: 'pending',
-      email: data.studentEmail,
+      email: finalStudentEmail,
       guardian_phone: data.whatsappPhone
     };
 
@@ -735,8 +747,13 @@ export const getManagedStudents = async (parentId: string) => {
 export const linkStudentByEmail = async (studentEmail: string, parentId: string) => {
   if (!supabase) throw new Error("Sistema desconectado.");
 
+  let email = studentEmail.toLowerCase().trim();
+  if (!email.includes('@')) {
+    email = `${email}@${AUTH_DOMAIN}`;
+  }
+
   const { data, error } = await supabase.rpc("link_student_by_email", {
-    student_email_param: studentEmail,
+    student_email_param: email,
     parent_id_param: parentId
   });
 
@@ -1781,36 +1798,63 @@ export const getAllStudents = async () => {
 
 // --- ADMIN USER MANAGEMENT ---
 
-export const adminCreateUser = async (email: string, password: string, name: string, guardianPhone: string, gradeLevel: number = 3) => {
+export const adminCreateUser = async (emailOrUsername: string, password: string, name: string, guardianPhone: string, gradeLevel: number = 3) => {
   if (!supabase) return { success: false, error: 'No connection' };
 
+  let email = emailOrUsername.toLowerCase().trim();
+  if (!email.includes('@')) {
+    email = `${email}@${AUTH_DOMAIN}`;
+  }
+
+  // Crear cliente temporal para no cerrar la sesión del admin principal
+  const tempClient = createClient(SUPABASE_URL, SUPABASE_KEY, {
+    auth: {
+      persistSession: false,
+      autoRefreshToken: false,
+      detectSessionInUrl: false
+    }
+  });
+
   // 1. Create auth user
-  const { data: authData, error: authError } = await supabase.auth.signUp({
+  const { data: authData, error: authError } = await tempClient.auth.signUp({
     email,
     password,
     options: {
-      emailRedirectTo: typeof window !== 'undefined' ? window.location.origin : undefined,
-      data: { name, role: 'STUDENT', level: 'primary', gradeLevel } // Default metadata
+      data: { name, role: 'STUDENT', level: 'primary', gradeLevel }
     }
   });
 
   if (authError) return { success: false, error: authError.message };
   if (!authData.user) return { success: false, error: 'No user created' };
 
-  // 2. Update profile with specific fields that might not be set by trigger
-  const { error: profileError } = await supabase
-    .from('profiles')
-    .update({
-      name,
-      role: 'STUDENT',
-      level: 'primary',
-      grade_level: gradeLevel,
-      guardian_phone: guardianPhone,
-      must_change_password: true
-    })
-    .eq('id', authData.user.id);
+  // 2. Upsert profile (más robusto que update ya que el trigger puede fallar o no existir)
+  const profilePayload: any = {
+    id: authData.user.id,
+    name,
+    role: 'STUDENT',
+    level: 'primary',
+    grade_level: gradeLevel,
+    guardian_phone: guardianPhone,
+    must_change_password: true,
+    account_status: 'active'
+  };
 
-  if (profileError) console.error('Error updating profile:', profileError);
+  try {
+    const { error: profileError } = await supabase
+      .from('profiles')
+      .upsert(profilePayload, { onConflict: 'id' });
+
+    if (profileError) {
+      console.warn('Profile upsert initial attempt error:', profileError.message);
+      // Fallback: Si falla por columnas extra como email (a veces no existe en perfiles)
+      if (profileError.message?.includes('email')) {
+         delete profilePayload.email;
+         await supabase.from('profiles').upsert(profilePayload, { onConflict: 'id' });
+      }
+    }
+  } catch (e) {
+    console.error('Profile upsert exception:', e);
+  }
 
   // 3. Initialize economy
   await supabase.from('economy').upsert({ user_id: authData.user.id, coins: 200 }, { onConflict: 'user_id' });
@@ -1820,7 +1864,7 @@ export const adminCreateUser = async (email: string, password: string, name: str
     uid: authData.user.id,
     isVerified: !!authData.session,
     message: authData.session
-      ? "Usuario creado y logueado."
+      ? "Usuario creado exitosamente. Sesión administrativa preservada."
       : "Usuario creado. Se requiere verificación de correo (revisar configuración de Supabase)."
   };
 };

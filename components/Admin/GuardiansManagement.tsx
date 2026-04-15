@@ -253,7 +253,7 @@ const StudentManagement: React.FC = () => {
                                                 </div>
                                                 <div>
                                                     <div className="font-bold text-stone-900">{student.name}</div>
-                                                    <div className="text-xs text-stone-400">{student.email}</div>
+                                                    <div className="text-xs text-stone-400">@{student.email?.split('@')[0]}</div>
                                                 </div>
                                             </div>
                                         </td>

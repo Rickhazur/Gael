@@ -124,14 +124,15 @@ const PaymentsManagement: React.FC = () => {
                                 />
                             </div>
                             <div>
-                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Correo del Estudiante</label>
+                                <label className="block text-xs font-bold text-stone-500 uppercase mb-1">Usuario del Estudiante</label>
                                 <input
                                     name="email"
-                                    type="email"
+                                    type="text"
                                     required
                                     value={formData.email}
                                     onChange={handleInputChange}
                                     className="w-full p-3 bg-stone-50 border border-stone-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                                    placeholder="Ej: ricardo2024"
                                 />
                             </div>
                             <div>
