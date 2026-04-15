@@ -16,6 +16,7 @@ export const backgroundAuth = isOffline ? null : createClient(SUPABASE_URL, SUPA
     detectSessionInUrl: false
   }
 });
+/* ===================================================
    AUTH - USUARIOS 100% REALES
    ...
 =================================================== */
